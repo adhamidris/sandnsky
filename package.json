@@ -8,7 +8,9 @@
       "build": "vite build",
       "build:dev": "vite build --mode development",
       "lint": "eslint .",
-      "preview": "vite preview"
+      "preview": "vite preview",
+      "tailwind:build": "tailwindcss -c tailwind.config.ts -i ./web/static_src/styles/tailwind.css -o ./static/css/main.css",
+      "tailwind:watch": "tailwindcss -c tailwind.config.ts -i ./web/static_src/styles/tailwind.css -o ./static/css/main.css --watch"
     },
     "dependencies": {
       "@hookform/resolvers": "^3.10.0",
