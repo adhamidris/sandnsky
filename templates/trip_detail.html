@@ -4,136 +4,81 @@
 {% block title %}{{ trip.title }} — Nile Dreams{% endblock %}
 
 {% block content %}
-<section class="relative h-[60vh] overflow-hidden">
-  <img src="{% static trip.image %}" alt="{{ trip.title }}" class="absolute inset-0 h-full w-full object-cover" />
-  <div class="absolute inset-0 bg-black/40"></div>
-  <div class="relative z-10 flex h-full items-end">
-    <div class="mx-auto w-full max-w-7xl px-4 pb-12">
-      <a href="{% url 'web:trips' %}" class="mb-4 inline-flex items-center gap-2 text-sm font-medium text-white transition-colors hover:text-white/80">
-        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" d="m15 19-7-7 7-7" />
-        </svg>
-        Back to all trips
-      </a>
-      <span class="mb-4 inline-flex items-center rounded-full bg-primary px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary-foreground">{{ trip.category }}</span>
-      <h1 class="font-serif text-4xl text-white md:text-5xl">{{ trip.title }}</h1>
-      <p class="mt-4 max-w-3xl text-lg text-white/90">{{ trip.description }}</p>
-    </div>
-  </div>
-</section>
+<header class="relative isolate overflow-hidden bg-black text-white">
+  <img src="{% static trip.hero_image %}" alt="{{ trip.title }}" class="absolute inset-0 h-full w-full object-cover opacity-80" />
+  <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/80"></div>
 
-<section class="bg-background px-4 py-16 sm:px-6 lg:px-8">
-  <div class="mx-auto max-w-7xl">
-    <div class="grid gap-12 lg:grid-cols-3">
-      <article class="space-y-12 lg:col-span-2">
-        <div class="grid grid-cols-2 gap-6 md:grid-cols-4">
-          <div class="rounded-lg bg-muted p-4 text-center">
-            <div class="mb-2 flex justify-center text-primary">
-              <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-6v6l4 2" />
-              </svg>
-            </div>
-            <p class="text-sm text-muted-foreground">Duration</p>
-            <p class="font-semibold text-foreground">{{ trip.duration }}</p>
-          </div>
-          <div class="rounded-lg bg-muted p-4 text-center">
-            <div class="mb-2 flex justify-center text-primary">
-              <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M16 17v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1" />
-                <circle cx="8" cy="7" r="3" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M22 17v-1a4 4 0 0 0-3-3.87" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a3 3 0 0 1-2 2.82" />
-              </svg>
-            </div>
-            <p class="text-sm text-muted-foreground">Group Size</p>
-            <p class="font-semibold text-foreground">{{ trip.group_size }}</p>
-          </div>
-          <div class="rounded-lg bg-muted p-4 text-center">
-            <div class="mb-2 flex justify-center text-primary">
-              <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.25 6 3h12l.75 2.25M5.25 5.25h13.5M5.25 5.25 4.5 8.25m15-3-1.5 6m0 0H6.75m11.25 0 1.125 4.5A2.25 2.25 0 0 1 16.95 18H7.05a2.25 2.25 0 0 1-2.175-1.5L6 8.25m0 0L4.875 12.75M9 21h6" />
-              </svg>
-            </div>
-            <p class="text-sm text-muted-foreground">Location</p>
-            <p class="font-semibold text-foreground">{{ trip.location }}</p>
-          </div>
-          <div class="rounded-lg bg-muted p-4 text-center">
-            <div class="mb-2 flex justify-center text-primary">
-              <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 5.25c0-.621.504-1.125 1.125-1.125h15.75c.621 0 1.125.504 1.125 1.125v13.5c0 .621-.504 1.125-1.125 1.125H4.125A1.125 1.125 0 0 1 3 18.75V5.25ZM3 9h18" />
-              </svg>
-            </div>
-            <p class="text-sm text-muted-foreground">Guest Rating</p>
-            <p class="font-semibold text-foreground">{{ trip.rating }}</p>
+  <div class="relative z-10 mx-auto max-w-7xl px-4 pb-16 pt-28 sm:px-6 lg:px-8">
+    <nav class="flex items-center gap-2 text-sm text-white/70" aria-label="Breadcrumb">
+      {% for crumb in trip.breadcrumbs %}
+      {% if crumb.url %}
+      <a href="{{ crumb.url }}" class="hover:text-white">{{ crumb.label }}</a>
+      <span aria-hidden="true">›</span>
+      {% else %}
+      <span aria-current="page" class="text-white">{{ crumb.label }}</span>
+      {% endif %}
+      {% endfor %}
+    </nav>
+
+    <div class="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
+      <div class="space-y-8">
+        <div class="space-y-4">
+          <h1 class="font-serif text-4xl leading-tight sm:text-5xl">{{ trip.title }}</h1>
+          <div class="flex flex-wrap items-center gap-3 text-sm text-white/85">
+            {% for fact in trip.key_facts %}
+            <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1">
+              <span aria-hidden="true">{{ fact.icon }}</span>
+              <span class="font-medium">{{ fact.label }}</span>
+              <span class="sr-only">{{ fact.sr }}</span>
+            </span>
+            {% endfor %}
           </div>
         </div>
 
-        <section>
-          <h2 class="font-serif text-3xl text-foreground">Tour Highlights</h2>
-          <div class="mt-6 grid gap-4 md:grid-cols-2">
-            {% for highlight in trip.highlights %}
-            <div class="flex items-start gap-3">
-              <svg class="mt-1 h-5 w-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-              </svg>
-              <p class="text-muted-foreground">{{ highlight }}</p>
-            </div>
-            {% endfor %}
+        <div class="flex flex-wrap items-center gap-6 text-sm">
+          <span class="inline-flex items-center gap-2 text-white/90">
+            <span aria-hidden="true">⭐</span>
+            <span>{{ trip.review_summary }}</span>
+          </span>
+          <div class="flex items-center gap-4 text-white/80">
+            <button type="button" class="inline-flex items-center gap-2 hover:text-white">
+              <span aria-hidden="true">⇪</span>
+              <span>Share</span>
+            </button>
+            <button type="button" class="inline-flex items-center gap-2 hover:text-white">
+              <span aria-hidden="true">♡</span>
+              <span>Save</span>
+            </button>
           </div>
-        </section>
+        </div>
 
-        <section>
-          <h2 class="font-serif text-3xl text-foreground">Itinerary</h2>
-          <div class="mt-6 space-y-4">
-            {% for item in trip.itinerary %}
-            <div class="flex gap-4 rounded-lg bg-muted p-4">
-              <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold">{{ forloop.counter }}</div>
-              <div>
-                <p class="font-semibold text-foreground">{{ item.time }}</p>
-                <p class="text-muted-foreground">{{ item.activity }}</p>
-              </div>
-            </div>
-            {% endfor %}
-          </div>
-        </section>
-
-        <section class="grid gap-8 md:grid-cols-2">
-          <div>
-            <h3 class="font-serif text-xl text-foreground">What's Included</h3>
-            <ul class="mt-4 space-y-3 text-muted-foreground">
-              {% for item in trip.included %}
-              <li class="flex items-start gap-2">
-                <svg class="mt-1 h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="m5 13 4 4L19 7" />
-                </svg>
-                <span>{{ item }}</span>
-              </li>
+        <div id="overview" class="space-y-4 text-base text-white/90">
+          {% if trip.lead %}
+          <p class="text-lg font-medium">{{ trip.lead }}</p>
+          {% endif %}
+          {% if trip.overview_paragraphs %}
+          <details class="group overflow-hidden rounded-lg bg-white/10 p-4">
+            <summary class="cursor-pointer text-sm font-semibold uppercase tracking-wide text-white/80">Read more</summary>
+            <div class="mt-3 space-y-3 text-white/80">
+              {% for paragraph in trip.overview_paragraphs %}
+              <p>{{ paragraph }}</p>
               {% endfor %}
-            </ul>
-          </div>
-          <div>
-            <h3 class="font-serif text-xl text-foreground">Not Included</h3>
-            <ul class="mt-4 space-y-3 text-muted-foreground">
-              {% for item in trip.not_included %}
-              <li class="flex items-start gap-2">
-                <span class="mt-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-muted text-xs font-semibold text-muted-foreground">×</span>
-                <span>{{ item }}</span>
-              </li>
-              {% endfor %}
-            </ul>
-          </div>
-        </section>
-      </article>
+            </div>
+          </details>
+          {% endif %}
+        </div>
+      </div>
 
-      <aside class="lg:col-span-1">
-        <div class="sticky top-24 space-y-6 rounded-lg bg-muted p-6">
-          <div>
-            <p class="text-3xl font-serif text-primary">{{ trip.price }}<span class="text-sm text-muted-foreground font-sans"> / person</span></p>
-            <p class="mt-2 text-sm text-muted-foreground">{{ trip.booking_note }}</p>
+      <aside class="lg:sticky lg:top-24">
+        <div class="rounded-2xl border border-white/10 bg-white/95 p-6 text-sm text-foreground shadow-2xl">
+          <div class="space-y-1">
+            <p class="text-xs uppercase tracking-wide text-muted-foreground">From</p>
+            <p class="text-3xl font-serif text-primary">{{ pricing.base_price_display }}</p>
+            <p class="text-xs text-muted-foreground">Per traveler · Taxes included</p>
           </div>
 
           {% if messages %}
-          <div class="space-y-3">
+          <div class="mt-4 space-y-3">
             {% for message in messages %}
             <div class="rounded-md border px-4 py-3 text-sm {% if message.tags == 'success' %}border-green-300 bg-green-50 text-green-700{% elif message.tags == 'error' %}border-red-300 bg-red-50 text-red-700{% else %}border-border bg-background text-foreground{% endif %}">
               {{ message }}
@@ -142,52 +87,329 @@
           </div>
           {% endif %}
 
-          <form action="" method="post" class="space-y-4" id="booking-form" data-module="booking-form">
+          <form action="" method="post" class="mt-5 space-y-5" id="booking-form" data-module="booking-form" data-base-price="{{ pricing.base_price }}" data-currency-symbol="{{ pricing.currency_symbol }}">
             {% csrf_token %}
             {% if form.non_field_errors %}
             <div class="rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
               {{ form.non_field_errors|striptags }}
             </div>
             {% endif %}
-            {% for field in form %}
-            <div>
-              <label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-medium text-foreground">{{ field.label }}</label>
-              {{ field }}
-              {% if field.errors %}
-              <p class="mt-2 text-sm text-red-600">{{ field.errors|striptags }}</p>
+
+            <div class="space-y-3">
+              <label class="text-sm font-semibold text-foreground" for="{{ form.date.id_for_label }}">{{ form.date.label }}</label>
+              {{ form.date }}
+              {% if form.date.errors %}
+              <p class="text-sm text-red-600">{{ form.date.errors|striptags }}</p>
+              {% else %}
+              <p class="text-xs text-muted-foreground">Choose your date to confirm availability.</p>
               {% endif %}
             </div>
-            {% endfor %}
-            <button type="submit" class="inline-flex w-full items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">Request Itinerary</button>
+
+            <div class="space-y-3">
+              <p class="text-sm font-semibold text-foreground">Travelers</p>
+              <div class="space-y-3">
+                <div class="flex items-center justify-between rounded-lg border border-border bg-background px-3 py-2">
+                  <div>
+                    <p class="text-sm font-medium">Adults</p>
+                    <p class="text-xs text-muted-foreground">12+ years</p>
+                  </div>
+                  <div class="flex items-center gap-2" data-counter>
+                    <button type="button" class="h-8 w-8 rounded-full border border-border text-lg" data-counter-dec aria-label="Decrease adults">−</button>
+                    {{ form.adults }}
+                    <button type="button" class="h-8 w-8 rounded-full border border-border text-lg" data-counter-inc aria-label="Increase adults">+</button>
+                  </div>
+                </div>
+                <div class="flex items-center justify-between rounded-lg border border-border bg-background px-3 py-2">
+                  <div>
+                    <p class="text-sm font-medium">Children</p>
+                    <p class="text-xs text-muted-foreground">3–11 years</p>
+                  </div>
+                  <div class="flex items-center gap-2" data-counter>
+                    <button type="button" class="h-8 w-8 rounded-full border border-border text-lg" data-counter-dec aria-label="Decrease children">−</button>
+                    {{ form.children }}
+                    <button type="button" class="h-8 w-8 rounded-full border border-border text-lg" data-counter-inc aria-label="Increase children">+</button>
+                  </div>
+                </div>
+                <div class="flex items-center justify-between rounded-lg border border-border bg-background px-3 py-2">
+                  <div>
+                    <p class="text-sm font-medium">Infants</p>
+                    <p class="text-xs text-muted-foreground">0–2 years</p>
+                  </div>
+                  <div class="flex items-center gap-2" data-counter>
+                    <button type="button" class="h-8 w-8 rounded-full border border-border text-lg" data-counter-dec aria-label="Decrease infants">−</button>
+                    {{ form.infants }}
+                    <button type="button" class="h-8 w-8 rounded-full border border-border text-lg" data-counter-inc aria-label="Increase infants">+</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-3">
+              <p class="text-sm font-semibold text-foreground">Optional extras</p>
+              <div class="space-y-2">
+                {% if trip.extras %}
+                {% for extra in trip.extras %}
+                <label class="flex items-start justify-between gap-4 rounded-lg border border-border bg-background px-4 py-3">
+                  <span class="flex items-start gap-3">
+                    <input type="checkbox" name="extras" value="{{ extra.id }}" {% if extra.selected %}checked{% endif %} class="mt-1 h-4 w-4 rounded border-border" data-extra-price="{{ extra.price }}" />
+                    <span class="text-sm text-foreground">
+                      <span class="font-medium">{{ extra.label }}</span>
+                    </span>
+                  </span>
+                  <span class="text-sm font-semibold text-foreground">{{ extra.price_display }}</span>
+                </label>
+                {% endfor %}
+                {% else %}
+                <p class="text-xs text-muted-foreground">No add-ons available for this experience.</p>
+                {% endif %}
+              </div>
+              {% if form.extras.errors %}
+              <p class="text-sm text-red-600">{{ form.extras.errors|striptags }}</p>
+              {% endif %}
+            </div>
+
+            <div class="space-y-3">
+              <label for="{{ form.name.id_for_label }}" class="text-sm font-semibold text-foreground">{{ form.name.label }}</label>
+              {{ form.name }}
+              {% if form.name.errors %}
+              <p class="text-sm text-red-600">{{ form.name.errors|striptags }}</p>
+              {% endif %}
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label for="{{ form.email.id_for_label }}" class="text-sm font-semibold text-foreground">{{ form.email.label }}</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                <p class="text-sm text-red-600">{{ form.email.errors|striptags }}</p>
+                {% endif %}
+              </div>
+              <div>
+                <label for="{{ form.phone.id_for_label }}" class="text-sm font-semibold text-foreground">{{ form.phone.label }}</label>
+                {{ form.phone }}
+                {% if form.phone.errors %}
+                <p class="text-sm text-red-600">{{ form.phone.errors|striptags }}</p>
+                {% endif %}
+              </div>
+            </div>
+
+            <div>
+              <label for="{{ form.message.id_for_label }}" class="text-sm font-semibold text-foreground">{{ form.message.label }}</label>
+              {{ form.message }}
+              {% if form.message.errors %}
+              <p class="text-sm text-red-600">{{ form.message.errors|striptags }}</p>
+              {% endif %}
+            </div>
+
+            <div class="space-y-2 rounded-lg bg-background p-4 text-sm">
+              <div class="flex items-center justify-between text-muted-foreground">
+                <span>Base</span>
+                <span data-booking-base>{{ pricing.base_total_display }}</span>
+              </div>
+              <div class="flex items-center justify-between text-muted-foreground">
+                <span>Extras</span>
+                <span data-booking-extras>{{ pricing.extras_total_display }}</span>
+              </div>
+              <div class="border-t border-border pt-3">
+                <p class="flex items-center justify-between text-base font-semibold text-foreground">
+                  <span>Total</span>
+                  <span data-booking-total>{{ pricing.total_display }}</span>
+                </p>
+                <p class="text-xs text-muted-foreground">Charged in {{ pricing.currency|upper }}.</p>
+              </div>
+            </div>
+
+            <button type="submit" class="inline-flex w-full items-center justify-center rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
+              Book Now
+            </button>
+            <p class="text-center text-xs text-muted-foreground">
+              Prefer to talk to someone? <a href="tel:+201234567890" class="font-semibold text-primary hover:text-accent">Call us</a> or <a href="mailto:info@niledreams.com" class="font-semibold text-primary hover:text-accent">send an inquiry</a>.
+            </p>
           </form>
 
-          <div class="rounded-md bg-background p-4 text-sm text-muted-foreground">
-            <p class="font-semibold text-foreground">Need help planning?</p>
-            <p class="mt-1">Speak with our travel specialists to tailor this experience to your schedule.</p>
-            <p class="mt-4">
-              <a href="mailto:info@niledreams.com" class="text-primary underline hover:text-accent">info@niledreams.com</a>
-            </p>
+          <div class="mt-6 grid gap-3 sm:grid-cols-3">
+            {% for action in trip.contact_actions %}
+            <a href="{{ action.href }}" class="inline-flex items-center justify-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground hover:border-primary/60" aria-label="{{ action.aria }}">
+              <span class="uppercase tracking-wide">{{ action.label }}</span>
+            </a>
+            {% endfor %}
           </div>
         </div>
-
-        {% if other_trips %}
-        <div class="mt-12 space-y-4">
-          <h3 class="font-serif text-xl text-foreground">Other Experiences</h3>
-          <ul class="space-y-4">
-            {% for other in other_trips %}
-            <li class="rounded-lg border border-border p-4 transition-colors hover:border-primary/60 hover:shadow-sm">
-              <a href="{% url 'web:trip-detail' other.slug %}" class="block">
-                <p class="text-sm uppercase tracking-wide text-muted-foreground">{{ other.category }}</p>
-                <p class="mt-1 font-semibold text-foreground">{{ other.title }}</p>
-                <p class="mt-2 text-sm text-muted-foreground">{{ other.description }}</p>
-              </a>
-            </li>
-            {% endfor %}
-          </ul>
-        </div>
-        {% endif %}
       </aside>
     </div>
   </div>
+
+  <div class="lg:hidden">
+    <div class="fixed inset-x-4 bottom-4 z-40 flex items-center justify-between rounded-full bg-white px-5 py-3 shadow-xl">
+      <div class="text-sm">
+        <p class="font-semibold text-foreground">{{ pricing.base_price_display }}</p>
+        <p class="text-xs text-muted-foreground">{{ trip.tour_length }}</p>
+      </div>
+      <a href="#booking-form" class="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">Book</a>
+    </div>
+  </div>
+</header>
+
+{% if trip.anchor_nav %}
+<nav class="sticky top-16 z-20 hidden bg-background/95 shadow-sm backdrop-blur lg:block" aria-label="Section navigation">
+  <div class="mx-auto flex max-w-7xl items-center gap-6 px-4 py-3 text-sm text-muted-foreground">
+    {% for anchor in trip.anchor_nav %}
+    <a href="#{{ anchor.target }}" class="hover:text-primary">{{ anchor.label }}</a>
+    {% endfor %}
+  </div>
+</nav>
+{% endif %}
+
+<section id="highlights" class="bg-background px-4 py-16 sm:px-6 lg:px-8">
+  <div class="mx-auto max-w-7xl">
+    <h2 class="font-serif text-3xl text-foreground">Trip highlights</h2>
+    <div class="mt-8 grid gap-6 md:grid-cols-2">
+      {% for highlight in trip.highlights %}
+      <div class="flex items-start gap-3 rounded-lg border border-border bg-card/70 p-4">
+        <span class="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary">✓</span>
+        <p class="text-sm text-muted-foreground">{{ highlight }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
 </section>
+
+<section id="itinerary" class="bg-muted/40 px-4 py-16 sm:px-6 lg:px-8">
+  <div class="mx-auto max-w-7xl">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-baseline sm:justify-between">
+      <h2 class="font-serif text-3xl text-foreground">Day-by-day itinerary</h2>
+      <button type="button" class="text-sm font-medium text-primary" data-expand-itinerary>Expand all</button>
+    </div>
+    <div class="mt-8 space-y-4">
+      {% for day in trip.itinerary_days %}
+      <details class="group overflow-hidden rounded-2xl border border-border bg-card" {% if forloop.first %}open{% endif %}>
+        <summary class="flex cursor-pointer items-center justify-between gap-4 px-6 py-4 text-left">
+          <div>
+            <p class="text-xs uppercase tracking-wide text-muted-foreground">{{ day.title }}</p>
+            <p class="text-lg font-semibold text-foreground">{{ day.summary }}</p>
+          </div>
+          <span class="text-xl text-muted-foreground transition-transform group-open:rotate-45" aria-hidden="true">+</span>
+        </summary>
+        <div class="space-y-4 border-t border-border bg-background px-6 py-6">
+          {% for activity in day.activities %}
+          <div class="flex gap-4">
+            <div class="w-20 flex-shrink-0 text-sm font-semibold text-primary">{{ activity.time }}</div>
+            <div>
+              <p class="text-sm font-semibold text-foreground">{{ activity.title }}</p>
+              <p class="text-sm text-muted-foreground">{{ activity.description }}</p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </details>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section id="included" class="bg-background px-4 py-16 sm:px-6 lg:px-8">
+  <div class="mx-auto max-w-7xl">
+    <h2 class="font-serif text-3xl text-foreground">What's included</h2>
+    <div class="mt-8 grid gap-8 lg:grid-cols-2">
+      <div class="space-y-3">
+        <h3 class="text-lg font-semibold text-foreground">Included</h3>
+        <ul class="space-y-3 text-sm text-muted-foreground">
+          {% for item in trip.included %}
+          <li class="flex items-start gap-3">
+            <span class="mt-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary">✓</span>
+            <span>{{ item }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="space-y-3">
+        <h3 class="text-lg font-semibold text-foreground">Not included</h3>
+        <ul class="space-y-3 text-sm text-muted-foreground">
+          {% for item in trip.not_included %}
+          <li class="flex items-start gap-3">
+            <span class="mt-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-muted text-xs font-semibold text-muted-foreground">×</span>
+            <span>{{ item }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faqs" class="bg-muted/30 px-4 py-16 sm:px-6 lg:px-8">
+  <div class="mx-auto max-w-7xl">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <h2 class="font-serif text-3xl text-foreground">Frequently asked questions</h2>
+      <button type="button" class="text-sm font-medium text-primary" data-expand-faq>Expand all</button>
+    </div>
+    <div class="mt-8 space-y-4">
+      {% for faq in trip.faqs %}
+      <details class="rounded-2xl border border-border bg-background px-6 py-4" {% if forloop.first %}open{% endif %}>
+        <summary class="cursor-pointer text-base font-semibold text-foreground">
+          {{ faq.question }}
+        </summary>
+        <p class="mt-3 text-sm text-muted-foreground">{{ faq.answer }}</p>
+      </details>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section id="reviews" class="bg-background px-4 py-16 sm:px-6 lg:px-8">
+  <div class="mx-auto max-w-7xl">
+    <div class="space-y-6">
+      <h2 class="font-serif text-3xl text-foreground">Guest reviews</h2>
+      {% if trip.has_reviews %}
+      <p class="text-sm text-muted-foreground">Reviews placeholder</p>
+      {% else %}
+      <div class="flex flex-col items-start gap-4 rounded-2xl border border-dashed border-border bg-muted/40 px-6 py-8 text-muted-foreground">
+        <p class="text-lg font-semibold text-foreground">No reviews yet — be the first!</p>
+        <p class="text-sm">We're still collecting stories from travelers. Share yours to help others choose the perfect experience.</p>
+        <button type="button" class="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary/60">Write a review</button>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<section class="bg-background px-4 pb-16 sm:px-6 lg:px-8">
+  <div class="mx-auto max-w-7xl">
+    <h2 class="font-serif text-3xl text-foreground">Need help?</h2>
+    <p class="mt-4 text-sm text-muted-foreground">Our travel specialists are on hand seven days a week.</p>
+    <div class="mt-6 flex flex-wrap items-center gap-3">
+      {% for action in trip.contact_actions %}
+      <a href="{{ action.href }}" class="inline-flex items-center justify-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary/60" aria-label="{{ action.aria }}">
+        {{ action.label }}
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% if other_trips %}
+<section class="bg-muted/20 px-4 pb-16 sm:px-6 lg:px-8">
+  <div class="mx-auto max-w-7xl">
+    <h2 class="font-serif text-3xl text-foreground">You may also like</h2>
+    <div class="mt-8 grid gap-6 md:grid-cols-3">
+      {% for other in other_trips %}
+      <article class="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+        <a href="{% url 'web:trip-detail' other.slug %}" class="flex h-full flex-col">
+          <img src="{% static other.image %}" alt="{{ other.title }}" class="h-48 w-full object-cover" />
+          <div class="flex flex-1 flex-col gap-3 p-4 text-sm">
+            <span class="text-xs uppercase tracking-wide text-muted-foreground">{{ other.category }}</span>
+            <h3 class="font-semibold text-foreground">{{ other.title }}</h3>
+            <p class="text-muted-foreground">{{ other.description }}</p>
+            <div class="mt-auto flex items-center justify-between text-muted-foreground">
+              <span>{{ other.duration }}</span>
+              <span class="font-semibold text-primary">{{ other.price }}</span>
+            </div>
+          </div>
+        </a>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
 {% endblock %}
