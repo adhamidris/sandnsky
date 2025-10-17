@@ -126,32 +126,6 @@
     </div>
   </div>
 </section>
-{% if destination_gallery %}
-<section class="bg-background px-4 pb-16 pt-2 sm:px-6 lg:px-8">
-  <div class="mx-auto max-w-7xl space-y-8">
-    <div class="space-y-2 text-left">
-      <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Gallery</p>
-      <div class="flex flex-wrap items-end justify-between gap-3">
-        <h2 class="font-serif text-3xl text-foreground">Scenes from {{ selected_destination.name }}</h2>
-        <span class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">{{ destination_gallery|length }} image{% if destination_gallery|length != 1 %}s{% endif %}</span>
-      </div>
-      <p class="text-sm leading-relaxed text-muted-foreground">A curated glimpse of the landscapes, textures, and moments waiting for you.</p>
-    </div>
-    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-      {% for item in destination_gallery %}
-      <figure class="group relative overflow-hidden rounded-2xl border border-border/60 bg-card/80 shadow-subtle">
-        <img src="{{ item.image_url }}" alt="{{ selected_destination.name }} gallery image {{ forloop.counter }}" class="h-72 w-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
-        {% if item.caption %}
-        <figcaption class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent p-4 text-sm font-medium text-white/90">
-          {{ item.caption }}
-        </figcaption>
-        {% endif %}
-      </figure>
-      {% endfor %}
-    </div>
-  </div>
-</section>
-{% endif %}
 {% endif %}
 
 <section id="trip-list" class="bg-background px-4 pb-28 sm:px-6 lg:px-8 {% if selected_destination %}pt-6 md:pt-10{% else %}pt-24{% endif %}">
@@ -225,4 +199,30 @@
     {% endif %}
   </div>
 </section>
+{% if destination_gallery %}
+<section class="bg-background px-4 pb-20 pt-10 sm:px-6 lg:px-8">
+  <div class="mx-auto max-w-7xl space-y-8">
+    <div class="space-y-2 text-left">
+      <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Gallery</p>
+      <div class="flex flex-wrap items-end justify-between gap-3">
+        <h2 class="font-serif text-3xl text-foreground">Scenes from {{ selected_destination.name }}</h2>
+        <span class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">{{ destination_gallery|length }} image{% if destination_gallery|length != 1 %}s{% endif %}</span>
+      </div>
+      <p class="text-sm leading-relaxed text-muted-foreground">A curated glimpse of the landscapes, textures, and moments waiting for you.</p>
+    </div>
+    <div class="gallery-grid grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {% for item in destination_gallery %}
+      <figure class="gallery-card group relative overflow-hidden rounded-2xl border border-border/60 bg-card/80 shadow-subtle {% if item.is_landscape %}gallery-card--landscape{% endif %}">
+        <img src="{{ item.image_url }}" alt="{{ selected_destination.name }} gallery image {{ forloop.counter }}" class="gallery-card__image transition-transform duration-500 group-hover:scale-110" loading="lazy" />
+        {% if item.caption %}
+        <figcaption class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent p-4 text-sm font-medium text-white/90">
+          {{ item.caption }}
+        </figcaption>
+        {% endif %}
+      </figure>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
 {% endblock %}
