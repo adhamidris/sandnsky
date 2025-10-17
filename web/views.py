@@ -150,28 +150,37 @@ class HomePageView(TemplateView):
         }
 
         context["about_section"] = {
-            "title": "Why Choose Nile Dreams",
-            "subtitle": "We're passionate about creating extraordinary experiences in Egypt",
+            "title": "About Sand & Sky",
+            "subtitle": (
+                "Sand & Sky is a boutique travel agency devoted exclusively to the magic of the Egyptian "
+                "Sahara. We craft immersive journeys that capture the soul of Egypt's most breathtaking desert "
+                "landscapes - from the tranquil oases of Siwa, Fayoum, Bahariya, and Farafra to the surreal beauty "
+                "of the White and Black Deserts."
+            ),
             "features": [
                 {
                     "badge": "EG",
-                    "title": "Expert Guides",
-                    "description": "Licensed Egyptologists and local experts bring history to life.",
+                    "icon": "expert-guides",
+                    "title": "Expert guides",
+                    "description": "Licensed Egyptologists and desert naturalists reveal stories beneath the dunes.",
                 },
                 {
                     "badge": "SS",
-                    "title": "Safe & Secure",
-                    "description": "Your safety is our priority with comprehensive travel support.",
+                    "icon": "licensed-operators",
+                    "title": "Licensed tour operators",
+                    "description": "Every expedition is fully permitted and supported by veteran Sahara operators.",
                 },
                 {
                     "badge": "PS",
-                    "title": "Personalized Service",
-                    "description": "Tailored itineraries designed around your interests and pace.",
+                    "icon": "personalized-service",
+                    "title": "Personalized service",
+                    "description": "We tailor each itinerary to your pace, passions, and preferred level of adventure.",
                 },
                 {
                     "badge": "SG",
-                    "title": "Small Groups",
-                    "description": "Intimate group sizes ensure a more personal experience.",
+                    "icon": "comfort",
+                    "title": "Sleep & travel in comfort",
+                    "description": "Private camps, boutique lodges, and plush transfers keep every desert mile effortless.",
                 },
             ],
         }

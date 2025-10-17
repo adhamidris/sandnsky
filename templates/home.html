@@ -6,4 +6,140 @@
 {% include "includes/hero.html" with hero=hero %}
 {% include "includes/destinations.html" with destinations_section=destinations_section %}
 {% include "includes/about.html" with about_section=about_section %}
+{% include "includes/testimonials.html" %}
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+<script>
+(function () {
+  var slider = document.querySelector('[data-testimonials]');
+  if (!slider) {
+    return;
+  }
+
+  var cards = slider.querySelectorAll('[data-testimonial]');
+  var dots = slider.querySelectorAll('[data-testimonial-dot]');
+  if (!cards.length) {
+    return;
+  }
+
+  var interval = parseInt(slider.dataset.interval, 10);
+  if (Number.isNaN(interval) || interval <= 0) {
+    interval = 6000;
+  }
+
+  var current = 0;
+  var timer = null;
+
+  cards.forEach(function (card, index) {
+    card.setAttribute('aria-hidden', index === 0 ? 'false' : 'true');
+    if (index === 0) {
+      card.classList.add('is-active');
+    } else {
+      card.classList.remove('is-active');
+    }
+  });
+
+  dots.forEach(function (dot, index) {
+    if (index === 0) {
+      dot.classList.add('is-active');
+      dot.setAttribute('aria-selected', 'true');
+      dot.setAttribute('tabindex', '0');
+    } else {
+      dot.classList.remove('is-active');
+      dot.setAttribute('aria-selected', 'false');
+      dot.setAttribute('tabindex', '-1');
+    }
+  });
+
+  function setActive(nextIndex, options) {
+    if (nextIndex === current) {
+      return;
+    }
+
+    cards[current].classList.remove('is-active');
+    cards[current].setAttribute('aria-hidden', 'true');
+    if (dots[current]) {
+      dots[current].classList.remove('is-active');
+      dots[current].setAttribute('aria-selected', 'false');
+      dots[current].setAttribute('tabindex', '-1');
+    }
+
+    current = nextIndex;
+    cards[current].classList.add('is-active');
+    cards[current].setAttribute('aria-hidden', 'false');
+    if (dots[current]) {
+      dots[current].classList.add('is-active');
+      dots[current].setAttribute('aria-selected', 'true');
+      dots[current].setAttribute('tabindex', '0');
+      if (options && options.focusDot) {
+        dots[current].focus();
+      }
+    }
+  }
+
+  function showNext() {
+    var next = (current + 1) % cards.length;
+    setActive(next);
+  }
+
+  function stopTimer() {
+    if (timer) {
+      window.clearInterval(timer);
+      timer = null;
+    }
+  }
+
+  function startTimer() {
+    stopTimer();
+    timer = window.setInterval(showNext, interval);
+  }
+
+  dots.forEach(function (dot, index) {
+    dot.addEventListener('click', function () {
+      stopTimer();
+      setActive(index);
+      startTimer();
+    });
+
+    dot.addEventListener('keydown', function (event) {
+      var key = event.key;
+      if (key !== 'ArrowRight' && key !== 'ArrowLeft' && key !== 'Home' && key !== 'End') {
+        return;
+      }
+
+      event.preventDefault();
+      stopTimer();
+
+      if (key === 'ArrowRight') {
+        setActive((current + 1) % cards.length, { focusDot: true });
+      } else if (key === 'ArrowLeft') {
+        setActive((current - 1 + cards.length) % cards.length, { focusDot: true });
+      } else if (key === 'Home') {
+        setActive(0, { focusDot: true });
+      } else if (key === 'End') {
+        setActive(cards.length - 1, { focusDot: true });
+      }
+
+      startTimer();
+    });
+  });
+
+  slider.addEventListener('mouseenter', stopTimer);
+  slider.addEventListener('mouseleave', startTimer);
+  slider.addEventListener('focusin', stopTimer);
+  slider.addEventListener('focusout', startTimer);
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) {
+      stopTimer();
+    } else {
+      startTimer();
+    }
+  });
+
+  startTimer();
+})();
+</script>
 {% endblock %}
