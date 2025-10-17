@@ -1,4 +1,5 @@
 from django import forms
+from django.utils import timezone
 
 
 def _default_classes():
@@ -35,6 +36,7 @@ class BookingRequestForm(forms.Form):
         super().__init__(*args, **kwargs)
 
         classes = _default_classes()
+        today = timezone.localdate()
         for field_name, field in self.fields.items():
             widget = field.widget
             existing_class = widget.attrs.get("class", "")
@@ -58,6 +60,11 @@ class BookingRequestForm(forms.Form):
 
         self.fields["phone"].widget.attrs.setdefault("type", "tel")
         self.fields["message"].widget.attrs.setdefault("placeholder", "Tell us about any preferences or requirements")
+
+        self.fields["date"].widget.attrs.setdefault("min", today.isoformat())
+        if not self.is_bound and not self.initial.get("date"):
+            self.initial["date"] = today
+            self.fields["date"].initial = today
 
         if extra_choices is None:
             extra_choices = []

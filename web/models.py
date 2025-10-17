@@ -2,6 +2,7 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import Q
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.text import slugify
 
 
@@ -364,6 +365,13 @@ class Booking(models.Model):
 
     def __str__(self) -> str:
         return f"Booking #{self.pk} · {self.trip.title} · {self.travel_date}"
+
+    @property
+    def reference_code(self) -> str:
+        if self.pk is None:
+            return "PENDING"
+        timestamp = self.created_at or timezone.now()
+        return f"SKY{timestamp:%y%m%d}-{self.pk:06d}"
 
 
 class BookingExtra(models.Model):

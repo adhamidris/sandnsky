@@ -1,13 +1,19 @@
 from decimal import Decimal
 
 from django.contrib import messages
+from django.core import signing
+from django.db import transaction
 from django.db.models import Prefetch, Q, Min, Max
-from django.shortcuts import get_object_or_404
+from django.http import Http404
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.views.generic import TemplateView
+from django.utils import timezone
 
 from .forms import BookingRequestForm
 from .models import (
+    Booking,
+    BookingExtra,
     Destination,
     SiteConfiguration,
     Trip,
@@ -31,6 +37,27 @@ def format_currency(amount, currency=DEFAULT_CURRENCY):
 def duration_label(days):
     days = int(days)
     return f"{days} day{'s' if days != 1 else ''}"
+
+
+def traveler_summary(adults, children, infants, per_person_label=""):
+    parts = []
+
+    def append_part(count, label):
+        if count > 0:
+            suffix = "s" if count != 1 else ""
+            parts.append(f"{count} {label}{suffix}")
+
+    append_part(adults, "adult")
+    append_part(children, "child")
+    append_part(infants, "infant")
+
+    if not parts:
+        parts.append("0 travelers")
+
+    if per_person_label:
+        parts.append(per_person_label)
+
+    return " · ".join(parts)
 
 
 def _all_destination_names(trip):
@@ -454,7 +481,8 @@ class TripDetailView(TemplateView):
             (str(extra.pk), extra.name)
             for extra in trip.extras.order_by("position", "id")
         ]
-        return BookingRequestForm(data=data, extra_choices=extra_choices)
+        initial = None if data is not None else {"date": timezone.localdate()}
+        return BookingRequestForm(data=data, initial=initial, extra_choices=extra_choices)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -475,16 +503,67 @@ class TripDetailView(TemplateView):
         return context
 
     def post(self, request, *args, **kwargs):
+        trip = self.get_trip()
         form = self.get_form(request.POST)
         if form.is_valid():
-            messages.success(
-                request,
-                "Thanks for your request! A travel specialist will contact you shortly to confirm details.",
-            )
-            form = self.get_form()
+            booking = self._create_booking(trip, form.cleaned_data)
+            token = signing.dumps(booking.pk, salt="booking-success")
+            success_url = f"{reverse('web:booking-success')}?ref={token}"
+            return redirect(success_url)
         else:
             messages.error(request, "Please correct the errors below before submitting.")
         return self.render_to_response(self.get_context_data(form=form))
+
+    @transaction.atomic
+    def _create_booking(self, trip, cleaned_data):
+        adults = int(cleaned_data.get("adults") or 0)
+        children = int(cleaned_data.get("children") or 0)
+        infants = int(cleaned_data.get("infants") or 0)
+
+        traveler_count = max(adults + children, 1)
+
+        extras_raw = cleaned_data.get("extras") or []
+        try:
+            extras_ids = {int(extra_id) for extra_id in extras_raw}
+        except (TypeError, ValueError):
+            extras_ids = set()
+
+        selected_extras = list(
+            trip.extras.filter(pk__in=extras_ids).order_by("position", "id")
+        )
+
+        extras_total = sum((extra.price for extra in selected_extras), Decimal("0"))
+        base_subtotal = trip.base_price_per_person * traveler_count
+        grand_total = base_subtotal + extras_total
+
+        booking = Booking.objects.create(
+            trip=trip,
+            travel_date=cleaned_data["date"],
+            adults=adults,
+            children=children,
+            infants=infants,
+            full_name=cleaned_data.get("name"),
+            email=cleaned_data.get("email"),
+            phone=cleaned_data.get("phone"),
+            special_requests=cleaned_data.get("message", ""),
+            base_subtotal=base_subtotal,
+            extras_subtotal=extras_total,
+            grand_total=grand_total,
+        )
+
+        if selected_extras:
+            BookingExtra.objects.bulk_create(
+                [
+                    BookingExtra(
+                        booking=booking,
+                        extra=extra,
+                        price_at_booking=extra.price,
+                    )
+                    for extra in selected_extras
+                ]
+            )
+
+        return booking
 
     def _pricing_context(self, trip, form):
         currency = getattr(trip, "currency", DEFAULT_CURRENCY)
@@ -528,6 +607,17 @@ class TripDetailView(TemplateView):
 
         total = base_total + extras_total
 
+        if traveler_count:
+            per_person_total = total / traveler_count
+            per_traveler_phrase = f"{format_currency(per_person_total, currency)} per paying traveler"
+        else:
+            per_person_total = Decimal("0")
+            per_traveler_phrase = ""
+
+        traveler_summary_display = traveler_summary(
+            adults, children, infants, per_traveler_phrase
+        )
+
         return {
             "currency": currency,
             "currency_symbol": CURRENCY_SYMBOLS.get(currency.upper(), ""),
@@ -543,8 +633,12 @@ class TripDetailView(TemplateView):
             "extras_total_display": format_currency(extras_total, currency),
             "total": total,
             "total_display": format_currency(total, currency),
+            "per_person_total": per_person_total,
+            "per_person_display": format_currency(per_person_total, currency),
+            "traveler_summary_display": traveler_summary_display,
             "extras": extras_with_state,
         }
+
 
     def _serialize_trip(self, trip, other_trips):
         languages_label = self._languages_label(trip)
@@ -677,3 +771,82 @@ class TripDetailView(TemplateView):
         if other_trips:
             nav.append({"label": "Related trips", "target": "related"})
         return nav
+
+
+class BookingSuccessView(TemplateView):
+    template_name = "booking_success.html"
+    SUCCESS_LINK_MAX_AGE = 60 * 60 * 24 * 14  # 14 days
+
+    def get_booking(self):
+        token = self.request.GET.get("ref")
+        if not token:
+            raise Http404("Booking reference not provided.")
+        try:
+            booking_id = signing.loads(
+                token,
+                salt="booking-success",
+                max_age=self.SUCCESS_LINK_MAX_AGE,
+            )
+        except (signing.BadSignature, signing.SignatureExpired):
+            raise Http404("Booking reference invalid.")
+
+        queryset = (
+            Booking.objects.select_related("trip", "trip__destination")
+            .prefetch_related("trip__additional_destinations", "booking_extras__extra")
+        )
+        return get_object_or_404(queryset, pk=booking_id)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        booking = self.get_booking()
+        trip = booking.trip
+
+        billed_travelers = max(booking.adults + booking.children, 1)
+        if billed_travelers:
+            per_person_total = booking.grand_total / billed_travelers
+            per_person_phrase = f"{format_currency(per_person_total, DEFAULT_CURRENCY)} per paying traveler"
+        else:
+            per_person_total = Decimal("0")
+            per_person_phrase = ""
+
+        traveler_summary_display = traveler_summary(
+            booking.adults,
+            booking.children,
+            booking.infants,
+            per_person_phrase,
+        )
+
+        extras = [
+            {
+                "name": record.extra.name,
+                "price": record.price_at_booking,
+                "price_display": format_currency(record.price_at_booking, DEFAULT_CURRENCY),
+            }
+            for record in booking.booking_extras.select_related("extra")
+        ]
+
+        additional_destinations = [
+            destination.name for destination in trip.additional_destinations.all()
+        ]
+
+        pricing = {
+            "base": booking.base_subtotal,
+            "base_display": format_currency(booking.base_subtotal, DEFAULT_CURRENCY),
+            "extras": booking.extras_subtotal,
+            "extras_display": format_currency(booking.extras_subtotal, DEFAULT_CURRENCY),
+            "total": booking.grand_total,
+            "total_display": format_currency(booking.grand_total, DEFAULT_CURRENCY),
+            "currency": DEFAULT_CURRENCY,
+        }
+
+        context.update(
+            booking=booking,
+            trip=trip,
+            traveler_summary=traveler_summary_display,
+            pricing=pricing,
+            extras=extras,
+            contact_actions=contact_actions(),
+            trip_url=reverse("web:trip-detail", args=[trip.slug]),
+            additional_destinations=additional_destinations,
+        )
+        return context

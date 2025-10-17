@@ -156,9 +156,9 @@
   <noscript>
     <div class="mt-10 rounded-2xl border border-border bg-white p-6 text-sm text-foreground shadow-2xl">
       <div class="space-y-1">
-        <p class="text-xs uppercase tracking-wide text-muted-foreground">Starting from</p>
-        <p class="text-3xl font-serif text-primary">{{ pricing.base_price_display }}</p>
-        <p class="text-xs text-muted-foreground">Per traveler · Taxes included</p>
+        <p class="text-xs uppercase tracking-wide text-muted-foreground">Estimated total</p>
+        <p class="text-3xl font-serif text-primary">{{ pricing.total_display }}</p>
+        <p class="text-xs text-muted-foreground">Estimate · {{ pricing.traveler_summary_display }}</p>
       </div>
 
       <details class="group mt-6 rounded-lg border border-border bg-card p-4" open>
@@ -220,7 +220,7 @@
 
 <div class="booking-drawer" data-mobile-sheet-container aria-hidden="true">
   <div class="booking-card__overlay booking-drawer__overlay" data-mobile-sheet-overlay aria-hidden="true"></div>
-  <div class="booking-card booking-drawer__panel border border-border bg-white text-sm text-foreground shadow-2xl" data-mobile-sheet role="dialog" aria-modal="true" aria-hidden="true" id="booking-drawer">
+  <div class="booking-card booking-drawer__panel border border-border bg-white text-sm text-foreground shadow-2xl" data-mobile-sheet data-booking-root role="dialog" aria-modal="true" aria-hidden="true" id="booking-drawer">
     <div class="flex w-full flex-1 flex-col gap-6 overflow-hidden p-6" data-mobile-sheet-content>
       <div class="booking-card__mobile-header flex items-start justify-between lg:hidden">
         <div>
@@ -236,9 +236,11 @@
 
       <div class="flex-1 space-y-6 overflow-y-auto pr-2 scrollbar-none lg:pr-0" data-booking-scroll>
         <div class="space-y-1">
-          <p class="text-xs uppercase tracking-wide text-muted-foreground">Starting from</p>
-          <p class="text-3xl font-serif text-primary">{{ pricing.base_price_display }}</p>
-          <p class="text-xs text-muted-foreground">Per traveler · Taxes included</p>
+          <p class="text-xs uppercase tracking-wide text-muted-foreground">Estimated total</p>
+          <p class="text-3xl font-serif text-primary" data-booking-total>{{ pricing.total_display }}</p>
+          <p class="text-xs text-muted-foreground" data-traveler-summary>
+            Estimate · {{ pricing.traveler_summary_display }}
+          </p>
         </div>
 
         <details class="group rounded-lg border border-border bg-card p-4" data-module="price-breakdown">
@@ -265,6 +267,9 @@
                 <span data-booking-total>{{ pricing.total_display }}</span>
               </div>
               <p class="mt-1 text-xs text-muted-foreground">Charged in {{ pricing.currency|upper }}.</p>
+              <p class="mt-2 text-xs text-muted-foreground" data-traveler-summary>
+                Estimate · {{ pricing.traveler_summary_display }}
+              </p>
             </div>
           </div>
         </details>
@@ -300,12 +305,18 @@
         </div>
         <div class="flex items-center gap-2">
           {% for action in trip.contact_actions %}
-          <a href="{{ action.href }}" class="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" aria-label="{{ action.aria }}">
-            {% if action.icon == "whatsapp" %}
+          {% if action.icon == "whatsapp" %}
+          {% with whatsapp_message="Hello Sand & Sky Tours, I would like to know more about "|add:trip.title|add:" "|add:request.build_absolute_uri|add:"." %}
+          <a href="https://wa.me/201108741159?text={{ whatsapp_message|urlencode }}" class="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" aria-label="{{ action.aria }}" target="_blank" rel="noopener">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-3.5 w-3.5 text-primary">
               <path d="M12.04 2a9.84 9.84 0 0 0-8.8 14.48L2 22l5.66-1.22A9.83 9.83 0 1 0 12.04 2Zm0 17.73c-1.57 0-3.11-.41-4.46-1.17l-.32-.18-3.36.72.72-3.26-.2-.33A7.86 7.86 0 1 1 12.04 19.73Zm4.38-5.83c-.24-.12-1.43-.7-1.65-.78-.22-.08-.38-.12-.54.12-.16.24-.62.78-.76.94-.14.16-.28.18-.52.06-.24-.12-1-.37-1.9-1.2-.7-.63-1.18-1.4-1.32-1.64-.14-.24-.02-.37.1-.49.1-.09.24-.24.36-.36.12-.12.16-.2.24-.34.08-.14.04-.27-.02-.39-.06-.12-.54-1.31-.74-1.79-.2-.48-.4-.41-.54-.42h-.46c-.16 0-.4.06-.62.3-.22.24-.84.82-.84 2s.86 2.36.98 2.52c.12.16 1.7 2.6 4.12 3.65.58.25 1.03.4 1.38.52.58.18 1.12.16 1.54.1.47-.07 1.43-.58 1.63-1.14.2-.56.2-1.04.14-1.14-.06-.1-.22-.16-.46-.28Z" />
             </svg>
-            {% elif action.icon == "phone" %}
+            <span>{{ action.label }}</span>
+          </a>
+          {% endwith %}
+          {% else %}
+          <a href="{{ action.href }}" class="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" aria-label="{{ action.aria }}">
+            {% if action.icon == "phone" %}
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-3.5 w-3.5 text-primary">
               <path d="M6.5 3h2l1.5 4-2 1c1 2.5 2.9 4.4 5.4 5.4l1-2 4 1.5v2c0 1-1 2-2 2A14 14 0 0 1 4.5 5c0-1 1-2 2-2Z" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
@@ -320,6 +331,7 @@
             {% endif %}
             <span>{{ action.label }}</span>
           </a>
+          {% endif %}
           {% endfor %}
         </div>
       </div>
@@ -501,12 +513,18 @@
     <p class="mt-4 text-sm text-muted-foreground">Our travel specialists are on hand seven days a week.</p>
     <div class="mt-6 flex flex-wrap items-center gap-3">
       {% for action in trip.contact_actions %}
-      <a href="{{ action.href }}" class="inline-flex items-center gap-3 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" aria-label="{{ action.aria }}">
-        {% if action.icon == "whatsapp" %}
+      {% if action.icon == "whatsapp" %}
+      {% with whatsapp_message="Hello Sand & Sky Tours, I would like to know more about "|add:trip.title|add:" "|add:request.build_absolute_uri|add:"." %}
+      <a href="https://wa.me/201108741159?text={{ whatsapp_message|urlencode }}" class="inline-flex items-center gap-3 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" aria-label="{{ action.aria }}" target="_blank" rel="noopener">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4 text-primary">
           <path d="M12.04 2a9.84 9.84 0 0 0-8.8 14.48L2 22l5.66-1.22A9.83 9.83 0 1 0 12.04 2Zm0 17.73c-1.57 0-3.11-.41-4.46-1.17l-.32-.18-3.36.72.72-3.26-.2-.33A7.86 7.86 0 1 1 12.04 19.73Zm4.38-5.83c-.24-.12-1.43-.7-1.65-.78-.22-.08-.38-.12-.54.12-.16.24-.62.78-.76.94-.14.16-.28.18-.52.06-.24-.12-1-.37-1.9-1.2-.7-.63-1.18-1.4-1.32-1.64-.14-.24-.02-.37.1-.49.1-.09.24-.24.36-.36.12-.12.16-.2.24-.34.08-.14.04-.27-.02-.39-.06-.12-.54-1.31-.74-1.79-.2-.48-.4-.41-.54-.42h-.46c-.16 0-.4.06-.62.3-.22.24-.84.82-.84 2s.86 2.36.98 2.52c.12.16 1.7 2.6 4.12 3.65.58.25 1.03.4 1.38.52.58.18 1.12.16 1.54.1.47-.07 1.43-.58 1.63-1.14.2-.56.2-1.04.14-1.14-.06-.1-.22-.16-.46-.28Z" />
         </svg>
-        {% elif action.icon == "phone" %}
+        <span>{{ action.label }}</span>
+      </a>
+      {% endwith %}
+      {% else %}
+      <a href="{{ action.href }}" class="inline-flex items-center gap-3 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" aria-label="{{ action.aria }}">
+        {% if action.icon == "phone" %}
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4 text-primary">
           <path d="M6.5 3h2l1.5 4-2 1c1 2.5 2.9 4.4 5.4 5.4l1-2 4 1.5v2c0 1-1 2-2 2A14 14 0 0 1 4.5 5c0-1 1-2 2-2Z" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
@@ -521,6 +539,7 @@
         {% endif %}
         <span>{{ action.label }}</span>
       </a>
+      {% endif %}
       {% endfor %}
     </div>
   </div>

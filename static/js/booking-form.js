@@ -1,20 +1,49 @@
 
+
 (function () {
   const form = document.querySelector('[data-module="booking-form"]');
   if (!form) return;
 
+  const root = form.closest('[data-booking-root]') || form;
+
   const basePrice = parseFloat(form.dataset.basePrice || '0');
   const currencySymbol = form.dataset.currencySymbol || '';
 
-  const baseOutput = form.querySelector('[data-booking-base]');
-  const extrasOutput = form.querySelector('[data-booking-extras]');
-  const totalOutput = form.querySelector('[data-booking-total]');
+  const baseOutputs = root.querySelectorAll('[data-booking-base]');
+  const extrasOutputs = root.querySelectorAll('[data-booking-extras]');
+  const totalOutputs = root.querySelectorAll('[data-booking-total]');
+  const travelerSummaries = root.querySelectorAll('[data-traveler-summary]');
+
+  const normalizedBasePrice = Number.isFinite(basePrice) ? Math.max(basePrice, 0) : 0;
+  const basePriceCents = Math.round(normalizedBasePrice * 100);
 
   function formatCurrency(amount) {
-    return `${currencySymbol}${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `${currencySymbol}${amount.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  }
+
+  function formatCurrencyFromCents(cents) {
+    return formatCurrency(cents / 100);
+  }
+
+  function setCurrency(nodes, cents) {
+    const label = formatCurrencyFromCents(cents);
+    nodes.forEach((node) => {
+      node.textContent = label;
+    });
+  }
+
+  function setTravelerSummary(summary) {
+    const message = summary ? `Estimate · ${summary}` : 'Estimate';
+    travelerSummaries.forEach((node) => {
+      node.textContent = message;
+    });
   }
 
   function clampValue(input) {
+    if (!input) return 0;
     const min = parseInt(input.getAttribute('min') || '0', 10);
     const value = parseInt(input.value || input.defaultValue || '0', 10);
     if (Number.isNaN(value) || value < min) {
@@ -27,22 +56,50 @@
   function recalculate() {
     const adultsInput = form.querySelector('input[data-traveler-type="adults"]');
     const childrenInput = form.querySelector('input[data-traveler-type="children"]');
+    const infantsInput = form.querySelector('input[data-traveler-type="infants"]');
 
     const adults = Math.max(clampValue(adultsInput), 1);
-    const children = clampValue(childrenInput);
+    const children = childrenInput ? clampValue(childrenInput) : 0;
+    const infants = infantsInput ? clampValue(infantsInput) : 0;
 
-    const travelerCount = Math.max(adults + children, 1);
-    const baseTotal = basePrice * travelerCount;
+    const billedTravelerCount = Math.max(adults + children, 1);
+    const baseTotalCents = basePriceCents * billedTravelerCount;
 
-    let extrasTotal = 0;
+    let extrasTotalCents = 0;
     form.querySelectorAll('input[name="extras"]:checked').forEach((checkbox) => {
       const price = parseFloat(checkbox.dataset.extraPrice || '0');
-      extrasTotal += price;
+      extrasTotalCents += Math.max(Math.round(price * 100), 0);
     });
 
-    if (baseOutput) baseOutput.textContent = formatCurrency(baseTotal);
-    if (extrasOutput) extrasOutput.textContent = formatCurrency(extrasTotal);
-    if (totalOutput) totalOutput.textContent = formatCurrency(baseTotal + extrasTotal);
+    const grandTotalCents = baseTotalCents + extrasTotalCents;
+    const perPersonCents = billedTravelerCount > 0 ? Math.round(grandTotalCents / billedTravelerCount) : 0;
+    const perPersonLabel = billedTravelerCount > 0 ? `${formatCurrencyFromCents(perPersonCents)} per paying traveler` : '';
+
+    const summaryParts = [];
+    const pushPart = (count, label) => {
+      if (count > 0) {
+        summaryParts.push(`${count} ${label}${count === 1 ? '' : 's'}`);
+      }
+    };
+
+    pushPart(adults, 'adult');
+    pushPart(children, 'child');
+    pushPart(infants, 'infant');
+
+    if (!summaryParts.length) {
+      summaryParts.push('0 travelers');
+    }
+
+    const summary = perPersonLabel && summaryParts.length
+      ? `${summaryParts.join(' · ')} · ${perPersonLabel}`
+      : summaryParts.join(' · ');
+
+    setCurrency(baseOutputs, baseTotalCents);
+    setCurrency(extrasOutputs, extrasTotalCents);
+    setCurrency(totalOutputs, grandTotalCents);
+    if (travelerSummaries.length) {
+      setTravelerSummary(summary);
+    }
   }
 
   form.querySelectorAll('[data-counter]').forEach((counter) => {
@@ -62,8 +119,9 @@
       input.dispatchEvent(new Event('change', { bubbles: true }));
     });
 
-    input.addEventListener('change', recalculate);
-    input.addEventListener('blur', recalculate);
+    ['change', 'blur', 'input'].forEach((eventName) => {
+      input.addEventListener(eventName, recalculate);
+    });
   });
 
   form.querySelectorAll('input[name="extras"]').forEach((checkbox) => {
