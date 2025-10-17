@@ -129,83 +129,7 @@
 {% endif %}
 
 <section id="trip-list" class="bg-background px-4 pb-28 sm:px-6 lg:px-8 {% if selected_destination %}pt-6 md:pt-10{% else %}pt-24{% endif %}">
-  <div class="mx-auto max-w-7xl lg:grid lg:grid-cols-[280px_minmax(0,1fr)] lg:gap-12">
-    <aside class="mb-12 space-y-6 rounded-2xl border border-border bg-card p-6 shadow-subtle lg:sticky lg:top-28 lg:mb-0">
-      <form action="{% url 'web:trips' %}" method="get" class="space-y-6">
-        <div class="space-y-1">
-          <h3 class="text-sm font-semibold uppercase tracking-[0.25em] text-muted-foreground">Refine tours</h3>
-          <p class="text-xs text-muted-foreground">Use filters to narrow itineraries.</p>
-        </div>
-
-        <div class="space-y-2">
-          <label for="filter-destination" class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Destination</label>
-          <select id="filter-destination" name="destination" class="w-full rounded-md border border-border/70 bg-background px-3 py-2 text-sm text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
-            <option value="">All destinations</option>
-            {% for destination in filter_options.destinations %}
-            <option value="{{ destination.slug }}" {% if active_filters.destination == destination.slug %}selected{% endif %}>{{ destination.name }}</option>
-            {% endfor %}
-          </select>
-        </div>
-
-        <div class="space-y-3">
-          <span class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Price (per person)</span>
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label for="filter-price-min" class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Min</label>
-              <input id="filter-price-min" type="number" name="price_min" placeholder="{{ filter_options.price.min|floatformat:0 }}" value="{% if active_filters.price_min %}{{ active_filters.price_min }}{% endif %}" class="mt-1 w-full rounded-md border border-border/70 bg-background px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" min="0" step="50" />
-            </div>
-            <div>
-              <label for="filter-price-max" class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Max</label>
-              <input id="filter-price-max" type="number" name="price_max" placeholder="{{ filter_options.price.max|floatformat:0 }}" value="{% if active_filters.price_max %}{{ active_filters.price_max }}{% endif %}" class="mt-1 w-full rounded-md border border-border/70 bg-background px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" min="0" step="50" />
-            </div>
-          </div>
-        </div>
-
-        <fieldset class="space-y-3">
-          <legend class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Duration</legend>
-          <div class="space-y-2">
-            {% for bucket in filter_options.durations %}
-            <label class="flex items-center gap-3 text-sm text-muted-foreground">
-              <input type="checkbox" name="duration" value="{{ bucket.value }}" class="h-4 w-4 rounded border-border/70 text-primary focus:ring-primary" {% if bucket.value in active_filters.duration_ranges %}checked{% endif %} />
-              <span>{{ bucket.label }}</span>
-            </label>
-            {% endfor %}
-          </div>
-        </fieldset>
-
-        <fieldset class="space-y-3">
-          <legend class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Group size</legend>
-          <div class="space-y-2">
-            {% for bucket in filter_options.group_sizes %}
-            <label class="flex items-center gap-3 text-sm text-muted-foreground">
-              <input type="checkbox" name="group_size" value="{{ bucket.value }}" class="h-4 w-4 rounded border-border/70 text-primary focus:ring-primary" {% if bucket.value in active_filters.group_sizes %}checked{% endif %} />
-              <span>{{ bucket.label }}</span>
-            </label>
-            {% endfor %}
-          </div>
-        </fieldset>
-
-        {% if filter_options.categories %}
-        <fieldset class="space-y-3">
-          <legend class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Travel style</legend>
-          <div class="space-y-2">
-            {% for category in filter_options.categories %}
-            <label class="flex items-center gap-3 text-sm text-muted-foreground">
-              <input type="checkbox" name="category" value="{{ category.slug }}" class="h-4 w-4 rounded border-border/70 text-primary focus:ring-primary" {% if category.slug in active_filters.categories %}checked{% endif %} />
-              <span>{{ category.name }}</span>
-            </label>
-            {% endfor %}
-          </div>
-        </fieldset>
-        {% endif %}
-
-        <div class="flex flex-wrap items-center gap-3">
-          <button type="submit" class="inline-flex items-center justify-center rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-subtle transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Apply filters</button>
-          <a href="{% url 'web:trips' %}" class="text-sm font-semibold text-muted-foreground transition-colors hover:text-primary">Reset</a>
-        </div>
-      </form>
-    </aside>
-
+  <div class="mx-auto max-w-7xl lg:grid lg:grid-cols-[minmax(0,1fr)_280px] lg:gap-12">
     <div class="space-y-10">
       <div class="space-y-4 text-center md:text-left">
         <h2 class="font-serif text-3xl text-foreground sm:text-4xl">
@@ -306,6 +230,82 @@
       </div>
       {% endif %}
     </div>
+
+    <aside class="mb-12 space-y-6 rounded-2xl border border-border bg-card p-6 shadow-subtle lg:sticky lg:top-28 lg:mb-0 lg:self-start">
+      <form action="{% url 'web:trips' %}" method="get" class="space-y-6">
+        <div class="space-y-1">
+          <h3 class="text-sm font-semibold uppercase tracking-[0.25em] text-muted-foreground">Refine tours</h3>
+          <p class="text-xs text-muted-foreground">Use filters to narrow itineraries.</p>
+        </div>
+
+        <div class="space-y-2">
+          <label for="filter-destination" class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Destination</label>
+          <select id="filter-destination" name="destination" class="w-full rounded-md border border-border/70 bg-background px-3 py-2 text-sm text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+            <option value="">All destinations</option>
+            {% for destination in filter_options.destinations %}
+            <option value="{{ destination.slug }}" {% if active_filters.destination == destination.slug %}selected{% endif %}>{{ destination.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="space-y-3">
+          <span class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Price (per person)</span>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="filter-price-min" class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Min</label>
+              <input id="filter-price-min" type="number" name="price_min" placeholder="{{ filter_options.price.min|floatformat:0 }}" value="{% if active_filters.price_min %}{{ active_filters.price_min }}{% endif %}" class="mt-1 w-full rounded-md border border-border/70 bg-background px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" min="0" step="50" />
+            </div>
+            <div>
+              <label for="filter-price-max" class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Max</label>
+              <input id="filter-price-max" type="number" name="price_max" placeholder="{{ filter_options.price.max|floatformat:0 }}" value="{% if active_filters.price_max %}{{ active_filters.price_max }}{% endif %}" class="mt-1 w-full rounded-md border border-border/70 bg-background px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" min="0" step="50" />
+            </div>
+          </div>
+        </div>
+
+        <fieldset class="space-y-3">
+          <legend class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Duration</legend>
+          <div class="space-y-2">
+            {% for bucket in filter_options.durations %}
+            <label class="flex items-center gap-3 text-sm text-muted-foreground">
+              <input type="checkbox" name="duration" value="{{ bucket.value }}" class="h-4 w-4 rounded border-border/70 text-primary focus:ring-primary" {% if bucket.value in active_filters.duration_ranges %}checked{% endif %} />
+              <span>{{ bucket.label }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </fieldset>
+
+        <fieldset class="space-y-3">
+          <legend class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Group size</legend>
+          <div class="space-y-2">
+            {% for bucket in filter_options.group_sizes %}
+            <label class="flex items-center gap-3 text-sm text-muted-foreground">
+              <input type="checkbox" name="group_size" value="{{ bucket.value }}" class="h-4 w-4 rounded border-border/70 text-primary focus:ring-primary" {% if bucket.value in active_filters.group_sizes %}checked{% endif %} />
+              <span>{{ bucket.label }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </fieldset>
+
+        {% if filter_options.categories %}
+        <fieldset class="space-y-3">
+          <legend class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Travel style</legend>
+          <div class="space-y-2">
+            {% for category in filter_options.categories %}
+            <label class="flex items-center gap-3 text-sm text-muted-foreground">
+              <input type="checkbox" name="category" value="{{ category.slug }}" class="h-4 w-4 rounded border-border/70 text-primary focus:ring-primary" {% if category.slug in active_filters.categories %}checked{% endif %} />
+              <span>{{ category.name }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </fieldset>
+        {% endif %}
+
+        <div class="flex flex-wrap items-center gap-3">
+          <button type="submit" class="inline-flex items-center justify-center rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-subtle transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Apply filters</button>
+          <a href="{% url 'web:trips' %}" class="text-sm font-semibold text-muted-foreground transition-colors hover:text-primary">Reset</a>
+        </div>
+      </form>
+    </aside>
   </div>
 </section>
 {% if destination_gallery %}

@@ -2441,6 +2441,10 @@ body.gallery-lightbox--open {
     grid-template-columns: 280px minmax(0,1fr);
   }
 
+  .lg\:grid-cols-\[minmax\(0\2c 1fr\)_280px\] {
+    grid-template-columns: minmax(0,1fr) 280px;
+  }
+
   .lg\:flex-row {
     flex-direction: row;
   }
@@ -2459,6 +2463,10 @@ body.gallery-lightbox--open {
 
   .lg\:gap-12 {
     gap: 3rem;
+  }
+
+  .lg\:self-start {
+    align-self: flex-start;
   }
 
   .lg\:p-7 {
