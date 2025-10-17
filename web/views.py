@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 from django.contrib import messages
-from django.db.models import Prefetch, Q
+from django.db.models import Prefetch, Q, Min, Max
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.views.generic import TemplateView
@@ -11,6 +11,7 @@ from .models import (
     Destination,
     SiteConfiguration,
     Trip,
+    TripCategory,
     TripItineraryDay,
     TripRelation,
 )
@@ -224,14 +225,23 @@ class HomePageView(TemplateView):
 class TripListView(TemplateView):
     template_name = "trips.html"
 
+    DURATION_BUCKETS = [
+        {"value": "1-3", "label": "1 – 3 days", "min": 1, "max": 3},
+        {"value": "4-7", "label": "4 – 7 days", "min": 4, "max": 7},
+        {"value": "8-10", "label": "8 – 10 days", "min": 8, "max": 10},
+        {"value": "11+", "label": "11+ days", "min": 11, "max": None},
+    ]
+
+    GROUP_SIZE_BUCKETS = [
+        {"value": "small", "label": "Up to 8 guests", "max": 8},
+        {"value": "medium", "label": "9 – 16 guests", "min": 9, "max": 16},
+        {"value": "large", "label": "17+ guests", "min": 17, "max": None},
+    ]
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         destination_slug = self.request.GET.get("destination")
-        trips = (
-            Trip.objects.select_related("destination")
-            .prefetch_related("category_tags", "additional_destinations")
-            .order_by("title")
-        )
+        trips = self._base_queryset()
 
         selected_destination = None
         destination_hero = None
@@ -246,12 +256,151 @@ class TripListView(TemplateView):
             ).distinct()
             destination_hero = _destination_hero_context(selected_destination)
 
+        filter_values = self._extract_filter_values()
+        trips = self._apply_filters(trips, filter_values)
+
         context["trips"] = [build_trip_card(trip) for trip in trips]
         context["selected_destination"] = selected_destination
         context["destination_hero"] = destination_hero
         context["contact_actions"] = contact_actions()
         context["destination_gallery"] = _destination_gallery_context(selected_destination)
+        context["filter_options"] = self._filter_options(selected_destination)
+        context["active_filters"] = filter_values
         return context
+
+    def _base_queryset(self):
+        return (
+            Trip.objects.select_related("destination")
+            .prefetch_related("category_tags", "additional_destinations")
+            .order_by("title")
+        )
+
+    def _extract_filter_values(self):
+        params = self.request.GET
+
+        def parse_decimal(value):
+            if value in {None, ""}:
+                return None
+            try:
+                return Decimal(value)
+            except (ArithmeticError, ValueError):
+                return None
+
+        def parse_int(value):
+            if value in {None, ""}:
+                return None
+            try:
+                return int(value)
+            except (TypeError, ValueError):
+                return None
+
+        duration_choices = {bucket["value"] for bucket in self.DURATION_BUCKETS}
+        group_choices = {bucket["value"] for bucket in self.GROUP_SIZE_BUCKETS}
+
+        return {
+            "destination": params.get("destination", ""),
+            "price_min": parse_decimal(params.get("price_min")),
+            "price_max": parse_decimal(params.get("price_max")),
+            "duration_ranges": [
+                value
+                for value in params.getlist("duration")
+                if value in duration_choices
+            ],
+            "categories": [
+                value
+                for value in params.getlist("category")
+                if value
+            ],
+            "group_sizes": [
+                value
+                for value in params.getlist("group_size")
+                if value in group_choices
+            ],
+        }
+
+    def _apply_filters(self, queryset, filters):
+        price_min = filters.get("price_min")
+        price_max = filters.get("price_max")
+        if price_min is not None:
+            queryset = queryset.filter(base_price_per_person__gte=price_min)
+        if price_max is not None:
+            queryset = queryset.filter(base_price_per_person__lte=price_max)
+
+        durations = filters.get("duration_ranges", [])
+        if durations:
+            duration_q = Q()
+            for bucket in self.DURATION_BUCKETS:
+                if bucket["value"] in durations:
+                    min_days = bucket["min"]
+                    max_days = bucket["max"]
+                    condition = Q(duration_days__gte=min_days)
+                    if max_days is not None:
+                        condition &= Q(duration_days__lte=max_days)
+                    duration_q |= condition
+            queryset = queryset.filter(duration_q)
+
+        categories = filters.get("categories", [])
+        if categories:
+            queryset = queryset.filter(category_tags__slug__in=categories)
+
+        group_sizes = filters.get("group_sizes", [])
+        if group_sizes:
+            group_q = Q()
+            for bucket in self.GROUP_SIZE_BUCKETS:
+                if bucket["value"] in group_sizes:
+                    min_size = bucket.get("min", 0)
+                    max_size = bucket.get("max")
+                    condition = Q(group_size_max__gte=min_size)
+                    if max_size is not None:
+                        condition &= Q(group_size_max__lte=max_size)
+                    group_q |= condition
+            queryset = queryset.filter(group_q)
+
+        if filters.get("categories"):
+            queryset = queryset.distinct()
+
+        return queryset
+
+    def _filter_options(self, selected_destination):
+        trips = self._base_queryset()
+        if selected_destination:
+            trips = trips.filter(
+                Q(destination=selected_destination)
+                | Q(additional_destinations=selected_destination)
+            ).distinct()
+
+        price_bounds = trips.aggregate(
+            min_price=Min("base_price_per_person"),
+            max_price=Max("base_price_per_person"),
+        )
+
+        destinations = (
+            Destination.objects.filter(Q(trips__isnull=False) | Q(additional_trips__isnull=False))
+            .distinct()
+            .order_by("name")
+        )
+        categories = (
+            TripCategory.objects.filter(trips__isnull=False)
+            .distinct()
+            .order_by("name")
+        )
+
+        return {
+            "destinations": [
+                {"slug": destination.slug, "name": destination.name}
+                for destination in destinations
+            ],
+            "categories": [
+                {"slug": category.slug, "name": category.name}
+                for category in categories
+            ],
+            "price": {
+                "min": price_bounds.get("min_price") or Decimal("0"),
+                "max": price_bounds.get("max_price") or Decimal("0"),
+            },
+            "durations": self.DURATION_BUCKETS,
+            "group_sizes": self.GROUP_SIZE_BUCKETS,
+        }
 
 
 class TripDetailView(TemplateView):

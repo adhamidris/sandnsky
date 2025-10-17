@@ -129,106 +129,183 @@
 {% endif %}
 
 <section id="trip-list" class="bg-background px-4 pb-28 sm:px-6 lg:px-8 {% if selected_destination %}pt-6 md:pt-10{% else %}pt-24{% endif %}">
-  <div class="mx-auto max-w-7xl space-y-10">
-    <div class="space-y-4 text-center md:text-left">
-      <h2 class="font-serif text-3xl text-foreground sm:text-4xl">
-        {% if selected_destination %}
-        Trips in {{ selected_destination.name }}
-        {% else %}
-        Available Tours
-        {% endif %}
-      </h2>
-      <p class="text-base leading-relaxed text-muted-foreground">
-        {% if selected_destination %}
-        Explore {{ trips|length }} hand-crafted itineraries designed to reveal the heart of {{ selected_destination.name }}. Each journey balances iconic highlights with quieter moments only locals know.
-        {% else %}
-        Explore {{ trips|length }} journeys crafted by our Egypt specialists. Every itinerary blends essential sights with authentic experiences and seamless service.
-        {% endif %}
-      </p>
-    </div>
+  <div class="mx-auto max-w-7xl lg:grid lg:grid-cols-[280px_minmax(0,1fr)] lg:gap-12">
+    <aside class="mb-12 space-y-6 rounded-2xl border border-border bg-card p-6 shadow-subtle lg:sticky lg:top-28 lg:mb-0">
+      <form action="{% url 'web:trips' %}" method="get" class="space-y-6">
+        <div class="space-y-1">
+          <h3 class="text-sm font-semibold uppercase tracking-[0.25em] text-muted-foreground">Refine tours</h3>
+          <p class="text-xs text-muted-foreground">Use filters to narrow itineraries.</p>
+        </div>
 
-    {% if trips %}
-    <div class="grid gap-10 sm:grid-cols-2 xl:grid-cols-3">
-      {% for trip in trips %}
-      <article class="group flex h-full flex-col overflow-hidden rounded-md border border-border bg-card shadow-sm transition-colors">
-        <div class="relative h-64 overflow-hidden">
-          {% if trip.image_url %}
-          <img src="{{ trip.image_url }}" alt="{{ trip.title }}" class="h-full w-full object-cover" />
-          {% else %}
-          <div class="flex h-full items-center justify-center bg-muted text-muted-foreground">
-            <span class="text-sm font-semibold uppercase tracking-wide">Image coming soon</span>
+        <div class="space-y-2">
+          <label for="filter-destination" class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Destination</label>
+          <select id="filter-destination" name="destination" class="w-full rounded-md border border-border/70 bg-background px-3 py-2 text-sm text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+            <option value="">All destinations</option>
+            {% for destination in filter_options.destinations %}
+            <option value="{{ destination.slug }}" {% if active_filters.destination == destination.slug %}selected{% endif %}>{{ destination.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="space-y-3">
+          <span class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Price (per person)</span>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="filter-price-min" class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Min</label>
+              <input id="filter-price-min" type="number" name="price_min" placeholder="{{ filter_options.price.min|floatformat:0 }}" value="{% if active_filters.price_min %}{{ active_filters.price_min }}{% endif %}" class="mt-1 w-full rounded-md border border-border/70 bg-background px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" min="0" step="50" />
+            </div>
+            <div>
+              <label for="filter-price-max" class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Max</label>
+              <input id="filter-price-max" type="number" name="price_max" placeholder="{{ filter_options.price.max|floatformat:0 }}" value="{% if active_filters.price_max %}{{ active_filters.price_max }}{% endif %}" class="mt-1 w-full rounded-md border border-border/70 bg-background px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" min="0" step="50" />
+            </div>
           </div>
-          {% endif %}
-          {% if trip.category %}
-          <span class="absolute left-4 top-4 inline-flex items-center rounded-sm bg-primary px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-primary-foreground shadow-sm">
-            {{ trip.category }}
-          </span>
-          {% endif %}
         </div>
-      
-        <div class="flex flex-1 flex-col gap-5 p-6">
-          <header class="space-y-2">
-            <h3 class="font-serif text-xl text-foreground">{{ trip.title }}</h3>
-            <p class="text-sm leading-relaxed text-muted-foreground">{{ trip.description }}</p>
-          </header>
-      
-          <dl class="grid grid-cols-1 gap-3 text-sm text-muted-foreground sm:grid-cols-2">
-            <div class="flex items-center gap-2">
-              <dt class="sr-only">Duration</dt>
-              <svg class="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-              </svg>
-              <dd>{{ trip.duration }}</dd>
-            </div>
-            <div class="flex items-center gap-2">
-              <dt class="sr-only">Group size</dt>
-              <svg class="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M16 17v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1" />
-                <circle cx="8" cy="7" r="3" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M22 17v-1a4 4 0 0 0-3-3.87" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a3 3 0 0 1-2 2.82" />
-              </svg>
-              <dd>{{ trip.group_size }}</dd>
-            </div>
-            <div class="flex items-center gap-2">
-              <dt class="sr-only">Location</dt>
-              <svg class="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 10a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10c0 7-7.5 11.5-7.5 11.5S4.5 17 4.5 10a7.5 7.5 0 1 1 15 0Z" />
-              </svg>
-              <dd>{{ trip.location }}</dd>
-            </div>
-            <div class="flex items-center gap-2">
-              <dt class="sr-only">Starts from</dt>
-              <svg class="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .843-3 1.882C9 10.92 10.343 11.764 12 11.764s3 .843 3 1.882S13.657 15.528 12 15.528s-3-.843-3-1.882" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14" />
-              </svg>
-              <dd><span class="text-muted-foreground/80">Starts from</span> {{ trip.price }}</dd>
-            </div>
-          </dl>
-      
-          <a href="{% url 'web:trip-detail' trip.slug %}"
-             class="mt-auto inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
-            View details
-          </a>
-        </div>
-      </article>
-      
-      {% endfor %}
-    </div>
-    {% else %}
-    <div class="mx-auto max-w-3xl rounded-3xl border border-dashed border-border bg-muted/50 p-12 text-center shadow-subtle">
-      <h3 class="font-serif text-2xl text-foreground">No trips yet</h3>
-      <p class="mt-3 text-base leading-relaxed text-muted-foreground">
-        {% if selected_destination %}
-        We have not published any trips for {{ selected_destination.name }} yet. Share your travel dreams and our specialists will design a bespoke itinerary.
-        {% else %}
-        New journeys will be published soon. Check back shortly or reach out to craft a private departure.
+
+        <fieldset class="space-y-3">
+          <legend class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Duration</legend>
+          <div class="space-y-2">
+            {% for bucket in filter_options.durations %}
+            <label class="flex items-center gap-3 text-sm text-muted-foreground">
+              <input type="checkbox" name="duration" value="{{ bucket.value }}" class="h-4 w-4 rounded border-border/70 text-primary focus:ring-primary" {% if bucket.value in active_filters.duration_ranges %}checked{% endif %} />
+              <span>{{ bucket.label }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </fieldset>
+
+        <fieldset class="space-y-3">
+          <legend class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Group size</legend>
+          <div class="space-y-2">
+            {% for bucket in filter_options.group_sizes %}
+            <label class="flex items-center gap-3 text-sm text-muted-foreground">
+              <input type="checkbox" name="group_size" value="{{ bucket.value }}" class="h-4 w-4 rounded border-border/70 text-primary focus:ring-primary" {% if bucket.value in active_filters.group_sizes %}checked{% endif %} />
+              <span>{{ bucket.label }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </fieldset>
+
+        {% if filter_options.categories %}
+        <fieldset class="space-y-3">
+          <legend class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Travel style</legend>
+          <div class="space-y-2">
+            {% for category in filter_options.categories %}
+            <label class="flex items-center gap-3 text-sm text-muted-foreground">
+              <input type="checkbox" name="category" value="{{ category.slug }}" class="h-4 w-4 rounded border-border/70 text-primary focus:ring-primary" {% if category.slug in active_filters.categories %}checked{% endif %} />
+              <span>{{ category.name }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </fieldset>
         {% endif %}
-      </p>
+
+        <div class="flex flex-wrap items-center gap-3">
+          <button type="submit" class="inline-flex items-center justify-center rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-subtle transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Apply filters</button>
+          <a href="{% url 'web:trips' %}" class="text-sm font-semibold text-muted-foreground transition-colors hover:text-primary">Reset</a>
+        </div>
+      </form>
+    </aside>
+
+    <div class="space-y-10">
+      <div class="space-y-4 text-center md:text-left">
+        <h2 class="font-serif text-3xl text-foreground sm:text-4xl">
+          {% if selected_destination %}
+          Trips in {{ selected_destination.name }}
+          {% else %}
+          Available Tours
+          {% endif %}
+        </h2>
+        <p class="text-base leading-relaxed text-muted-foreground">
+          {% if selected_destination %}
+          Explore {{ trips|length }} hand-crafted itineraries designed to reveal the heart of {{ selected_destination.name }}. Each journey balances iconic highlights with quieter moments only locals know.
+          {% else %}
+          Explore {{ trips|length }} journeys crafted by our Egypt specialists. Every itinerary blends essential sights with authentic experiences and seamless service.
+          {% endif %}
+        </p>
+      </div>
+
+      {% if trips %}
+      <div class="grid gap-10 sm:grid-cols-2 xl:grid-cols-3">
+        {% for trip in trips %}
+        <article class="group flex h-full flex-col overflow-hidden rounded-md border border-border bg-card shadow-sm transition-colors">
+          <div class="relative h-64 overflow-hidden">
+            {% if trip.image_url %}
+            <img src="{{ trip.image_url }}" alt="{{ trip.title }}" class="h-full w-full object-cover" />
+            {% else %}
+            <div class="flex h-full items-center justify-center bg-muted text-muted-foreground">
+              <span class="text-sm font-semibold uppercase tracking-wide">Image coming soon</span>
+            </div>
+            {% endif %}
+            {% if trip.category %}
+            <span class="absolute left-4 top-4 inline-flex items-center rounded-sm bg-primary px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-primary-foreground shadow-sm">
+              {{ trip.category }}
+            </span>
+            {% endif %}
+          </div>
+
+          <div class="flex flex-1 flex-col gap-5 p-6">
+            <header class="space-y-2">
+              <h3 class="font-serif text-xl text-foreground">{{ trip.title }}</h3>
+              <p class="text-sm leading-relaxed text-muted-foreground">{{ trip.description }}</p>
+            </header>
+
+            <dl class="grid grid-cols-1 gap-3 text-sm text-muted-foreground sm:grid-cols-2">
+              <div class="flex items-center gap-2">
+                <dt class="sr-only">Duration</dt>
+                <svg class="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+                <dd>{{ trip.duration }}</dd>
+              </div>
+              <div class="flex items-center gap-2">
+                <dt class="sr-only">Group size</dt>
+                <svg class="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16 17v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1" />
+                  <circle cx="8" cy="7" r="3" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M22 17v-1a4 4 0 0 0-3-3.87" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a3 3 0 0 1-2 2.82" />
+                </svg>
+                <dd>{{ trip.group_size }}</dd>
+              </div>
+              <div class="flex items-center gap-2">
+                <dt class="sr-only">Location</dt>
+                <svg class="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 10a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10c0 7-7.5 11.5-7.5 11.5S4.5 17 4.5 10a7.5 7.5 0 1 1 15 0Z" />
+                </svg>
+                <dd>{{ trip.location }}</dd>
+              </div>
+              <div class="flex items-center gap-2">
+                <dt class="sr-only">Starts from</dt>
+                <svg class="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .843-3 1.882C9 10.92 10.343 11.764 12 11.764s3 .843 3 1.882S13.657 15.528 12 15.528s-3-.843-3-1.882" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14" />
+                </svg>
+                <dd><span class="text-muted-foreground/80">Starts from</span> {{ trip.price }}</dd>
+              </div>
+            </dl>
+
+            <a href="{% url 'web:trip-detail' trip.slug %}"
+               class="mt-auto inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+              View details
+            </a>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="mx-auto max-w-3xl rounded-3xl border border-dashed border-border bg-muted/50 p-12 text-center shadow-subtle">
+        <h3 class="font-serif text-2xl text-foreground">No trips yet</h3>
+        <p class="mt-3 text-base leading-relaxed text-muted-foreground">
+          {% if selected_destination %}
+          We have not published any trips for {{ selected_destination.name }} yet. Share your travel dreams and our specialists will design a bespoke itinerary.
+          {% else %}
+          New journeys will be published soon. Check back shortly or reach out to craft a private departure.
+          {% endif %}
+        </p>
+      </div>
+      {% endif %}
     </div>
-    {% endif %}
   </div>
 </section>
 {% if destination_gallery %}
