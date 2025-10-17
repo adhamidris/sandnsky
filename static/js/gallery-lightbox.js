@@ -9,9 +9,12 @@
     galleries: [],
     activeGallery: null,
     activeIndex: -1,
+    overlay: null,
+    keydownBound: false,
   };
 
-  function init() {
+  function bootstrap() {
+    state.galleries = [];
     document.querySelectorAll('[data-gallery]').forEach((galleryEl, galleryIndex) => {
       const items = Array.from(galleryEl.querySelectorAll('[data-gallery-item]'));
       if (items.length === 0) {
@@ -47,6 +50,11 @@
   function setupOverlay() {
     const overlay = document.querySelector('[data-gallery-overlay]');
     if (!overlay) {
+      state.overlay = null;
+      if (state.keydownBound) {
+        document.removeEventListener('keydown', onKeydown);
+        state.keydownBound = false;
+      }
       return;
     }
 
@@ -79,7 +87,11 @@
     overlay.addEventListener('touchstart', onTouchStart, { passive: true });
     overlay.addEventListener('touchend', onTouchEnd, { passive: true });
 
+    if (state.keydownBound) {
+      document.removeEventListener('keydown', onKeydown);
+    }
     document.addEventListener('keydown', onKeydown);
+    state.keydownBound = true;
   }
 
   let touchStartX = null;
@@ -179,9 +191,11 @@
     }
   }
 
+  window.initGalleryLightbox = bootstrap;
+
   if (document.readyState !== 'loading') {
-    init();
+    bootstrap();
   } else {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', bootstrap);
   }
 })();

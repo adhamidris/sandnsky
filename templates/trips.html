@@ -71,7 +71,7 @@
 {% endif %}
 
 {% if selected_destination %}
-<section class="bg-background px-4 py-16 sm:px-6 lg:px-8">
+<section id="destination-summary" class="bg-background px-4 py-16 sm:px-6 lg:px-8">
   <div class="mx-auto max-w-7xl">
     <div class="space-y-8">
       <div class="space-y-5 text-left">
@@ -128,9 +128,9 @@
 </section>
 {% endif %}
 
-<section id="trip-list" class="bg-background px-4 pb-28 sm:px-6 lg:px-8 {% if selected_destination %}pt-6 md:pt-10{% else %}pt-24{% endif %}">
+<section id="trip-list" class="scroll-mt-32 bg-background px-4 pb-28 sm:px-6 lg:px-8 {% if selected_destination %}pt-6 md:pt-10{% else %}pt-24{% endif %}">
   <div class="mx-auto max-w-7xl lg:grid lg:grid-cols-[minmax(0,1fr)_280px] lg:gap-12">
-    <div class="space-y-10">
+    <div id="trip-results" class="space-y-10" aria-live="polite">
       <div class="space-y-4 text-center md:text-left">
         <h2 class="font-serif text-3xl text-foreground sm:text-4xl">
           {% if selected_destination %}
@@ -232,7 +232,7 @@
     </div>
 
     <aside class="mb-12 space-y-6 rounded-2xl border border-border bg-card p-6 shadow-subtle lg:sticky lg:top-28 lg:mb-0 lg:self-start">
-      <form action="{% url 'web:trips' %}" method="get" class="space-y-6">
+      <form action="{% url 'web:trips' %}" method="get" class="space-y-6" data-live-filter>
         <div class="space-y-1">
           <h3 class="text-sm font-semibold uppercase tracking-[0.25em] text-muted-foreground">Refine tours</h3>
           <p class="text-xs text-muted-foreground">Use filters to narrow itineraries.</p>
@@ -302,14 +302,14 @@
 
         <div class="flex flex-wrap items-center gap-3">
           <button type="submit" class="inline-flex items-center justify-center rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-subtle transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Apply filters</button>
-          <a href="{% url 'web:trips' %}" class="text-sm font-semibold text-muted-foreground transition-colors hover:text-primary">Reset</a>
+          <a href="{% url 'web:trips' %}" class="text-sm font-semibold text-muted-foreground transition-colors hover:text-primary" data-filter-reset>Reset</a>
         </div>
       </form>
     </aside>
   </div>
 </section>
 {% if destination_gallery %}
-<section class="bg-background px-4 pb-20 pt-10 sm:px-6 lg:px-8">
+<section id="destination-gallery" class="bg-background px-4 pb-20 pt-10 sm:px-6 lg:px-8">
   <div class="mx-auto max-w-7xl space-y-8">
     <div class="space-y-2 text-left">
       <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Gallery</p>
@@ -369,4 +369,150 @@
 {% if destination_gallery %}
 <script src="{% static 'js/gallery-lightbox.js' %}"></script>
 {% endif %}
+<script>
+(function () {
+  var hasPopstateListener = false;
+
+  function smoothScrollToResults() {
+    var section = document.getElementById('trip-list');
+    if (!section) return;
+    window.requestAnimationFrame(function () {
+      window.scrollTo({ top: section.offsetTop - 80, behavior: 'smooth' });
+    });
+  }
+
+  if (!('fetch' in window) || !('URLSearchParams' in window) || !('FormData' in window)) {
+    if (window.location.search.length > 1) {
+      smoothScrollToResults();
+    }
+    return;
+  }
+
+  function replaceSection(id, doc, options) {
+    var current = document.getElementById(id);
+    var incoming = doc.getElementById(id);
+    if (current && incoming) {
+      current.replaceWith(incoming);
+    } else if (current && !incoming) {
+      current.remove();
+    } else if (!current && incoming) {
+      var reference = options && options.insertBeforeId ? document.getElementById(options.insertBeforeId) : null;
+      if (reference && reference.parentNode) {
+        reference.parentNode.insertBefore(incoming, reference);
+      } else {
+        var main = document.querySelector('main');
+        if (main) {
+          main.appendChild(incoming);
+        }
+      }
+    }
+  }
+
+  function submitParams(params, pushHistory) {
+    var query = params instanceof URLSearchParams ? params : new URLSearchParams(params);
+    var queryString = query.toString();
+    var fetchUrl = window.location.pathname + (queryString ? '?' + queryString : '');
+    var tripList = document.getElementById('trip-list');
+    if (tripList) {
+      tripList.setAttribute('aria-busy', 'true');
+    }
+
+    fetch(fetchUrl, {
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      credentials: 'same-origin',
+    })
+      .then(function (response) {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.text();
+      })
+      .then(function (html) {
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(html, 'text/html');
+
+        replaceSection('page-top', doc);
+        replaceSection('destination-summary', doc, { insertBeforeId: 'trip-list' });
+        replaceSection('destination-gallery', doc, { insertBeforeId: 'trip-list' });
+        replaceSection('trip-list', doc);
+
+        if (pushHistory) {
+          history.pushState(null, '', fetchUrl);
+        }
+
+        if (window.initGalleryLightbox) {
+          window.initGalleryLightbox();
+        }
+
+        initTripFilters();
+        smoothScrollToResults();
+      })
+      .catch(function (error) {
+        console.error('Trip filter update failed:', error);
+        window.location.href = fetchUrl;
+      })
+      .finally(function () {
+        var updatedTripList = document.getElementById('trip-list');
+        if (updatedTripList) {
+          updatedTripList.removeAttribute('aria-busy');
+        }
+      });
+  }
+
+  function initTripFilters() {
+    var form = document.querySelector('[data-live-filter]');
+    if (!form || form.dataset.liveFilterBound === 'true') {
+      return;
+    }
+    form.dataset.liveFilterBound = 'true';
+
+    var debounceTimer = null;
+
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      var params = new URLSearchParams(new FormData(form));
+      submitParams(params, true);
+    });
+
+    form.addEventListener('change', function (event) {
+      if (!(event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement)) {
+        return;
+      }
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(function () {
+        var params = new URLSearchParams(new FormData(form));
+        submitParams(params, true);
+      }, 200);
+    });
+
+    var resetLink = form.querySelector('[data-filter-reset]');
+    if (resetLink && !resetLink.dataset.bound) {
+      resetLink.dataset.bound = 'true';
+      resetLink.addEventListener('click', function (event) {
+        event.preventDefault();
+        form.reset();
+        submitParams(new URLSearchParams(), true);
+      });
+    }
+
+    if (!hasPopstateListener) {
+      window.addEventListener('popstate', function () {
+        var params = new URLSearchParams(window.location.search.replace(/^\?/, ''));
+        submitParams(params, false);
+      });
+      hasPopstateListener = true;
+    }
+
+    if (window.location.search.length > 1) {
+      smoothScrollToResults();
+    }
+  }
+
+  if (document.readyState !== 'loading') {
+    initTripFilters();
+  } else {
+    document.addEventListener('DOMContentLoaded', initTripFilters, { once: true });
+  }
+})();
+</script>
 {% endblock %}
