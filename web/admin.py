@@ -5,6 +5,7 @@ from django.db.models import Max
 from .models import (
     Destination,
     DestinationGalleryImage,
+    SiteConfiguration,
     TripCategory,
     Language,
     Trip,
@@ -222,6 +223,31 @@ class DestinationGalleryImageAdmin(admin.ModelAdmin):
     list_filter = ("destination",)
     search_fields = ("destination__name", "caption", "image")
     ordering = ("destination__name", "position", "id")
+
+
+@admin.register(SiteConfiguration)
+class SiteConfigurationAdmin(admin.ModelAdmin):
+    fieldsets = (
+        (
+            "Landing Hero",
+            {
+                "fields": (
+                    "hero_title",
+                    "hero_subtitle",
+                    "hero_image",
+                    "hero_primary_cta_label",
+                    "hero_primary_cta_href",
+                    "hero_secondary_cta_label",
+                    "hero_secondary_cta_href",
+                )
+            },
+        ),
+    )
+
+    def has_add_permission(self, request):
+        if SiteConfiguration.objects.exists():
+            return False
+        return super().has_add_permission(request)
 
 
 @admin.register(TripCategory)

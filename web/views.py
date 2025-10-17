@@ -9,6 +9,7 @@ from django.views.generic import TemplateView
 from .forms import BookingRequestForm
 from .models import (
     Destination,
+    SiteConfiguration,
     Trip,
     TripItineraryDay,
     TripRelation,
@@ -56,14 +57,26 @@ def _destination_hero_context(destination):
 def _destination_gallery_context(destination):
     if not destination:
         return []
-    return [
-        {
-            "image_url": image.image.url if image.image else "",
-            "caption": image.caption,
-        }
-        for image in destination.gallery_images.all()
-        if image.image
-    ]
+    gallery = []
+    for image in destination.gallery_images.all():
+        if not image.image:
+            continue
+        width = getattr(image.image, "width", None)
+        height = getattr(image.image, "height", None)
+        is_landscape = False
+        if width and height:
+            try:
+                is_landscape = (width / height) >= 1.6
+            except (TypeError, ZeroDivisionError):
+                is_landscape = False
+        gallery.append(
+            {
+                "image_url": image.image.url,
+                "caption": image.caption,
+                "is_landscape": is_landscape,
+            }
+        )
+    return gallery
 
 
 def build_trip_card(trip):
@@ -111,12 +124,22 @@ class HomePageView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        site_config = SiteConfiguration.get_solo()
+        hero_image = site_config.hero_image.url if site_config.hero_image else "img/hero-pyramids.jpg"
+        hero_image_is_media = bool(site_config.hero_image)
         context["hero"] = {
-            "title": "Discover the Magic of Egypt",
-            "subtitle": "Embark on an unforgettable journey through ancient wonders and timeless beauty",
-            "image": "img/hero-pyramids.jpg",
-            "primary_cta": {"label": "Explore Tours", "href": "/trips"},
-            "secondary_cta": {"label": "Learn More", "href": "#about"},
+            "title": site_config.hero_title,
+            "subtitle": site_config.hero_subtitle,
+            "image": hero_image,
+            "image_is_media": hero_image_is_media,
+            "primary_cta": {
+                "label": site_config.hero_primary_cta_label,
+                "href": site_config.hero_primary_cta_href,
+            },
+            "secondary_cta": {
+                "label": site_config.hero_secondary_cta_label,
+                "href": site_config.hero_secondary_cta_href,
+            },
         }
 
         context["destinations_section"] = {

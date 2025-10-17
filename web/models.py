@@ -104,6 +104,35 @@ class Language(models.Model):
     def __str__(self) -> str:
         return f"{self.name} ({self.code})"
 
+# -----------------------------
+# Site configuration
+# -----------------------------
+
+
+class SiteConfiguration(models.Model):
+    hero_title = models.CharField(max_length=200, default="Discover the Magic of Egypt")
+    hero_subtitle = models.TextField(
+        blank=True,
+        default="Embark on an unforgettable journey through ancient wonders and timeless beauty",
+    )
+    hero_primary_cta_label = models.CharField(max_length=100, default="Explore Tours")
+    hero_primary_cta_href = models.CharField(max_length=255, default="/trips")
+    hero_secondary_cta_label = models.CharField(max_length=100, default="Learn More")
+    hero_secondary_cta_href = models.CharField(max_length=255, default="#about")
+    hero_image = models.ImageField(upload_to="site/hero/", blank=True)
+
+    class Meta:
+        verbose_name = "Site configuration"
+        verbose_name_plural = "Site configuration"
+
+    def __str__(self) -> str:
+        return "Site configuration"
+
+    @classmethod
+    def get_solo(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
 
 # -----------------------------
 # Trips

@@ -118,6 +118,206 @@ All colors MUST be HSL.
   .booking-floater[aria-hidden="false"] {
     @apply pointer-events-auto translate-y-0 opacity-100;
   }
+
+  .gallery-grid {
+    @apply grid;
+    grid-auto-rows: 18rem;
+    grid-auto-flow: dense;
+  }
+
+  @screen sm {
+    .gallery-grid {
+      grid-auto-rows: 20rem;
+    }
+  }
+
+  @screen lg {
+    .gallery-grid {
+      grid-auto-rows: 22rem;
+    }
+  }
+
+  .gallery-card {
+    position: relative;
+    height: 100%;
+  }
+
+  .gallery-card--landscape {
+    grid-row: span 2;
+  }
+
+  .gallery-card__button {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: zoom-in;
+    text-align: left;
+  }
+
+  .gallery-card__image {
+    width: 100%;
+    height: 100%;
+    -o-object-fit: cover;
+    object-fit: cover;
+  }
+
+  .gallery-card__scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .gallery-card__caption {
+    position: absolute;
+    inset-inline: 1.25rem;
+    bottom: 1rem;
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+
+  .gallery-card__button:hover .gallery-card__scrim,
+  .gallery-card__button:focus-visible .gallery-card__scrim,
+  .gallery-card__button:hover .gallery-card__caption,
+  .gallery-card__button:focus-visible .gallery-card__caption {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .gallery-lightbox[hidden] {
+    display: none;
+  }
+
+  .gallery-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 110;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(1rem, 5vw, 3rem);
+  }
+
+  .gallery-lightbox__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(10, 10, 10, 0.78);
+    backdrop-filter: blur(6px);
+  }
+
+  .gallery-lightbox__dialog {
+    position: relative;
+    z-index: 1;
+    width: min(960px, 100%);
+    max-height: calc(100vh - clamp(4rem, 12vw, 8rem));
+    background: rgba(12, 12, 12, 0.94);
+    border-radius: 1.5rem;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 28px 80px rgba(0, 0, 0, 0.55);
+  }
+
+  .gallery-lightbox__close {
+    position: absolute;
+    top: 0.85rem;
+    right: 0.85rem;
+    border: none;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 9999px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    transition: background 0.2s ease;
+  }
+
+  .gallery-lightbox__close:hover,
+  .gallery-lightbox__close:focus-visible {
+    background: rgba(255, 255, 255, 0.25);
+  }
+
+  .gallery-lightbox__figure {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    background: rgba(12, 12, 12, 0.94);
+  }
+
+  .gallery-lightbox__media {
+    position: relative;
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+  }
+
+  .gallery-lightbox__image {
+    display: block;
+    max-width: 100%;
+    max-height: calc(100vh - clamp(10rem, 20vw, 14rem));
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    margin: 0 auto;
+  }
+
+  .gallery-lightbox__controls {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transform: translateY(-50%);
+    pointer-events: none;
+    padding: 0 clamp(0.5rem, 3vw, 1.5rem);
+  }
+
+  .gallery-lightbox__nav {
+    pointer-events: auto;
+    border: none;
+    background: rgba(255, 255, 255, 0.16);
+    color: #fff;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 9999px;
+    display: grid;
+    place-items: center;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .gallery-lightbox__nav:hover,
+  .gallery-lightbox__nav:focus-visible {
+    background: rgba(255, 255, 255, 0.35);
+  }
+
+  .gallery-lightbox__caption {
+    padding: 1rem clamp(1rem, 4vw, 2rem);
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.78);
+    background: rgba(12, 12, 12, 0.94);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
 }
 
 @layer utilities {
@@ -137,4 +337,8 @@ All colors MUST be HSL.
   .scrollbar-none::-webkit-scrollbar {
     display: none;
   }
+}
+
+body.gallery-lightbox--open {
+  overflow: hidden;
 }

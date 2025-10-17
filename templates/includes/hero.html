@@ -2,9 +2,9 @@
 <section id="hero" class="relative flex h-screen items-center justify-center overflow-hidden">
   <div
     class="absolute inset-0 bg-cover bg-center bg-no-repeat"
-    style="background-image: url('{% static hero.image %}');"
+    style="background-image: url('{% if hero.image_is_media %}{{ hero.image }}{% else %}{% static hero.image %}{% endif %}');"
   >
-    <div class="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60"></div>
+    <div class="absolute inset-0 bg-gradient-to-b from-black/25 via-black/10 to-black/45"></div>
   </div>
   <div class="relative z-10 mx-auto max-w-4xl px-4 text-center animate-fade-in">
     <h1 class="font-serif text-5xl font-bold text-white sm:text-6xl lg:text-7xl">{{ hero.title }}</h1>

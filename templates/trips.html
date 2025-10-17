@@ -210,19 +210,54 @@
       </div>
       <p class="text-sm leading-relaxed text-muted-foreground">A curated glimpse of the landscapes, textures, and moments waiting for you.</p>
     </div>
-    <div class="gallery-grid grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="gallery-grid grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3" data-gallery>
       {% for item in destination_gallery %}
-      <figure class="gallery-card group relative overflow-hidden rounded-2xl border border-border/60 bg-card/80 shadow-subtle {% if item.is_landscape %}gallery-card--landscape{% endif %}">
-        <img src="{{ item.image_url }}" alt="{{ selected_destination.name }} gallery image {{ forloop.counter }}" class="gallery-card__image transition-transform duration-500 group-hover:scale-110" loading="lazy" />
+      <figure class="gallery-card group relative overflow-hidden rounded-2xl border border-border/60 bg-card/80 shadow-subtle {% if item.is_landscape %}gallery-card--landscape{% endif %}" data-gallery-item data-gallery-full="{{ item.image_url }}" data-gallery-caption="{{ item.caption|default:''|escape }}">
+        <button type="button" class="gallery-card__button" data-gallery-trigger aria-label="View larger image {{ forloop.counter }}">
+          <img src="{{ item.image_url }}" alt="{{ selected_destination.name }} gallery image {{ forloop.counter }}" class="gallery-card__image transition-transform duration-500 group-hover:scale-110" loading="lazy" />
+          {% if item.caption %}
+          <span class="gallery-card__scrim" aria-hidden="true"></span>
+          <span class="gallery-card__caption">{{ item.caption }}</span>
+          {% endif %}
+        </button>
         {% if item.caption %}
-        <figcaption class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent p-4 text-sm font-medium text-white/90">
-          {{ item.caption }}
-        </figcaption>
+        <figcaption class="sr-only">{{ item.caption }}</figcaption>
         {% endif %}
       </figure>
       {% endfor %}
     </div>
   </div>
 </section>
+{% endif %}
+{% if destination_gallery %}
+<div class="gallery-lightbox" data-gallery-overlay hidden>
+  <div class="gallery-lightbox__backdrop" data-gallery-close></div>
+  <div class="gallery-lightbox__dialog" role="dialog" aria-modal="true" aria-label="Destination gallery viewer" tabindex="-1">
+    <button type="button" class="gallery-lightbox__close" data-gallery-close aria-label="Close gallery">
+      <span aria-hidden="true">&times;</span>
+    </button>
+    <figure class="gallery-lightbox__figure">
+      <div class="gallery-lightbox__media">
+        <img src="" alt="Expanded gallery image" class="gallery-lightbox__image" data-gallery-active-image />
+        <div class="gallery-lightbox__controls">
+          <button type="button" class="gallery-lightbox__nav" data-gallery-prev aria-label="View previous image">
+            <span aria-hidden="true">&#8592;</span>
+          </button>
+          <button type="button" class="gallery-lightbox__nav" data-gallery-next aria-label="View next image">
+            <span aria-hidden="true">&#8594;</span>
+          </button>
+        </div>
+      </div>
+      <figcaption class="gallery-lightbox__caption" data-gallery-active-caption></figcaption>
+    </figure>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+{% if destination_gallery %}
+<script src="{% static 'js/gallery-lightbox.js' %}"></script>
 {% endif %}
 {% endblock %}
