@@ -132,37 +132,6 @@
         <p class="text-lg leading-relaxed text-muted-foreground">Handcrafted journeys that balance iconic highlights with local secrets.</p>
         {% endif %}
       </div>
-      <div id="contact" class="scroll-mt-32 flex flex-col gap-4 rounded-2xl border border-dashed border-border/70 bg-muted/40 p-6 lg:flex-row lg:items-center lg:justify-between lg:p-7">
-        <p class="text-sm leading-relaxed text-muted-foreground">
-          Looking for something bespoke? Tell us how you would like to experience <strong>{{ selected_destination.name }}</strong> and our specialists will craft a custom journey.
-        </p>
-        {% if contact_actions %}
-        <div class="flex flex-wrap items-center gap-2">
-          {% for action in contact_actions %}
-          <a href="{{ action.href }}" class="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" aria-label="{{ action.aria }}">
-            {% if action.icon == "whatsapp" %}
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-3.5 w-3.5 text-primary">
-              <path d="M12.04 2a9.84 9.84 0 0 0-8.8 14.48L2 22l5.66-1.22A9.83 9.83 0 1 0 12.04 2Zm0 17.73c-1.57 0-3.11-.41-4.46-1.17l-.32-.18-3.36.72.72-3.26-.2-.33A7.86 7.86 0 1 1 12.04 19.73Zm4.38-5.83c-.24-.12-1.43-.7-1.65-.78-.22-.08-.38-.12-.54.12-.16.24-.62.78-.76.94-.14.16-.28.18-.52.06-.24-.12-1-.37-1.9-1.2-.7-.63-1.18-1.4-1.32-1.64-.14-.24-.02-.37.1-.49.1-.09.24-.24.36-.36.12-.12.16-.2.24-.34.08-.14.04-.27-.02-.39-.06-.12-.54-1.31-.74-1.79-.2-.48-.4-.41-.54-.42h-.46c-.16 0-.4.06-.62.3-.22.24-.84.82-.84 2s.86 2.36.98 2.52c.12.16 1.7 2.6 4.12 3.65.58.25 1.03.4 1.38.52.58.18 1.12.16 1.54.1.47-.07 1.43-.58 1.63-1.14.2-.56.2-1.04.14-1.14-.06-.1-.22-.16-.46-.28Z" />
-            </svg>
-            {% elif action.icon == "phone" %}
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-3.5 w-3.5 text-primary">
-              <path d="M6.5 3h2l1.5 4-2 1c1 2.5 2.9 4.4 5.4 5.4l1-2 4 1.5v2c0 1-1 2-2 2A14 14 0 0 1 4.5 5c0-1 1-2 2-2Z" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-            {% elif action.icon == "mail" %}
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-3.5 w-3.5 text-primary">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 5h15a1.5 1.5 0 0 1 1.5 1.5v11a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5v-11A1.5 1.5 0 0 1 4.5 5Zm0 0 7.5 6 7.5-6" />
-            </svg>
-            {% else %}
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-3.5 w-3.5 text-primary">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14" />
-            </svg>
-            {% endif %}
-            <span>{{ action.label }}</span>
-          </a>
-          {% endfor %}
-        </div>
-        {% endif %}
-      </div>
     </div>
   </div>
 </section>
@@ -411,7 +380,29 @@
 <script>
 (function () {
   var hasPopstateListener = false;
-  var SCROLL_OFFSET = 80;
+  var BASE_SCROLL_OFFSET = 24;
+
+  function calculateScrollOffset(target) {
+    var offset = BASE_SCROLL_OFFSET;
+    var primaryNav = document.querySelector('nav.fixed');
+    if (primaryNav) {
+      offset += primaryNav.getBoundingClientRect().height;
+    }
+
+    var destinationNav = document.getElementById('destination-nav');
+    if (destinationNav) {
+      offset += destinationNav.getBoundingClientRect().height;
+    }
+
+    if (target && target.dataset && target.dataset.scrollOffset) {
+      var customOffset = parseInt(target.dataset.scrollOffset, 10);
+      if (!Number.isNaN(customOffset)) {
+        offset += customOffset;
+      }
+    }
+
+    return offset;
+  }
 
   function scrollToSection(sectionId) {
     var section = document.getElementById(sectionId);
@@ -419,7 +410,7 @@
       return false;
     }
     window.requestAnimationFrame(function () {
-      var top = window.pageYOffset + section.getBoundingClientRect().top - SCROLL_OFFSET;
+      var top = window.pageYOffset + section.getBoundingClientRect().top - calculateScrollOffset(section);
       window.scrollTo({ top: Math.max(top, 0), behavior: 'smooth' });
     });
     return true;
