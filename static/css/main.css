@@ -687,6 +687,7 @@ body {
   right: 1.5rem;
   z-index: 40;
   display: none;
+  --tw-translate-x: 0.75rem;
   --tw-translate-y: 0.5rem;
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
   opacity: 0;
@@ -703,6 +704,7 @@ body {
 
 .booking-floater[aria-hidden="false"] {
   pointer-events: auto;
+  --tw-translate-x: 0px;
   --tw-translate-y: 0px;
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
   opacity: 1;
@@ -1207,6 +1209,10 @@ body {
   width: 1px;
 }
 
+.w-auto {
+  width: auto;
+}
+
 .max-w-2xl {
   max-width: 42rem;
 }
@@ -1225,6 +1231,10 @@ body {
 
 .max-w-\[30rem\] {
   max-width: 30rem;
+}
+
+.max-w-\[34rem\] {
+  max-width: 34rem;
 }
 
 .flex-1 {
@@ -1326,6 +1336,10 @@ body {
 
 .items-center {
   align-items: center;
+}
+
+.justify-end {
+  justify-content: flex-end;
 }
 
 .justify-center {
@@ -1871,6 +1885,11 @@ body {
 .py-20 {
   padding-top: 5rem;
   padding-bottom: 5rem;
+}
+
+.px-10 {
+  padding-left: 2.5rem;
+  padding-right: 2.5rem;
 }
 
 .pb-16 {
