@@ -1811,6 +1811,10 @@ body {
   border-color: rgb(255 255 255 / 0.6);
 }
 
+.border-primary\/60 {
+  border-color: hsl(var(--primary) / 0.6);
+}
+
 .bg-background {
   background-color: hsl(var(--background));
 }
@@ -2485,6 +2489,10 @@ body.gallery-lightbox--open {
   border-color: hsl(var(--primary) / 0.6);
 }
 
+.hover\:border-primary:hover {
+  border-color: hsl(var(--primary));
+}
+
 .hover\:bg-primary\/90:hover {
   background-color: hsl(var(--primary) / 0.9);
 }
@@ -2517,6 +2525,10 @@ body.gallery-lightbox--open {
 .hover\:text-white:hover {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity, 1));
+}
+
+.hover\:text-primary\/90:hover {
+  color: hsl(var(--primary) / 0.9);
 }
 
 .hover\:shadow-xl:hover {
