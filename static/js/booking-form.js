@@ -74,13 +74,15 @@
 })();
 
 (function () {
-  const sheet = document.querySelector('[data-mobile-sheet]');
+  const container = document.querySelector('[data-mobile-sheet-container]') || null;
+  const sheet = container ? container.querySelector('[data-mobile-sheet]') : document.querySelector('[data-mobile-sheet]');
   if (!sheet) return;
 
-  const overlay = document.querySelector('[data-mobile-sheet-overlay]');
+  const overlay = container ? container.querySelector('[data-mobile-sheet-overlay]') : document.querySelector('[data-mobile-sheet-overlay]');
   const openButtons = document.querySelectorAll('[data-mobile-sheet-open]');
   const closeButton = sheet.querySelector('[data-mobile-sheet-close]');
   const mediaQuery = window.matchMedia('(min-width: 1024px)');
+  const focusableSelector = 'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
   let lastFocusedElement = null;
   let isOpen = false;
 
@@ -88,34 +90,86 @@
     openButtons.forEach((button) => button.setAttribute('aria-expanded', value ? 'true' : 'false'));
   };
 
+  const setScrollLock = (locked) => {
+    document.body.style.overflow = locked ? 'hidden' : '';
+  };
+
+  const trapFocus = (event) => {
+    if (!isOpen || event.key !== 'Tab') return;
+
+    const focusable = Array.from(sheet.querySelectorAll(focusableSelector)).filter((node) => {
+      if (!(node instanceof HTMLElement)) return false;
+      if (node.hasAttribute('disabled')) return false;
+      if (node.getAttribute('tabindex') === '-1') return false;
+      if (node.getAttribute('aria-hidden') === 'true') return false;
+      const isVisible = node.offsetParent !== null || node.getClientRects().length > 0;
+      return isVisible;
+    });
+
+    if (!focusable.length) return;
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    const isShift = event.shiftKey;
+    const active = document.activeElement;
+
+    if (!isShift && active === last) {
+      event.preventDefault();
+      first.focus();
+    } else if (isShift && active === first) {
+      event.preventDefault();
+      last.focus();
+    }
+  };
+
   const openSheet = () => {
-    if (mediaQuery.matches) return;
+    if (isOpen) return;
     lastFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
+    if (container) {
+      container.classList.add('is-open');
+      container.setAttribute('aria-hidden', 'false');
+    }
+
     sheet.classList.add('is-open');
     sheet.setAttribute('aria-hidden', 'false');
+
     if (overlay) {
       overlay.classList.add('is-visible');
       overlay.setAttribute('aria-hidden', 'false');
     }
-    document.body.style.overflow = 'hidden';
+
+    setScrollLock(true);
     setAriaExpanded(true);
     isOpen = true;
-    if (closeButton) {
-      closeButton.focus();
+
+    const initialFocus = closeButton || sheet.querySelector(focusableSelector);
+    if (initialFocus instanceof HTMLElement) {
+      initialFocus.focus();
     }
   };
 
   const closeSheet = (restoreFocus = true) => {
+    if (!isOpen) return;
+
     sheet.classList.remove('is-open');
     sheet.setAttribute('aria-hidden', 'true');
+
+    if (container) {
+      container.classList.remove('is-open');
+      container.setAttribute('aria-hidden', 'true');
+    }
+
     if (overlay) {
       overlay.classList.remove('is-visible');
       overlay.setAttribute('aria-hidden', 'true');
     }
-    document.body.style.overflow = '';
+
+    setScrollLock(false);
     setAriaExpanded(false);
     isOpen = false;
-    if (restoreFocus && lastFocusedElement) {
+
+    if (restoreFocus && lastFocusedElement instanceof HTMLElement) {
       lastFocusedElement.focus();
     }
   };
@@ -143,36 +197,34 @@
   }
 
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && isOpen && !mediaQuery.matches) {
+    if (!isOpen) return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
       closeSheet();
+      return;
     }
   });
 
+  sheet.addEventListener('keydown', trapFocus);
+
   const handleBreakpointChange = () => {
-    if (mediaQuery.matches) {
-      sheet.classList.remove('is-open');
-      document.body.style.overflow = '';
-      if (overlay) {
-        overlay.classList.remove('is-visible');
-        overlay.setAttribute('aria-hidden', 'true');
-      }
-      setAriaExpanded(false);
-      isOpen = false;
-      sheet.removeAttribute('role');
-      sheet.removeAttribute('aria-modal');
-      sheet.removeAttribute('aria-hidden');
-    } else {
-      sheet.classList.remove('is-open');
-      if (overlay) {
-        overlay.classList.remove('is-visible');
-        overlay.setAttribute('aria-hidden', 'true');
-      }
-      setAriaExpanded(false);
-      isOpen = false;
-      sheet.setAttribute('role', 'dialog');
-      sheet.setAttribute('aria-modal', 'true');
-      sheet.setAttribute('aria-hidden', 'true');
+    setAriaExpanded(false);
+    isOpen = false;
+
+    if (container) {
+      container.classList.remove('is-open');
+      container.setAttribute('aria-hidden', 'true');
     }
+
+    sheet.classList.remove('is-open');
+    sheet.setAttribute('aria-hidden', 'true');
+
+    if (overlay) {
+      overlay.classList.remove('is-visible');
+      overlay.setAttribute('aria-hidden', 'true');
+    }
+
+    setScrollLock(false);
   };
 
   mediaQuery.addEventListener('change', handleBreakpointChange);
