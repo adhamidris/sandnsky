@@ -342,3 +342,159 @@ All colors MUST be HSL.
 body.gallery-lightbox--open {
   overflow: hidden;
 }
+
+@layer components {
+  /* About feature icons */
+  .about-feature__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 4.5rem;
+    height: 4.5rem;
+    margin-bottom: 1rem;
+    border-radius: 1.5rem;
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.18), hsl(var(--accent) / 0.25));
+    color: hsl(var(--primary));
+    box-shadow: 0 12px 30px rgba(18, 24, 40, 0.12);
+  }
+
+  .dark .about-feature__icon {
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.3), hsl(var(--accent) / 0.35));
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+  }
+
+  .about-feature__svg {
+    width: 2.2rem;
+    height: 2.2rem;
+    fill: currentColor;
+  }
+
+  @screen sm {
+    .about-feature__icon {
+      width: 5rem;
+      height: 5rem;
+    }
+
+    .about-feature__svg {
+      width: 2.5rem;
+      height: 2.5rem;
+    }
+  }
+
+  /* Testimonials slider */
+  .testimonial-stack {
+    position: relative;
+    min-height: 18rem;
+  }
+
+  @screen md {
+    .testimonial-stack {
+      min-height: 19rem;
+    }
+  }
+
+  .testimonial-card {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    opacity: 0;
+    transform: translateY(1.5rem);
+    pointer-events: none;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+
+  .testimonial-card.is-active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .testimonial-card figure,
+  .testimonial-card blockquote,
+  .testimonial-card figcaption {
+    margin: 0;
+  }
+
+  .testimonial-stars {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: #fbbf24;
+    filter: drop-shadow(0 2px 6px rgba(251, 191, 36, 0.25));
+  }
+
+  .testimonial-star {
+    width: 1.05rem;
+    height: 1.05rem;
+    fill: currentColor;
+  }
+
+  @screen sm {
+    .testimonial-star {
+      width: 1.2rem;
+      height: 1.2rem;
+    }
+  }
+
+  .testimonial-dot {
+    height: 0.75rem;
+    width: 0.75rem;
+    border-radius: 9999px;
+    border: 1px solid hsl(var(--muted-foreground) / 0.35);
+    background-color: hsl(var(--muted) / 0.6);
+    opacity: 0.45;
+    transition: transform 0.2s ease, opacity 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .testimonial-dot:hover,
+  .testimonial-dot:focus-visible {
+    opacity: 0.75;
+    transform: scale(1.05);
+  }
+
+  .testimonial-dot.is-active {
+    opacity: 1;
+    background-color: hsl(var(--primary));
+    border-color: hsl(var(--primary) / 0.5);
+  }
+
+  /* Trip card meta labels */
+  .trip-card__meta {
+    font-size: 0.78rem;
+    color: hsl(var(--muted-foreground));
+    row-gap: 0.75rem;
+  }
+
+  .trip-card__meta-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+  }
+
+  .trip-card__icon {
+    width: 0.95rem;
+    height: 0.95rem;
+    color: hsl(var(--primary));
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+
+  .trip-card__value {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: hsl(var(--foreground));
+    line-height: 1.3;
+  }
+
+  .trip-card__prefix {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground) / 0.8);
+    margin-bottom: 0.05rem;
+  }
+}
