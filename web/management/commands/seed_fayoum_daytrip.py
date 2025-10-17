@@ -1,0 +1,196 @@
+from decimal import Decimal
+from django.core.management.base import BaseCommand
+from django.db import transaction
+from django.utils.text import slugify
+
+from web.models import (
+    Destination, DestinationName,
+    Trip, TripAbout, TripHighlight,
+    TripItineraryDay, TripItineraryStep,
+    TripInclusion, TripExclusion, TripFAQ,
+    TripCategory, Language,
+)
+
+# ====== Trip constants (from the PDF) ======
+TITLE = "Adventure Tour to Fayoum Oasis & Wadi El-Hitan with Egyptian Lunch"
+
+# Short blurb for listing cards
+TEASER = (
+    "Full-day desert adventure: Fayoum Oasis safari, Wadi El-Hitan fossils, "
+    "Magic Lake and Wadi El-Rayan waterfalls, plus traditional Egyptian lunch."
+)
+
+# Full About body (concise)
+DESCRIPTION = (
+    "Embark on a desert adventure to the Fayoum Oasis combining nature, history, and culture. "
+    "See the Magic Lake and Wadi El-Rayan Waterfalls, pass by Tunis Village, and visit "
+    "Wadi El-Hitan (Valley of the Whales) — a UNESCO World Heritage Site showcasing "
+    "fossilized whale remains over 40 million years old. Enjoy a traditional Egyptian lunch "
+    "in a local eco-lodge or Bedouin-style camp before returning to Cairo."
+)
+
+# Page shows “8 hours (approx.)”; your model needs days → use 1
+DURATION_DAYS = 1
+GROUP_SIZE_MAX = 50
+BASE_PRICE = Decimal("220.00")
+# Page shows “Daily tour Discovery Safari”; keep same display style as previous
+TOUR_TYPE_LABEL = "Daily tour — Discovery Safari"
+
+# Categories (M2M)
+CATEGORIES = ["Daily tour", "Discovery", "Safari"]
+
+# Languages (M2M)
+LANGUAGES = [
+    ("English", "en"),
+    ("Espanol", "es"),
+    ("Italian", "it"),
+    ("Russian", "ru"),
+]
+
+# Highlights (order preserved)
+HIGHLIGHTS = [
+    "Explore the Fayoum Oasis and its natural beauty",
+    "Visit Wadi El-Hitan (Valley of the Whales), a UNESCO World Heritage Site",
+    "See fossilized whale skeletons dating back millions of years",
+    "Enjoy a thrilling desert safari across golden dunes",
+    "Stop at Magic Lake and Wadi El-Rayan Waterfalls",
+    "Experience a traditional Egyptian lunch in the desert or local village",
+]
+
+# Itinerary → single day with ordered steps
+ITINERARY_DAY = {
+    "day_number": 1,
+    "title": "Cairo – Fayoum Oasis – Wadi El-Hitan – Cairo",
+    "steps": [
+        "Morning pick-up from Cairo or Giza hotel",
+        "Drive towards Fayoum Oasis (around 2 hours)",
+        "Desert safari with 4x4 vehicle across dunes",
+        "Visit Wadi El-Rayan Waterfalls & Magic Lake",
+        "Continue to Wadi El-Hitan (Valley of the Whales) and explore the open-air museum",
+        "Traditional Egyptian lunch at local eco-lodge or Bedouin-style camp",
+        "Optional stop at Tunis Village (pottery & cultural walk)",
+        "Relaxing desert drive back to Cairo",
+        "Evening drop-off at your hotel",
+    ],
+}
+
+# Included / Excluded
+INCLUSIONS = [
+    "Pick-up and drop-off from Cairo or Giza hotels",
+    "Professional Egyptologist guide & desert safari driver",
+    "4x4 Jeep safari through Fayoum Desert",
+    "Entrance fees to Wadi El-Hitan & Wadi El-Rayan",
+    "Traditional Egyptian lunch",
+    "Bottled water",
+]
+
+EXCLUSIONS = [
+    "Personal expenses",
+    "Gratuities for guide and driver",
+    "Optional activities (sandboarding, pottery workshop in Tunis Village)",
+    "Drinks not mentioned",
+]
+
+# FAQs (short and practical)
+FAQS = [
+    ("How far is Fayoum from Cairo?",
+     "About 90 km southwest of Cairo (~2 hours by car)."),
+    ("What makes Wadi El-Hitan special?",
+     "It’s a UNESCO World Heritage Site famous for fossilized whale skeletons showing the transition from land to sea."),
+    ("Is the safari safe?",
+     "Yes. Experienced drivers use 4x4 vehicles and follow safety practices."),
+    ("What should I wear?",
+     "Comfortable clothes, sturdy shoes, hat, sunglasses, and sunscreen."),
+    ("Can children join this tour?",
+     "Yes. Families are welcome and kids enjoy the fossils and safari."),
+    ("Is sandboarding available?",
+     "Yes. It can be arranged for an additional cost."),
+]
+
+
+class Command(BaseCommand):
+    help = "Seed/update: Fayoum Day Trip (Adventure Tour to Fayoum Oasis & Wadi El-Hitan with Egyptian Lunch)."
+
+    @transaction.atomic
+    def handle(self, *args, **kwargs):
+        # 1) Destination (predefined choices)
+        dest = Destination.objects.get(name=DestinationName.FAYOUM)
+
+        # 2) Categories (ensure slugs & names)
+        cat_objs = []
+        for c in CATEGORIES:
+            slug = slugify(c) or "category"
+            obj, _ = TripCategory.objects.get_or_create(slug=slug, defaults={"name": c})
+            if obj.name != c:
+                obj.name = c
+                obj.save(update_fields=["name"])
+            cat_objs.append(obj)
+
+        # 3) Languages
+        lang_objs = []
+        for name, code in LANGUAGES:
+            obj, _ = Language.objects.get_or_create(name=name, code=code)
+            lang_objs.append(obj)
+
+        # 4) Trip (upsert) — slug generated by model.save()
+        trip, created = Trip.objects.get_or_create(
+            title=TITLE,
+            destination=dest,
+            defaults=dict(
+                teaser=TEASER,
+                duration_days=DURATION_DAYS,
+                group_size_max=GROUP_SIZE_MAX,
+                base_price_per_person=BASE_PRICE,
+                tour_type_label=TOUR_TYPE_LABEL,
+            ),
+        )
+        if not created:
+            trip.teaser = TEASER
+            trip.duration_days = DURATION_DAYS
+            trip.group_size_max = GROUP_SIZE_MAX
+            trip.base_price_per_person = BASE_PRICE
+            trip.tour_type_label = TOUR_TYPE_LABEL
+            trip.save()
+
+        # 5) M2M
+        trip.category_tags.set(cat_objs)
+        trip.languages.set(lang_objs)
+
+        # 6) About
+        TripAbout.objects.update_or_create(trip=trip, defaults={"body": DESCRIPTION})
+
+        # 7) Highlights (replace)
+        TripHighlight.objects.filter(trip=trip).delete()
+        for i, text in enumerate(HIGHLIGHTS, start=1):
+            TripHighlight.objects.create(trip=trip, text=text, position=i)
+
+        # 8) Itinerary (replace)
+        TripItineraryStep.objects.filter(day__trip=trip).delete()
+        TripItineraryDay.objects.filter(trip=trip).delete()
+        day = TripItineraryDay.objects.create(
+            trip=trip,
+            day_number=ITINERARY_DAY["day_number"],
+            title=ITINERARY_DAY["title"],
+        )
+        for pos, title in enumerate(ITINERARY_DAY["steps"], start=1):
+            TripItineraryStep.objects.create(
+                day=day, time_label="", title=title, description="", position=pos
+            )
+
+        # 9) Inclusions / Exclusions (replace)
+        TripInclusion.objects.filter(trip=trip).delete()
+        for pos, txt in enumerate(INCLUSIONS, start=1):
+            TripInclusion.objects.create(trip=trip, text=txt, position=pos)
+
+        TripExclusion.objects.filter(trip=trip).delete()
+        for pos, txt in enumerate(EXCLUSIONS, start=1):
+            TripExclusion.objects.create(trip=trip, text=txt, position=pos)
+
+        # 10) FAQs (replace)
+        TripFAQ.objects.filter(trip=trip).delete()
+        for pos, (q, a) in enumerate(FAQS, start=1):
+            TripFAQ.objects.create(trip=trip, question=q, answer=a, position=pos)
+
+        self.stdout.write(self.style.SUCCESS(
+            f"{'Created' if created else 'Updated'} trip: {trip.title} (slug={trip.slug})"
+        ))

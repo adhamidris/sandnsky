@@ -85,3 +85,13 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .shadow-subtle {
+    box-shadow: var(--shadow-subtle);
+  }
+
+  .shadow-medium {
+    box-shadow: var(--shadow-medium);
+  }
+}

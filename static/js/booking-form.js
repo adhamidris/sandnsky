@@ -1,3 +1,4 @@
+
 (function () {
   const form = document.querySelector('[data-module="booking-form"]');
   if (!form) return;
@@ -73,25 +74,148 @@
 })();
 
 (function () {
-  const itineraryToggle = document.querySelector('[data-expand-itinerary]');
-  if (itineraryToggle) {
-    itineraryToggle.addEventListener('click', () => {
-      const detailsNodes = document.querySelectorAll('#itinerary details');
-      const allOpen = Array.from(detailsNodes).every((node) => node.open);
-      detailsNodes.forEach((node) => {
-        node.open = !allOpen;
-      });
+  const sheet = document.querySelector('[data-mobile-sheet]');
+  if (!sheet) return;
+
+  const overlay = document.querySelector('[data-mobile-sheet-overlay]');
+  const openButtons = document.querySelectorAll('[data-mobile-sheet-open]');
+  const closeButton = sheet.querySelector('[data-mobile-sheet-close]');
+  const mediaQuery = window.matchMedia('(min-width: 1024px)');
+  let lastFocusedElement = null;
+  let isOpen = false;
+
+  const setAriaExpanded = (value) => {
+    openButtons.forEach((button) => button.setAttribute('aria-expanded', value ? 'true' : 'false'));
+  };
+
+  const openSheet = () => {
+    if (mediaQuery.matches) return;
+    lastFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    sheet.classList.add('is-open');
+    sheet.setAttribute('aria-hidden', 'false');
+    if (overlay) {
+      overlay.classList.add('is-visible');
+      overlay.setAttribute('aria-hidden', 'false');
+    }
+    document.body.style.overflow = 'hidden';
+    setAriaExpanded(true);
+    isOpen = true;
+    if (closeButton) {
+      closeButton.focus();
+    }
+  };
+
+  const closeSheet = (restoreFocus = true) => {
+    sheet.classList.remove('is-open');
+    sheet.setAttribute('aria-hidden', 'true');
+    if (overlay) {
+      overlay.classList.remove('is-visible');
+      overlay.setAttribute('aria-hidden', 'true');
+    }
+    document.body.style.overflow = '';
+    setAriaExpanded(false);
+    isOpen = false;
+    if (restoreFocus && lastFocusedElement) {
+      lastFocusedElement.focus();
+    }
+  };
+
+  openButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      if (isOpen) {
+        closeSheet();
+      } else {
+        openSheet();
+      }
+    });
+  });
+
+  if (closeButton) {
+    closeButton.addEventListener('click', () => {
+      closeSheet();
     });
   }
 
-  const faqToggle = document.querySelector('[data-expand-faq]');
-  if (faqToggle) {
-    faqToggle.addEventListener('click', () => {
-      const detailsNodes = document.querySelectorAll('#faqs details');
+  if (overlay) {
+    overlay.addEventListener('click', () => {
+      closeSheet();
+    });
+  }
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && isOpen && !mediaQuery.matches) {
+      closeSheet();
+    }
+  });
+
+  const handleBreakpointChange = () => {
+    if (mediaQuery.matches) {
+      sheet.classList.remove('is-open');
+      document.body.style.overflow = '';
+      if (overlay) {
+        overlay.classList.remove('is-visible');
+        overlay.setAttribute('aria-hidden', 'true');
+      }
+      setAriaExpanded(false);
+      isOpen = false;
+      sheet.removeAttribute('role');
+      sheet.removeAttribute('aria-modal');
+      sheet.removeAttribute('aria-hidden');
+    } else {
+      sheet.classList.remove('is-open');
+      if (overlay) {
+        overlay.classList.remove('is-visible');
+        overlay.setAttribute('aria-hidden', 'true');
+      }
+      setAriaExpanded(false);
+      isOpen = false;
+      sheet.setAttribute('role', 'dialog');
+      sheet.setAttribute('aria-modal', 'true');
+      sheet.setAttribute('aria-hidden', 'true');
+    }
+  };
+
+  mediaQuery.addEventListener('change', handleBreakpointChange);
+  handleBreakpointChange();
+})();
+
+(function () {
+  function setupExpandToggle(buttonSelector, detailsSelector) {
+    const button = document.querySelector(buttonSelector);
+    if (!button) return;
+
+    const detailsNodes = document.querySelectorAll(detailsSelector);
+    if (!detailsNodes.length) return;
+
+    const labelNode = button.querySelector('span');
+    const collapsedLabel = labelNode ? labelNode.textContent.trim() : button.textContent.trim();
+    const expandedLabel = button.dataset.expandedLabel || 'Collapse all';
+
+    const updateButton = () => {
+      const allOpen = Array.from(detailsNodes).every((node) => node.open);
+      button.setAttribute('aria-pressed', allOpen ? 'true' : 'false');
+      if (labelNode) {
+        labelNode.textContent = allOpen ? expandedLabel : collapsedLabel;
+      } else {
+        button.textContent = allOpen ? expandedLabel : collapsedLabel;
+      }
+    };
+
+    button.addEventListener('click', () => {
       const allOpen = Array.from(detailsNodes).every((node) => node.open);
       detailsNodes.forEach((node) => {
         node.open = !allOpen;
       });
+      updateButton();
     });
+
+    detailsNodes.forEach((node) => {
+      node.addEventListener('toggle', updateButton);
+    });
+
+    updateButton();
   }
+
+  setupExpandToggle('[data-expand-itinerary]', '#itinerary details');
+  setupExpandToggle('[data-expand-faq]', '#faqs details');
 })();
