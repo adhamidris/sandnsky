@@ -1018,6 +1018,10 @@ body {
   max-width: 80rem;
 }
 
+.max-w-\[26rem\] {
+  max-width: 26rem;
+}
+
 .max-w-\[30rem\] {
   max-width: 30rem;
 }
@@ -1149,6 +1153,10 @@ body {
 
 .gap-8 {
   gap: 2rem;
+}
+
+.gap-5 {
+  gap: 1.25rem;
 }
 
 .space-x-8 > :not([hidden]) ~ :not([hidden]) {
@@ -1612,6 +1620,11 @@ body {
 .py-8 {
   padding-top: 2rem;
   padding-bottom: 2rem;
+}
+
+.px-7 {
+  padding-left: 1.75rem;
+  padding-right: 1.75rem;
 }
 
 .pb-16 {
