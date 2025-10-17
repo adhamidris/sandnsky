@@ -1,6 +1,10 @@
+from django import forms
 from django.contrib import admin
+from django.core.exceptions import ValidationError
+from django.db.models import Max
 from .models import (
     Destination,
+    DestinationGalleryImage,
     TripCategory,
     Language,
     Trip,
@@ -22,6 +26,59 @@ from .models import (
 # -----------------------------
 # Inline definitions
 # -----------------------------
+
+class DestinationGalleryImageInline(admin.TabularInline):
+    model = DestinationGalleryImage
+    extra = 0
+    fields = ("image", "caption", "position")
+    ordering = ("position", "id")
+
+
+class AdminMultipleFileWidget(forms.ClearableFileInput):
+    allow_multiple_selected = True
+
+    def value_from_datadict(self, data, files, name):
+        if hasattr(files, "getlist"):
+            return files.getlist(name)
+        file = files.get(name)
+        if not file:
+            return []
+        return [file]
+
+
+class MultipleImageField(forms.ImageField):
+    widget = AdminMultipleFileWidget(attrs={"multiple": True})
+
+    def clean(self, data, initial=None):
+        if not data:
+            return []
+        if not isinstance(data, (list, tuple)):
+            data = [data]
+
+        cleaned = []
+        errors = []
+        for item in data:
+            try:
+                cleaned.append(super().clean(item, initial))
+            except ValidationError as exc:
+                errors.extend(exc.error_list)
+
+        if errors:
+            raise ValidationError(errors)
+        return cleaned
+
+
+class DestinationAdminForm(forms.ModelForm):
+    new_gallery_images = MultipleImageField(
+        required=False,
+        label="Add gallery images",
+        help_text="Upload one or more images to append to the gallery.",
+    )
+
+    class Meta:
+        model = Destination
+        fields = "__all__"
+
 
 class TripAboutInline(admin.StackedInline):
     model = TripAbout
@@ -99,6 +156,8 @@ class BookingExtraInline(admin.TabularInline):
 
 @admin.register(Destination)
 class DestinationAdmin(admin.ModelAdmin):
+    form = DestinationAdminForm
+    inlines = [DestinationGalleryImageInline]
     list_display = ("name", "is_featured", "featured_position")
     list_editable = ("is_featured", "featured_position")
     search_fields = ("name", "slug", "tagline", "description")
@@ -119,10 +178,50 @@ class DestinationAdmin(admin.ModelAdmin):
             {"fields": ("hero_subtitle",)},
         ),
         (
+            "Gallery",
+            {"fields": ("new_gallery_images",)},
+        ),
+        (
             "Visibility",
             {"fields": ("is_featured", "featured_position")},
         ),
     )
+
+    def save_related(self, request, form, formsets, change):
+        super().save_related(request, form, formsets, change)
+
+        new_images = form.cleaned_data.get("new_gallery_images") or []
+        if not new_images:
+            return
+
+        destination = form.instance
+        current_max = (
+            destination.gallery_images.aggregate(max_pos=Max("position"))
+            .get("max_pos")
+            or 0
+        )
+
+        created = 0
+        for offset, image_file in enumerate(new_images, start=1):
+            DestinationGalleryImage.objects.create(
+                destination=destination,
+                image=image_file,
+                position=current_max + offset,
+            )
+            created += 1
+
+        self.message_user(
+            request,
+            f"Added {created} new gallery image{'s' if created != 1 else ''}.",
+        )
+
+
+@admin.register(DestinationGalleryImage)
+class DestinationGalleryImageAdmin(admin.ModelAdmin):
+    list_display = ("destination", "position", "caption")
+    list_filter = ("destination",)
+    search_fields = ("destination__name", "caption", "image")
+    ordering = ("destination__name", "position", "id")
 
 
 @admin.register(TripCategory)

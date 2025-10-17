@@ -7,7 +7,12 @@ from django.urls import reverse
 from django.views.generic import TemplateView
 
 from .forms import BookingRequestForm
-from .models import Destination, Trip, TripItineraryDay, TripRelation
+from .models import (
+    Destination,
+    Trip,
+    TripItineraryDay,
+    TripRelation,
+)
 
 
 CURRENCY_SYMBOLS = {"USD": "$"}
@@ -46,6 +51,19 @@ def _destination_hero_context(destination):
         "subtitle": subtitle,
         "image_url": destination.hero_image.url if destination.hero_image else "",
     }
+
+
+def _destination_gallery_context(destination):
+    if not destination:
+        return []
+    return [
+        {
+            "image_url": image.image.url if image.image else "",
+            "caption": image.caption,
+        }
+        for image in destination.gallery_images.all()
+        if image.image
+    ]
 
 
 def build_trip_card(trip):
@@ -195,7 +213,10 @@ class TripListView(TemplateView):
         selected_destination = None
         destination_hero = None
         if destination_slug:
-            selected_destination = get_object_or_404(Destination, slug=destination_slug)
+            selected_destination = get_object_or_404(
+                Destination.objects.prefetch_related("gallery_images"),
+                slug=destination_slug,
+            )
             trips = trips.filter(
                 Q(destination=selected_destination)
                 | Q(additional_destinations=selected_destination)
@@ -205,6 +226,8 @@ class TripListView(TemplateView):
         context["trips"] = [build_trip_card(trip) for trip in trips]
         context["selected_destination"] = selected_destination
         context["destination_hero"] = destination_hero
+        context["contact_actions"] = contact_actions()
+        context["destination_gallery"] = _destination_gallery_context(selected_destination)
         return context
 
 

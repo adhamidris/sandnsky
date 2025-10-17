@@ -64,6 +64,24 @@ class Destination(models.Model):
         super().save(*args, **kwargs)
 
 
+class DestinationGalleryImage(models.Model):
+    destination = models.ForeignKey(
+        Destination, on_delete=models.CASCADE, related_name="gallery_images"
+    )
+    image = models.ImageField(upload_to="destinations/gallery/")
+    caption = models.CharField(max_length=200, blank=True)
+    position = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ["position", "id"]
+        verbose_name = "Destination gallery image"
+        verbose_name_plural = "Destination gallery images"
+
+    def __str__(self) -> str:
+        base = self.caption or self.image.name
+        return f"{self.destination.name} · {base}"
+
+
 class TripCategory(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=120, unique=True)
