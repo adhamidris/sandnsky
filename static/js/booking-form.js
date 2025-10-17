@@ -85,6 +85,9 @@
   const floater = document.querySelector('[data-booking-floater]');
   const summaryCard = document.querySelector('[data-trip-summary]');
   const focusableSelector = 'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
+  const scrollContainer = sheet.querySelector('[data-booking-scroll]');
+  const submitSection = sheet.querySelector('[data-booking-submit]');
+  const fullNameField = sheet.querySelector('input[name="name"], input[name="full_name"]');
   let lastFocusedElement = null;
   let isOpen = false;
   let floaterObserver = null;
@@ -278,6 +281,22 @@
 
   if (floater && !summaryCard) {
     setFloaterVisibility(mediaQuery.matches);
+  }
+
+  if (fullNameField) {
+    fullNameField.addEventListener('focus', () => {
+      const target = submitSection || sheet.querySelector('[data-contact-section]') || sheet;
+      window.requestAnimationFrame(() => {
+        if (scrollContainer) {
+          const targetRect = target.getBoundingClientRect();
+          const containerRect = scrollContainer.getBoundingClientRect();
+          const offset = targetRect.top - containerRect.top - 24;
+          scrollContainer.scrollTo({ top: scrollContainer.scrollTop + offset, behavior: 'smooth' });
+        } else {
+          target.scrollIntoView({ block: 'start', behavior: 'smooth' });
+        }
+      });
+    });
   }
 })();
 
