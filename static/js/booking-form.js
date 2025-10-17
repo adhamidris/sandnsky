@@ -82,9 +82,12 @@
   const openButtons = document.querySelectorAll('[data-mobile-sheet-open]');
   const closeButton = sheet.querySelector('[data-mobile-sheet-close]');
   const mediaQuery = window.matchMedia('(min-width: 1024px)');
+  const floater = document.querySelector('[data-booking-floater]');
+  const summaryCard = document.querySelector('[data-trip-summary]');
   const focusableSelector = 'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
   let lastFocusedElement = null;
   let isOpen = false;
+  let floaterObserver = null;
 
   const setAriaExpanded = (value) => {
     openButtons.forEach((button) => button.setAttribute('aria-expanded', value ? 'true' : 'false'));
@@ -119,6 +122,48 @@
     } else if (isShift && active === first) {
       event.preventDefault();
       last.focus();
+    }
+  };
+
+  const setFloaterVisibility = (visible) => {
+    if (!floater) return;
+    floater.setAttribute('aria-hidden', visible ? 'false' : 'true');
+  };
+
+  const stopFloaterObserver = () => {
+    if (floaterObserver) {
+      floaterObserver.disconnect();
+      floaterObserver = null;
+    }
+  };
+
+  const startFloaterObserver = () => {
+    if (!floater || !summaryCard) return;
+    stopFloaterObserver();
+    floaterObserver = new IntersectionObserver((entries) => {
+      const entry = entries[0];
+      const summaryVisible = entry ? entry.isIntersecting : false;
+      setFloaterVisibility(!summaryVisible);
+    }, {
+      root: null,
+      threshold: 0,
+      rootMargin: '0px 0px -20% 0px',
+    });
+    floaterObserver.observe(summaryCard);
+  };
+
+  const updateFloaterForViewport = () => {
+    if (!floater) return;
+    if (mediaQuery.matches) {
+      if (summaryCard) {
+        startFloaterObserver();
+      } else {
+        stopFloaterObserver();
+        setFloaterVisibility(true);
+      }
+    } else {
+      stopFloaterObserver();
+      setFloaterVisibility(false);
     }
   };
 
@@ -225,10 +270,15 @@
     }
 
     setScrollLock(false);
+    updateFloaterForViewport();
   };
 
   mediaQuery.addEventListener('change', handleBreakpointChange);
   handleBreakpointChange();
+
+  if (floater && !summaryCard) {
+    setFloaterVisibility(mediaQuery.matches);
+  }
 })();
 
 (function () {

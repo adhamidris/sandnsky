@@ -110,6 +110,14 @@ All colors MUST be HSL.
   .booking-drawer.is-open .booking-drawer__panel {
     @apply translate-y-0 lg:translate-x-0;
   }
+
+  .booking-floater {
+    @apply pointer-events-none fixed bottom-6 right-6 z-40 hidden translate-y-2 opacity-0 transition-all duration-300 lg:flex;
+  }
+
+  .booking-floater[aria-hidden="false"] {
+    @apply pointer-events-auto translate-y-0 opacity-100;
+  }
 }
 
 @layer utilities {

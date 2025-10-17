@@ -12,7 +12,15 @@
         <a href="#contact" class="text-foreground hover:text-primary transition-colors">Contact</a>
         {% endif %}
       </div>
+      {% with request.resolver_match as match %}
+      {% if match and match.url_name == 'trip-detail' %}
+      <a href="#booking-form" class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90" data-mobile-sheet-open aria-controls="booking-drawer" aria-expanded="false">
+        Book Now
+      </a>
+      {% else %}
       <a href="/trips" class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90">Book Now</a>
+      {% endif %}
+      {% endwith %}
     </div>
   </div>
 </nav>
