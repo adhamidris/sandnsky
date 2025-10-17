@@ -5,12 +5,12 @@
 
 {% block content %}
 <header class="relative isolate overflow-hidden bg-black text-white">
-  {% if trip.hero_image_url %}
-  <img src="{{ trip.hero_image_url }}" alt="{{ trip.title }}" class="absolute inset-0 h-full w-full object-cover opacity-80" />
-  {% else %}
-  <div class="absolute inset-0 h-full w-full bg-gradient-to-br from-primary/60 to-primary-dark/80"></div>
-  {% endif %}
-  <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/80"></div>
+{% if trip.hero_image_url %}
+<img src="{{ trip.hero_image_url }}" alt="{{ trip.title }}" class="absolute inset-0 h-full w-full object-cover" />
+{% else %}
+<div class="absolute inset-0 h-full w-full bg-gradient-to-br from-primary/60 to-primary-dark/80"></div>
+{% endif %}
+<div class="absolute inset-0 bg-gradient-to-b from-black/25 via-black/10 to-black/50"></div>
 
   <div class="relative z-10 mx-auto max-w-7xl px-4 pb-16 pt-28 sm:px-6 lg:px-8">
     <nav class="flex items-center gap-2 text-sm text-white/70" aria-label="Breadcrumb">

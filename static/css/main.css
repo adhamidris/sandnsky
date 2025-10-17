@@ -1750,6 +1750,10 @@ body {
   --tw-gradient-to: rgb(0 0 0 / 0.45) var(--tw-gradient-to-position);
 }
 
+.to-black\/50 {
+  --tw-gradient-to: rgb(0 0 0 / 0.5) var(--tw-gradient-to-position);
+}
+
 .bg-cover {
   background-size: cover;
 }
@@ -1864,6 +1868,11 @@ body {
   padding-bottom: 2rem;
 }
 
+.py-20 {
+  padding-top: 5rem;
+  padding-bottom: 5rem;
+}
+
 .pb-16 {
   padding-bottom: 4rem;
 }
@@ -1910,6 +1919,10 @@ body {
 
 .pt-8 {
   padding-top: 2rem;
+}
+
+.pb-24 {
+  padding-bottom: 6rem;
 }
 
 .text-left {
