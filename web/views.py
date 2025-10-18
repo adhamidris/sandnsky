@@ -1,4 +1,4 @@
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 
 from django.contrib import messages
 from django.core import signing
@@ -28,10 +28,17 @@ DEFAULT_CURRENCY = "USD"
 
 
 def format_currency(amount, currency=DEFAULT_CURRENCY):
+    if amount is None:
+        amount = Decimal("0")
+    elif not isinstance(amount, Decimal):
+        amount = Decimal(str(amount))
+
+    rounded = amount.quantize(Decimal("1"), rounding=ROUND_HALF_UP)
     symbol = CURRENCY_SYMBOLS.get(currency.upper(), "")
+    formatted = f"{rounded:,.0f}"
     if symbol:
-        return f"{symbol}{amount:,.2f}"
-    return f"{amount:,.2f} {currency.upper()}"
+        return f"{symbol}{formatted}"
+    return f"{formatted} {currency.upper()}"
 
 
 def duration_label(days):
@@ -110,7 +117,13 @@ def _destination_gallery_context(destination):
 def build_trip_card(trip):
     primary_category = next((category.name for category in trip.category_tags.all()), "")
     image_url = trip.card_image.url if trip.card_image else ""
-    destinations_label = " • ".join(_all_destination_names(trip))
+    destination_names = _all_destination_names(trip)
+    if not destination_names:
+        destinations_label = ""
+    elif len(destination_names) == 1:
+        destinations_label = destination_names[0]
+    else:
+        destinations_label = f"{destination_names[0]} +{len(destination_names) - 1}"
     return {
         "slug": trip.slug,
         "title": trip.title,

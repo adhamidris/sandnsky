@@ -169,8 +169,8 @@
       {% if trips %}
       <div class="grid gap-10 sm:grid-cols-2 xl:grid-cols-3">
         {% for trip in trips %}
-        <article class="group flex h-full flex-col overflow-hidden rounded-md border border-border bg-card shadow-sm transition-colors">
-          <div class="relative h-64 overflow-hidden">
+        <article class="max-h-[520px] group flex h-full flex-col overflow-hidden rounded-md border border-border bg-card shadow-sm transition-colors">
+          <div class="relative h-48 overflow-hidden">
             {% if trip.image_url %}
             <img src="{{ trip.image_url }}" alt="{{ trip.title }}" class="h-full w-full object-cover" />
             {% else %}
@@ -185,54 +185,56 @@
             {% endif %}
           </div>
 
-          <div class="flex flex-1 flex-col gap-5 p-6">
+          <div class="flex flex-1 flex-col gap-3 p-4">
             <header>
-              <h3 class="font-serif text-xl text-foreground">{{ trip.title }}</h3>
+              <h3 class="font-serif text-lg leading-tight text-foreground">{{ trip.title }}</h3>
             </header>
 
-            <dl class="trip-card__meta grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div class="trip-card__meta-item">
-                <dt class="sr-only">Duration</dt>
-                <svg class="trip-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                </svg>
-                <dd class="trip-card__value">{{ trip.duration }}</dd>
-              </div>
-              <div class="trip-card__meta-item">
-                <dt class="sr-only">Group size</dt>
-                <svg class="trip-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M16 17v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1" />
-                  <circle cx="8" cy="7" r="3" />
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M22 17v-1a4 4 0 0 0-3-3.87" />
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a3 3 0 0 1-2 2.82" />
-                </svg>
-                <dd class="trip-card__value">{{ trip.group_size }}</dd>
-              </div>
-              <div class="trip-card__meta-item">
-                <dt class="sr-only">Location</dt>
-                <svg class="trip-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 10a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10c0 7-7.5 11.5-7.5 11.5S4.5 17 4.5 10a7.5 7.5 0 1 1 15 0Z" />
-                </svg>
-                <dd class="trip-card__value">{{ trip.location }}</dd>
-              </div>
-              <div class="trip-card__meta-item">
-                <dt class="sr-only">Starts from</dt>
-                <svg class="trip-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .843-3 1.882C9 10.92 10.343 11.764 12 11.764s3 .843 3 1.882S13.657 15.528 12 15.528s-3-.843-3-1.882" />
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14" />
-                </svg>
-                <dd class="trip-card__value">
-                  <span class="trip-card__prefix">Starts from</span>
-                  {{ trip.price }}
-                </dd>
-              </div>
-            </dl>
+            <div class="mt-auto space-y-3">
+              <dl class="trip-card__meta grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <div class="trip-card__meta-item">
+                  <dt class="sr-only">Duration</dt>
+                  <svg class="trip-card__icon h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                  </svg>
+                  <dd class="trip-card__value text-[13px]">{{ trip.duration }}</dd>
+                </div>
+                <div class="trip-card__meta-item">
+                  <dt class="sr-only">Group size</dt>
+                  <svg class="trip-card__icon h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 17v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1" />
+                    <circle cx="8" cy="7" r="3" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M22 17v-1a4 4 0 0 0-3-3.87" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a3 3 0 0 1-2 2.82" />
+                  </svg>
+                  <dd class="trip-card__value text-[13px]">{{ trip.group_size }}</dd>
+                </div>
+                <div class="trip-card__meta-item">
+                  <dt class="sr-only">Location</dt>
+                  <svg class="trip-card__icon h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 10a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10c0 7-7.5 11.5-7.5 11.5S4.5 17 4.5 10a7.5 7.5 0 1 1 15 0Z" />
+                  </svg>
+                  <dd class="trip-card__value text-[13px]">{{ trip.location }}</dd>
+                </div>
+                <div class="trip-card__meta-item">
+                  <dt class="sr-only">Starts from</dt>
+                  <svg class="trip-card__icon h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .843-3 1.882C9 10.92 10.343 11.764 12 11.764s3 .843 3 1.882S13.657 15.528 12 15.528s-3-.843-3-1.882" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14" />
+                  </svg>
+                  <dd class="trip-card__value text-[13px]">
+                    <span class="trip-card__prefix">Starts from</span>
+                    {{ trip.price }}
+                  </dd>
+                </div>
+              </dl>
 
-            <a href="{% url 'web:trip-detail' trip.slug %}"
-               class="mt-auto inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
-              View details
-            </a>
+              <a href="{% url 'web:trip-detail' trip.slug %}"
+                 class="inline-flex w-full items-center justify-center rounded-md bg-primary px-3 py-2 text-xs sm:text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+                View details
+              </a>
+            </div>
           </div>
         </article>
         {% endfor %}
@@ -251,7 +253,7 @@
       {% endif %}
     </div>
 
-    <aside class="mb-12 space-y-6 rounded-2xl border border-border bg-card p-6 shadow-subtle lg:sticky lg:top-28 lg:mb-0 lg:self-start">
+    <aside class="mb-12 space-y-6 rounded-2xl border border-border bg-card p-6 shadow-subtle lg:mb-0 lg:self-start">
       <form action="{% url 'web:trips' %}" method="get" class="space-y-6" data-live-filter>
         <div class="space-y-1">
           <h3 class="text-sm font-semibold uppercase tracking-[0.25em] text-muted-foreground">Refine tours</h3>
@@ -529,7 +531,6 @@
         }
 
         initTripFilters();
-        smoothScrollToResults();
       })
       .catch(function (error) {
         console.error('Trip filter update failed:', error);
