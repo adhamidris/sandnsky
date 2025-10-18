@@ -1197,6 +1197,11 @@ body {
   right: 1rem;
 }
 
+.inset-x-0 {
+  left: 0px;
+  right: 0px;
+}
+
 .bottom-4 {
   bottom: 1rem;
 }
@@ -1235,6 +1240,10 @@ body {
 
 .top-4 {
   top: 1rem;
+}
+
+.bottom-0 {
+  bottom: 0px;
 }
 
 .isolate {
@@ -2529,6 +2538,10 @@ body.gallery-lightbox--open {
 
 .hover\:text-primary\/90:hover {
   color: hsl(var(--primary) / 0.9);
+}
+
+.hover\:underline:hover {
+  text-decoration-line: underline;
 }
 
 .hover\:shadow-xl:hover {

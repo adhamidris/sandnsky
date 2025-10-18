@@ -8,8 +8,8 @@
     {% if destinations_section.items %}
     <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
       {% for destination in destinations_section.items %}
-      <article class="group overflow-hidden border-0 bg-card shadow-medium transition-all duration-300 hover:shadow-xl animate-fade-in" style="animation-delay: {{ forloop.counter0 }}00ms">
-        <div class="relative h-64 overflow-hidden">
+      <article class="group relative h-64 overflow-hidden border-0 bg-card shadow-medium transition-all duration-300 hover:shadow-xl animate-fade-in" style="animation-delay: {{ forloop.counter0 }}00ms">
+        <div class="absolute inset-0 overflow-hidden">
           {% if destination.image_url %}
           <img src="{{ destination.image_url }}" alt="{{ destination.title }}" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
           {% else %}
@@ -18,10 +18,10 @@
           </div>
           {% endif %}
           <div class="absolute inset-0 bg-gradient-to-t from-black/35 via-black/15 to-transparent"></div>
-        </div>
-        <div class="p-6">
-          <h3 class="font-serif text-2xl font-semibold text-foreground">{{ destination.title }}</h3>
-          <a href="{{ destination.cta.href }}" class="mt-4 inline-flex items-center text-primary transition-colors hover:text-accent">{{ destination.cta.label }} →</a>
+       <div class="absolute inset-x-0 bottom-0 p-6">
+         <h3 class="font-serif text-2xl font-semibold text-white">{{ destination.title }}</h3>
+         <a href="{{ destination.cta.href }}" class="mt-2 inline-flex items-center text-white hover:underline">{{ destination.cta.label }} →</a>
+       </div>
         </div>
       </article>
       {% endfor %}
