@@ -1,8 +1,10 @@
 <section id="about" class="bg-secondary/30 px-4 py-24 sm:px-6 lg:px-8">
     <div class="mx-auto max-w-7xl">
-    <div class="mb-16 text-center animate-fade-in">
-      <h2 class="font-serif text-4xl text-foreground sm:text-5xl">{{ about_section.title }}</h2>
-      <p class="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">{{ about_section.subtitle }}</p>
+    <div class="mb-16 animate-fade-in">
+      <div class="space-y-5 text-left">
+        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">{{ about_section.title }}</p>
+        <p class="text-lg leading-relaxed text-muted-foreground whitespace-pre-line">{{ about_section.subtitle }}</p>
+      </div>
     </div>
     <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
       {% for feature in about_section.features %}
