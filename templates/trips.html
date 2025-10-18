@@ -185,21 +185,21 @@
             {% endif %}
           </div>
 
-          <div class="flex flex-1 flex-col gap-3 p-4">
+          <div class="flex flex-1 flex-col gap-4 p-4">
             <header>
               <h3 class="font-serif text-lg leading-tight text-foreground">{{ trip.title }}</h3>
             </header>
 
-            <div class="mt-auto space-y-3">
-              <dl class="trip-card__meta grid grid-cols-1 gap-2 sm:grid-cols-2">
-                <div class="trip-card__meta-item">
+            <div class="mt-auto space-y-4">
+              <dl class="trip-card__meta grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div class="trip-card__meta-item flex items-center gap-2">
                   <dt class="sr-only">Duration</dt>
                   <svg class="trip-card__icon h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                   </svg>
                   <dd class="trip-card__value text-[13px]">{{ trip.duration }}</dd>
                 </div>
-                <div class="trip-card__meta-item">
+                <div class="trip-card__meta-item flex items-center gap-2">
                   <dt class="sr-only">Group size</dt>
                   <svg class="trip-card__icon h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M16 17v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1" />
@@ -209,7 +209,7 @@
                   </svg>
                   <dd class="trip-card__value text-[13px]">{{ trip.group_size }}</dd>
                 </div>
-                <div class="trip-card__meta-item">
+                <div class="trip-card__meta-item flex items-center gap-2">
                   <dt class="sr-only">Location</dt>
                   <svg class="trip-card__icon h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 10a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
@@ -217,7 +217,7 @@
                   </svg>
                   <dd class="trip-card__value text-[13px]">{{ trip.location }}</dd>
                 </div>
-                <div class="trip-card__meta-item">
+                <div class="trip-card__meta-item flex items-center gap-2">
                   <dt class="sr-only">Starts from</dt>
                   <svg class="trip-card__icon h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .843-3 1.882C9 10.92 10.343 11.764 12 11.764s3 .843 3 1.882S13.657 15.528 12 15.528s-3-.843-3-1.882" />
