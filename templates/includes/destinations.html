@@ -8,7 +8,7 @@
     {% if destinations_section.items %}
     <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
       {% for destination in destinations_section.items %}
-      <article class="group relative h-64 overflow-hidden border-0 bg-card shadow-medium transition-all duration-300 hover:shadow-xl animate-fade-in" style="animation-delay: {{ forloop.counter0 }}00ms">
+      <article class="group relative h-64 overflow-hidden border-0 rounded-md bg-card shadow-medium transition-all duration-300 hover:shadow-xl animate-fade-in" style="animation-delay: {{ forloop.counter0 }}00ms">
         <div class="absolute inset-0 overflow-hidden">
           {% if destination.image_url %}
           <img src="{{ destination.image_url }}" alt="{{ destination.title }}" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />

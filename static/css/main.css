@@ -1934,6 +1934,10 @@ body {
   background-color: hsl(var(--background) / 0.8);
 }
 
+.bg-black\/40 {
+  background-color: rgb(0 0 0 / 0.4);
+}
+
 .bg-gradient-to-b {
   background-image: linear-gradient(to bottom, var(--tw-gradient-stops));
 }
