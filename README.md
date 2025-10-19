@@ -41,3 +41,6 @@ This repository now includes the initial Django skeleton that will serve Nile Dr
 - `static/js/booking-form.js` – Light enhancement for the booking form module
 
 Subsequent chunks will layer page templates, routing, and progressive enhancements on top of this foundation.
+
+
+class="about-feature__svg

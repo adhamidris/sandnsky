@@ -1,24 +1,86 @@
 from django import forms
+from django.utils import timezone
+
+
+def _default_classes():
+    return (
+        "w-full rounded-md border border-input bg-background px-4 py-3 text-foreground "
+        "shadow-sm focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
+    )
 
 
 class BookingRequestForm(forms.Form):
+    date = forms.DateField(
+        label="Preferred Date",
+        widget=forms.DateInput(attrs={"type": "date"}),
+        error_messages={"required": "Choose your date to see availability."},
+    )
+    adults = forms.IntegerField(label="Adults", min_value=1, initial=2)
+    children = forms.IntegerField(label="Children", min_value=0, initial=0, required=False)
+    infants = forms.IntegerField(label="Infants", min_value=0, initial=0, required=False)
+    extras = forms.MultipleChoiceField(
+        label="Optional Extras",
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+    )
     name = forms.CharField(label="Full Name", max_length=100)
     email = forms.EmailField(label="Email")
     phone = forms.CharField(label="Phone Number", max_length=30)
-    travelers = forms.IntegerField(label="Number of Travelers", min_value=1, widget=forms.NumberInput())
-    date = forms.DateField(label="Preferred Date", widget=forms.DateInput(attrs={"type": "date"}))
-    message = forms.CharField(label="Special Requests", required=False, widget=forms.Textarea(attrs={"rows": 4}))
+    message = forms.CharField(
+        label="Special Requests",
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 4}),
+    )
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, extra_choices=None, **kwargs):
         super().__init__(*args, **kwargs)
-        base_classes = (
-            "w-full rounded-md border border-input bg-background px-4 py-3 text-foreground "
-            "shadow-sm focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
-        )
-        for name, field in self.fields.items():
+
+        classes = _default_classes()
+        today = timezone.localdate()
+        for field_name, field in self.fields.items():
             widget = field.widget
-            widget.attrs.setdefault("class", base_classes)
+            existing_class = widget.attrs.get("class", "")
+            widget.attrs["class"] = f"{existing_class} {classes}".strip()
             widget.attrs.setdefault("placeholder", field.label)
 
+        self.fields["adults"].widget.attrs.update(
+            {"min": "1", "data-traveler-type": "adults", "aria-label": "Number of adults"}
+        )
+        self.fields["children"].widget.attrs.update(
+            {"min": "0", "data-traveler-type": "children", "aria-label": "Number of children"}
+        )
+        self.fields["infants"].widget.attrs.update(
+            {"min": "0", "data-traveler-type": "infants", "aria-label": "Number of infants"}
+        )
+
+        for field_name in ("adults", "children", "infants"):
+            widget = self.fields[field_name].widget
+            widget.attrs["class"] = "h-8 w-12 rounded-md border border-border bg-background text-center font-semibold focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
+            widget.attrs.setdefault("type", "number")
+
         self.fields["phone"].widget.attrs.setdefault("type", "tel")
-        self.fields["travelers"].widget.attrs.setdefault("min", "1")
+        self.fields["message"].widget.attrs.setdefault("placeholder", "Tell us about any preferences or requirements")
+
+        self.fields["date"].widget.attrs.setdefault("min", today.isoformat())
+        if not self.is_bound and not self.initial.get("date"):
+            self.initial["date"] = today
+            self.fields["date"].initial = today
+
+        if extra_choices is None:
+            extra_choices = []
+        self.fields["extras"].choices = extra_choices
+        self.fields["extras"].widget.attrs["class"] = "space-y-3"
+
+        self.order_fields(
+            [
+                "date",
+                "adults",
+                "children",
+                "infants",
+                "extras",
+                "name",
+                "email",
+                "phone",
+                "message",
+            ]
+        )

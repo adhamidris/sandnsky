@@ -4,13 +4,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{% block title %}Nile Dreams{% endblock %}</title>
+    <title>{% block title %}Sand & Sky Tours{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/main.css' %}" />
     {% block head_extra %}{% endblock %}
   </head>
   <body class="min-h-screen bg-background text-foreground">
     {% include 'includes/navigation.html' %}
-    <main class="min-h-screen pt-20">
+    <main class="min-h-screen pt-16">
       {% block content %}{% endblock %}
     </main>
     {% include 'includes/footer.html' %}
