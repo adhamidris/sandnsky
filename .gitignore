@@ -25,3 +25,19 @@ dist-ssr
 *.sw?
 __pycache__/
 .secret_key
+
+# Database
+db.sqlite3
+*.sqlite3
+
+# Python cache
+*.pyc
+*.pyo
+__pycache__/
+
+# Django stuff
+*.log
+local_settings.py
+
+# Media files (optional - you might want to track some)
+# media/
