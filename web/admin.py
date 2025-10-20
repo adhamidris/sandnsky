@@ -287,6 +287,7 @@ class SiteConfigurationAdmin(admin.ModelAdmin):
                     "hero_title",
                     "hero_subtitle",
                     "hero_image",
+                    "hero_video",
                     "hero_primary_cta_label",
                     "hero_primary_cta_href",
                     "hero_secondary_cta_label",

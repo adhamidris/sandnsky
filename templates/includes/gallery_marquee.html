@@ -1,0 +1,114 @@
+{% load static %}
+{% if gallery_section.items %}
+<section id="gallery" class="bg-secondary/30 px-4 py-20 sm:px-6 lg:px-8">
+  <div class="mx-auto max-w-7xl">
+    <div class="mb-12 flex flex-col gap-4 text-center sm:flex-row sm:items-end sm:justify-between sm:text-left">
+      <div class="space-y-3">
+        <p class="text-xs font-semibold uppercase tracking-[0.3em] text-primary">Gallery</p>
+        <h2 class="font-serif text-3xl text-foreground sm:text-4xl">{{ gallery_section.title }}</h2>
+        <p class="max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">{{ gallery_section.subtitle }}</p>
+      </div>
+    </div>
+
+    <div class="relative overflow-hidden rounded-3xl bg-secondary/20 py-10" data-marquee>
+      <div class="pointer-events-none absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-background via-background/70 to-transparent"></div>
+      <div class="pointer-events-none absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-background via-background/70 to-transparent"></div>
+      <div class="flex items-center" data-marquee-wrapper>
+        <div data-marquee-track>
+          {% for item in gallery_section.items %}
+          <figure class="flex shrink-0 flex-col gap-3" data-marquee-card>
+            <button type="button" class="group block overflow-hidden rounded-3xl border border-border/40 bg-card shadow-subtle" data-gallery-open data-gallery-src="{{ item.image_url }}" data-gallery-alt="{{ item.alt }}" data-gallery-caption="{{ item.caption|default:item.destination }}">
+              <img src="{{ item.image_url }}" alt="{{ item.alt }}" class="w-full object-cover transition-transform duration-500 group-hover:scale-105" data-marquee-image loading="lazy" />
+            </button>
+            <figcaption class="text-sm text-muted-foreground">
+              {{ item.caption|default:item.destination }}
+            </figcaption>
+          </figure>
+          {% endfor %}
+        </div>
+        <div data-marquee-track aria-hidden="true"></div>
+        <div data-marquee-track aria-hidden="true"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  [data-marquee] {
+    --marquee-duration: 45s;
+    }
+
+  [data-marquee-wrapper] {
+    display: flex;
+    align-items: center;
+  }
+
+  [data-marquee-track] {
+    display: inline-flex;
+    gap: 2rem;
+    will-change: transform;
+    animation: marquee var(--marquee-duration) linear infinite;
+  }
+
+  .marquee-track--delay {
+    animation-delay: calc(var(--marquee-duration) / -2);
+  }
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-100%);
+    }
+  }
+
+  [data-marquee-card] {
+    width: 200px;
+  }
+
+  [data-marquee-image] {
+    height: 150px;
+  }
+
+  [data-gallery-open] {
+    cursor: zoom-in;
+  }
+
+  @media (min-width: 640px) {
+    [data-marquee-card] {
+      width: 220px;
+    }
+
+    [data-marquee-image] {
+      height: 170px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    [data-marquee-card] {
+      width: 240px;
+    }
+
+    [data-marquee-image] {
+      height: 190px;
+    }
+  }
+</style>
+
+<div class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 p-6" data-gallery-modal aria-hidden="true" role="dialog" aria-modal="true">
+  <div class="relative max-w-4xl w-full">
+    <button type="button" class="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-black/80" data-gallery-close aria-label="Close gallery">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-5 w-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 6l12 12M18 6 6 18" />
+      </svg>
+    </button>
+    <figure class="overflow-hidden rounded-3xl bg-black/40 shadow-2xl">
+      <img src="" alt="" class="max-h-[70vh] w-full object-contain" data-gallery-modal-image />
+      <figcaption class="bg-black/70 px-6 py-4 text-sm text-white" data-gallery-modal-caption></figcaption>
+    </figure>
+  </div>
+</div>
+
+<script src="{% static 'js/gallery-marquee.js' %}"></script>
+{% endif %}

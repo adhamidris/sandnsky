@@ -1,5 +1,5 @@
 from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import FileExtensionValidator, MaxValueValidator, MinValueValidator
 from django.db.models import Q
 from django.urls import reverse
 from django.utils import timezone
@@ -224,6 +224,12 @@ class SiteConfiguration(models.Model):
     hero_secondary_cta_label = models.CharField(max_length=100, default="Learn More")
     hero_secondary_cta_href = models.CharField(max_length=255, default="#about")
     hero_image = models.ImageField(upload_to="site/hero/", blank=True)
+    hero_video = models.FileField(
+        upload_to="site/hero/videos/",
+        blank=True,
+        validators=[FileExtensionValidator(["mp4", "webm", "mov"])],
+        help_text="Video shown on desktop hero. Prefer optimized MP4/WebM under 10 MB.",
+    )
     trips_hero_image = models.ImageField(upload_to="site/trips_hero/", blank=True)
 
     class Meta:

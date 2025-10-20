@@ -7,6 +7,7 @@
 {% include "includes/about.html" with about_section=about_section %}
 {% include "includes/destinations.html" with destinations_section=destinations_section %}
 {% include "includes/testimonials.html" %}
+{% include "includes/gallery_marquee.html" with gallery_section=gallery_section %}
 {% include "includes/blog_highlights.html" with blog_section=blog_section %}
 {% endblock %}
 
@@ -14,6 +15,33 @@
 {{ block.super }}
 <script>
 (function () {
+  var heroVideo = document.querySelector('[data-hero-video]');
+  if (heroVideo) {
+    heroVideo.muted = true;
+    heroVideo.setAttribute('muted', '');
+
+    function attemptPlay() {
+      var playPromise = heroVideo.play();
+      if (playPromise && playPromise.catch) {
+        playPromise.catch(function (err) {
+          console.warn('Hero video playback blocked:', err);
+          heroVideo.setAttribute('data-hero-video-blocked', 'true');
+        });
+      }
+    }
+
+    if (heroVideo.readyState >= 2) {
+      attemptPlay();
+    } else {
+      heroVideo.addEventListener('loadeddata', attemptPlay, { once: true });
+    }
+
+    heroVideo.addEventListener('error', function (event) {
+      console.error('Hero video failed to load', event);
+      heroVideo.setAttribute('data-hero-video-error', 'true');
+    });
+  }
+
   var slider = document.querySelector('[data-testimonials]');
   if (!slider) {
     return;

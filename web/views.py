@@ -1,5 +1,7 @@
 from decimal import Decimal, ROUND_HALF_UP
 
+import mimetypes
+
 from django.contrib import messages
 from django.core import signing
 from django.db import transaction
@@ -18,6 +20,7 @@ from .models import (
     Booking,
     BookingExtra,
     Destination,
+    DestinationGalleryImage,
     SiteConfiguration,
     Trip,
     TripCategory,
@@ -197,13 +200,26 @@ class HomePageView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         site_config = SiteConfiguration.get_solo()
-        hero_image = site_config.hero_image.url if site_config.hero_image else "img/hero-pyramids.jpg"
-        hero_image_is_media = bool(site_config.hero_image)
+        hero_video = site_config.hero_video.url if site_config.hero_video else ""
+        hero_video_is_media = bool(site_config.hero_video)
+        hero_image = ""
+        hero_image_is_media = False
+        if site_config.hero_image:
+            hero_image = site_config.hero_image.url
+            hero_image_is_media = True
+        elif not hero_video:
+            hero_image = "img/hero-pyramids.jpg"
+        hero_video_type = ""
+        if site_config.hero_video:
+            hero_video_type, _ = mimetypes.guess_type(site_config.hero_video.name)
         context["hero"] = {
             "title": site_config.hero_title,
             "subtitle": site_config.hero_subtitle,
             "image": hero_image,
             "image_is_media": hero_image_is_media,
+            "video": hero_video,
+            "video_is_media": hero_video_is_media,
+            "video_type": hero_video_type or "video/mp4",
             "primary_cta": {
                 "label": site_config.hero_primary_cta_label,
                 "href": site_config.hero_primary_cta_href,
@@ -218,6 +234,12 @@ class HomePageView(TemplateView):
             "title": "Featured Destinations",
             "subtitle": "Explore the most captivating experiences Egypt has to offer",
             "items": self._featured_destinations(),
+        }
+
+        context["gallery_section"] = {
+            "title": "Moments from the Sahara",
+            "subtitle": "A glimpse into the landscapes and quiet rituals that shape our journeys.",
+            "items": self._gallery_items(),
         }
 
         context["about_section"] = {
@@ -310,6 +332,26 @@ class HomePageView(TemplateView):
     def _recent_blog_posts(self):
         posts = published_blog_queryset().order_by("-published_at", "-created_at")[:3]
         return [build_blog_card(post) for post in posts]
+
+    def _gallery_items(self):
+        images = (
+            DestinationGalleryImage.objects.select_related("destination")
+            .order_by("position", "id")[:12]
+        )
+
+        items = []
+        for image in images:
+            if not image.image:
+                continue
+            items.append(
+                {
+                    "image_url": image.image.url,
+                    "alt": image.caption or f"{image.destination.name} gallery image",
+                    "destination": image.destination.name,
+                    "caption": image.caption,
+                }
+            )
+        return items
 
 
 class BlogListView(TemplateView):
