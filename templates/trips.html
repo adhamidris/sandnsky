@@ -53,6 +53,38 @@
     </div>
   </div>
 </section>
+{% elif default_trips_hero_image %}
+<section id="page-top" class="relative isolate overflow-hidden bg-black text-white scroll-mt-32">
+  <img src="{{ default_trips_hero_image }}" alt="Trips hero" class="absolute inset-0 h-full w-full object-cover" />
+  <div class="absolute inset-0 bg-gradient-to-b from-black/25 via-black/10 to-black/60"></div>
+  <div class="relative mx-auto max-w-7xl px-4 pb-28 pt-32 sm:px-6 lg:px-8">
+    <div class="max-w-3xl space-y-6">
+      <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white/70">Our journeys</span>
+      <h1 class="font-serif text-4xl leading-tight sm:text-5xl md:text-6xl">Our Tours &amp; Experiences</h1>
+      <p class="text-base leading-relaxed text-white/80 sm:text-lg">Carefully curated journeys to unveil the wonders of Egypt.</p>
+    </div>
+    <div class="mt-12 flex flex-wrap gap-4">
+      <span class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
+        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg>
+        {{ trips|length }} itineraries
+      </span>
+      <span class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
+        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18M3 12h18M3 17h18" />
+        </svg>
+        Thoughtfully paced journeys
+      </span>
+      <span class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
+        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg>
+        {{ trips|length }} trips available
+      </span>
+    </div>
+  </div>
+</section>
 {% else %}
 <section id="page-top" class="relative isolate overflow-hidden bg-background">
   <div class="absolute inset-0 bg-gradient-to-br from-primary/5 via-accent/10 to-primary/5"></div>

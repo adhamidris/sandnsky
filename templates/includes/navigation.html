@@ -2,7 +2,7 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex justify-between items-center h-16">
       <div class="flex items-center">
-        <a href="/" class="text-2xl font-serif font-semibold text-primary">Sand & Sky Tours</a>
+        <a href="/" class="text-2xl font-serif font-semibold text-primary">Sand & Sky</a>
       </div>
       <div class="hidden md:flex items-center space-x-8">
         <a href="/" class="transition-colors {% if request.path == '/' %}text-primary{% else %}text-foreground hover:text-primary{% endif %}">Home</a>
@@ -19,8 +19,19 @@
       </a>
       {% else %}
       <div class="flex items-center gap-3">
-        <a href="/trips" class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90">Book Now</a>
-        {% if request.path == '/' %}
+        <a href="/trips" class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90">
+          {% if match %}
+            {% if match.url_name == 'home' or match.url_name == 'blog-list' or match.url_name == 'blog-detail' %}
+              Tours
+            {% else %}
+              Book Now
+            {% endif %}
+          {% else %}
+            Book Now
+          {% endif %}
+        </a>
+        {% if match %}
+        {% if match.url_name == 'home' or match.url_name == 'blog-list' or match.url_name == 'blog-detail' %}
         {% with whatsapp_message="Hi Sand and Sky Tours, I have an inquiry about your tours." %}
         <a href="https://wa.me/201108741159?text={{ whatsapp_message|urlencode }}" class="inline-flex items-center justify-center rounded-md border border-primary/60 px-4 py-2 text-sm font-medium text-primary shadow-sm transition-colors hover:border-primary hover:text-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" target="_blank" rel="noopener">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="mr-2 h-4 w-4">
@@ -29,6 +40,7 @@
           WhatsApp
         </a>
         {% endwith %}
+        {% endif %}
         {% endif %}
       </div>
       {% endif %}

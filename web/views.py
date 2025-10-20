@@ -3,7 +3,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from django.contrib import messages
 from django.core import signing
 from django.db import transaction
-from django.db.models import Prefetch, Q, Min, Max
+from django.db.models import Prefetch, Q, Min, Max, Count
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
@@ -12,6 +12,9 @@ from django.utils import timezone
 
 from .forms import BookingRequestForm
 from .models import (
+    BlogCategory,
+    BlogPost,
+    BlogPostStatus,
     Booking,
     BookingExtra,
     Destination,
@@ -160,6 +163,34 @@ def contact_actions():
     ]
 
 
+def _split_paragraphs(text):
+    if not text:
+        return []
+    return [paragraph.strip() for paragraph in text.split("\n\n") if paragraph.strip()]
+
+
+def build_blog_card(post):
+    image_field = post.card_image or post.hero_image
+    image_url = image_field.url if image_field else ""
+    return {
+        "title": post.title,
+        "subtitle": post.subtitle,
+        "category": post.category.name if post.category_id else "",
+        "image_url": image_url,
+        "excerpt": post.excerpt,
+        "url": post.get_absolute_url(),
+        "cta_label": "Read more",
+    }
+
+
+def published_blog_queryset():
+    now = timezone.now()
+    return (
+        BlogPost.objects.select_related("category")
+        .filter(status=BlogPostStatus.PUBLISHED, published_at__lte=now)
+    )
+
+
 class HomePageView(TemplateView):
     template_name = "home.html"
 
@@ -248,6 +279,12 @@ class HomePageView(TemplateView):
             "form": {"action": "#"},
         }
 
+        context["blog_section"] = {
+            "title": "From the Journal",
+            "subtitle": "Insights from our travel curators to help shape your next desert escape.",
+            "items": self._recent_blog_posts(),
+        }
+
         return context
 
     def _featured_destinations(self):
@@ -270,6 +307,121 @@ class HomePageView(TemplateView):
             )
         return items
 
+    def _recent_blog_posts(self):
+        posts = published_blog_queryset().order_by("-published_at", "-created_at")[:3]
+        return [build_blog_card(post) for post in posts]
+
+
+class BlogListView(TemplateView):
+    template_name = "blog_list.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        category_slug = self.request.GET.get("category") or ""
+        posts = self._published_posts()
+
+        selected_category = None
+        if category_slug:
+            selected_category = get_object_or_404(BlogCategory, slug=category_slug)
+            posts = posts.filter(category=selected_category)
+
+        selected_category_info = None
+        if selected_category:
+            selected_category_info = {
+                "name": selected_category.name,
+                "slug": selected_category.slug,
+            }
+
+        context.update(
+            posts=[build_blog_card(post) for post in posts],
+            categories=self._category_options(),
+            selected_category=selected_category_info,
+        )
+        return context
+
+    def _published_posts(self):
+        return published_blog_queryset().order_by("-published_at", "-created_at")
+
+    def _category_options(self):
+        now = timezone.now()
+        categories = (
+            BlogCategory.objects.filter(
+                posts__status=BlogPostStatus.PUBLISHED,
+                posts__published_at__lte=now,
+            )
+            .annotate(post_count=Count("posts", distinct=True))
+            .order_by("name")
+        )
+        return [
+            {
+                "name": category.name,
+                "slug": category.slug,
+                "post_count": category.post_count,
+            }
+            for category in categories
+        ]
+
+
+class BlogDetailView(TemplateView):
+    template_name = "blog_detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        post = self.get_post()
+        context.update(
+            post=self._serialize_post(post),
+            related_posts=self._related_posts(post),
+            recommended_trips=self._recommended_trips(),
+        )
+        return context
+
+    def get_post(self):
+        if not hasattr(self, "_post"):
+            queryset = published_blog_queryset().prefetch_related("sections")
+            self._post = get_object_or_404(queryset, slug=self.kwargs.get("slug"))
+        return self._post
+
+    def _serialize_post(self, post):
+        hero_image_url = post.hero_image.url if post.hero_image else ""
+        card_image_url = post.card_image.url if post.card_image else ""
+        sections = [
+            {
+                "heading": section.heading,
+                "location": section.location_label,
+                "body_paragraphs": _split_paragraphs(section.body),
+                "image_url": section.section_image.url if section.section_image else "",
+            }
+            for section in post.sections.all()
+        ]
+        return {
+            "title": post.title,
+            "subtitle": post.subtitle,
+            "category": post.category.name if post.category_id else "",
+            "published_at": post.published_at,
+            "read_time_minutes": post.read_time_minutes,
+            "hero_image_url": hero_image_url,
+            "card_image_url": card_image_url,
+            "excerpt": post.excerpt,
+            "intro_paragraphs": _split_paragraphs(post.intro),
+            "sections": sections,
+        }
+
+    def _related_posts(self, post):
+        related = (
+            published_blog_queryset()
+            .exclude(pk=post.pk)
+            .order_by("-published_at", "-created_at")[:3]
+        )
+        return [build_blog_card(item) for item in related]
+
+    def _recommended_trips(self):
+        trips = (
+            Trip.objects.select_related("destination")
+            .prefetch_related("category_tags", "additional_destinations")
+            .order_by("-created_at")[:3]
+        )
+        return [build_trip_card(trip) for trip in trips]
+
 
 class TripListView(TemplateView):
     template_name = "trips.html"
@@ -289,6 +441,7 @@ class TripListView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        site_config = SiteConfiguration.get_solo()
         destination_slug = self.request.GET.get("destination")
         trips = self._base_queryset()
 
@@ -315,6 +468,9 @@ class TripListView(TemplateView):
         context["destination_gallery"] = _destination_gallery_context(selected_destination)
         context["filter_options"] = self._filter_options(selected_destination)
         context["active_filters"] = filter_values
+        context["default_trips_hero_image"] = (
+            site_config.trips_hero_image.url if site_config.trips_hero_image else ""
+        )
         return context
 
     def _base_queryset(self):

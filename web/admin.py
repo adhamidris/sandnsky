@@ -3,6 +3,9 @@ from django.contrib import admin
 from django.core.exceptions import ValidationError
 from django.db.models import Max
 from .models import (
+    BlogCategory,
+    BlogPost,
+    BlogSection,
     Destination,
     DestinationGalleryImage,
     SiteConfiguration,
@@ -151,9 +154,58 @@ class BookingExtraInline(admin.TabularInline):
     # readonly_fields = ("extra", "price_at_booking")
 
 
+class BlogSectionInline(admin.StackedInline):
+    model = BlogSection
+    extra = 0
+    fields = ("position", "heading", "location_label", "body", "section_image")
+    ordering = ("position", "id")
+
+
 # -----------------------------
 # ModelAdmin registrations
 # -----------------------------
+
+
+@admin.register(BlogCategory)
+class BlogCategoryAdmin(admin.ModelAdmin):
+    list_display = ("name",)
+    search_fields = ("name", "description")
+    ordering = ("name",)
+
+
+@admin.register(BlogPost)
+class BlogPostAdmin(admin.ModelAdmin):
+    inlines = [BlogSectionInline]
+    list_display = ("title", "category", "status", "published_at", "updated_at")
+    list_filter = ("status", "category")
+    search_fields = ("title", "subtitle", "excerpt", "intro")
+    ordering = ("-published_at", "-created_at")
+    readonly_fields = ("slug", "created_at", "updated_at")
+    fieldsets = (
+        (None, {"fields": ("title", "subtitle", "category", "status")}),
+        (
+            "Content",
+            {"fields": ("excerpt", "intro")},
+        ),
+        (
+            "Media",
+            {"fields": ("hero_image", "card_image")},
+        ),
+        (
+            "Publishing",
+            {"fields": ("published_at", "read_time_minutes")},
+        ),
+        (
+            "SEO",
+            {"fields": ("seo_title", "seo_description")},
+        ),
+        (
+            "Meta",
+            {"fields": ("slug", "created_at", "updated_at")},
+        ),
+    )
+    date_hierarchy = "published_at"
+
 
 @admin.register(Destination)
 class DestinationAdmin(admin.ModelAdmin):
@@ -239,6 +291,14 @@ class SiteConfigurationAdmin(admin.ModelAdmin):
                     "hero_primary_cta_href",
                     "hero_secondary_cta_label",
                     "hero_secondary_cta_href",
+                )
+            },
+        ),
+        (
+            "Trips Hero",
+            {
+                "fields": (
+                    "trips_hero_image",
                 )
             },
         ),

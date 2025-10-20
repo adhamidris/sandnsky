@@ -105,6 +105,109 @@ class Language(models.Model):
     def __str__(self) -> str:
         return f"{self.name} ({self.code})"
 
+
+# -----------------------------
+# Blog
+# -----------------------------
+
+
+class BlogCategory(models.Model):
+    name = models.CharField(max_length=150)
+    slug = models.SlugField(max_length=160, unique=True, editable=False)
+    description = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self) -> str:
+        return self.name
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = _generate_unique_slug(self, self.name)
+        super().save(*args, **kwargs)
+
+
+class BlogPostStatus(models.TextChoices):
+    DRAFT = "draft", "Draft"
+    SCHEDULED = "scheduled", "Scheduled"
+    PUBLISHED = "published", "Published"
+
+
+class BlogPost(models.Model):
+    title = models.CharField(max_length=200)
+    subtitle = models.CharField(max_length=250, blank=True)
+    slug = models.SlugField(max_length=200, unique=True, editable=False)
+
+    category = models.ForeignKey(
+        BlogCategory, on_delete=models.PROTECT, related_name="posts"
+    )
+
+    hero_image = models.ImageField(upload_to="blog/hero/", blank=True)
+    card_image = models.ImageField(upload_to="blog/cards/", blank=True)
+
+    excerpt = models.TextField(blank=True)
+    intro = models.TextField(blank=True)
+
+    status = models.CharField(
+        max_length=15,
+        choices=BlogPostStatus.choices,
+        default=BlogPostStatus.DRAFT,
+        db_index=True,
+    )
+    published_at = models.DateTimeField(blank=True, null=True)
+
+    read_time_minutes = models.PositiveSmallIntegerField(blank=True, null=True)
+
+    seo_title = models.CharField(max_length=255, blank=True)
+    seo_description = models.CharField(max_length=320, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-published_at", "-created_at"]
+        indexes = [
+            models.Index(fields=["status", "published_at"]),
+        ]
+
+    def __str__(self) -> str:
+        return self.title
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = _generate_unique_slug(self, self.title)
+        super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        return reverse("web:blog-detail", args=[self.slug])
+
+    @property
+    def is_published(self) -> bool:
+        if self.status != BlogPostStatus.PUBLISHED:
+            return False
+        if self.published_at is None:
+            return False
+        return self.published_at <= timezone.now()
+
+
+class BlogSection(models.Model):
+    post = models.ForeignKey(
+        BlogPost, on_delete=models.CASCADE, related_name="sections"
+    )
+    position = models.PositiveSmallIntegerField(default=0)
+    heading = models.CharField(max_length=200)
+    location_label = models.CharField(max_length=150, blank=True)
+    body = models.TextField()
+    section_image = models.ImageField(upload_to="blog/sections/", blank=True)
+
+    class Meta:
+        ordering = ["position", "id"]
+
+    def __str__(self) -> str:
+        base = self.heading or "Section"
+        return f"{self.post.title} · {base}"
+
 # -----------------------------
 # Site configuration
 # -----------------------------
@@ -121,6 +224,7 @@ class SiteConfiguration(models.Model):
     hero_secondary_cta_label = models.CharField(max_length=100, default="Learn More")
     hero_secondary_cta_href = models.CharField(max_length=255, default="#about")
     hero_image = models.ImageField(upload_to="site/hero/", blank=True)
+    trips_hero_image = models.ImageField(upload_to="site/trips_hero/", blank=True)
 
     class Meta:
         verbose_name = "Site configuration"

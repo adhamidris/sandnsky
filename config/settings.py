@@ -20,11 +20,45 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY") or os.environ.get("SECRET_KEY") or "dev-insecure-replace-me"
+# --- Secrets & toggles (env-optional, safe defaults for PA) ---
+# SECRET_KEY: env first, else load/create a file-based key at BASE_DIR/.secret_key
+_secret_from_env = os.environ.get("DJANGO_SECRET_KEY") or os.environ.get("SECRET_KEY")
+if _secret_from_env:
+    SECRET_KEY = _secret_from_env
+else:
+    SECRET_FILE = BASE_DIR / ".secret_key"
+    try:
+        if SECRET_FILE.exists():
+            SECRET_KEY = SECRET_FILE.read_text().strip()
+            if not SECRET_KEY:
+                raise ValueError("empty secret")
+        else:
+            raise FileNotFoundError
+    except Exception:
+        import secrets
+        SECRET_KEY = secrets.token_urlsafe(64)
+        try:
+            SECRET_FILE.write_text(SECRET_KEY)
+        except Exception:
+            # If we can't write the file (read-only FS), just keep the in-memory key
+            pass
 
+# DEBUG: default to False (production) unless explicitly enabled
 DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() in ("1","true","yes","on")
-ALLOWED_HOSTS = [h.strip() for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "adhamidris.pythonanywhere.com,localhost,127.0.0.1").split(",") if h.strip()]
-CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "https://adhamidris.pythonanywhere.com").split(",") if o.strip()]
+
+# ALLOWED_HOSTS: use env if non-empty, else safe defaults
+_raw_hosts = (os.environ.get("DJANGO_ALLOWED_HOSTS") or "").strip()
+if _raw_hosts:
+    ALLOWED_HOSTS = [h.strip() for h in _raw_hosts.split(",") if h.strip()]
+else:
+    ALLOWED_HOSTS = ["adhamidris.pythonanywhere.com", "localhost", "127.0.0.1"]
+
+# CSRF_TRUSTED_ORIGINS: use env if non-empty, else safe defaults
+_raw_csrf = (os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS") or "").strip()
+if _raw_csrf:
+    CSRF_TRUSTED_ORIGINS = [o.strip() for o in _raw_csrf.split(",") if o.strip()]
+else:
+    CSRF_TRUSTED_ORIGINS = ["https://adhamidris.pythonanywhere.com"]
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
@@ -129,6 +163,6 @@ STATIC_ROOT = "/home/adhamidris/static"
 MEDIA_URL = '/media/'
 
 # Default primary key field type
-MEDIA_ROOT = "/home/adhamidris/media"
+MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
