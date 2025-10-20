@@ -24,3 +24,4 @@ dist-ssr
 *.sln
 *.sw?
 __pycache__/
+.secret_key
