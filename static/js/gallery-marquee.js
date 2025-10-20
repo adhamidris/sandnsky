@@ -10,79 +10,105 @@
     }
 
     var wrapper = marquee.querySelector('[data-marquee-wrapper]');
-    var tracks = marquee.querySelectorAll('[data-marquee-track]');
-    if (!wrapper || tracks.length === 0) {
+    var track = marquee.querySelector('[data-marquee-track]');
+    if (!wrapper || !track) {
       return;
     }
 
-    var primaryTrack = tracks[0];
-    var primaryItems = primaryTrack.querySelectorAll('[data-marquee-card]');
-    if (!primaryItems.length) {
+    var originalItems = Array.from(track.querySelectorAll('[data-marquee-card]'));
+    if (!originalItems.length) {
       return;
     }
 
-    function duplicateContent(track, times) {
-      var fragment = document.createDocumentFragment();
-      for (var i = 0; i < times; i += 1) {
-        primaryItems.forEach(function (item) {
-          fragment.appendChild(item.cloneNode(true));
-        });
+    var marqueeWidth = marquee.getBoundingClientRect().width || wrapper.getBoundingClientRect().width || window.innerWidth;
+    var direction = marquee.dataset.marqueeDirection === 'reverse' ? 'reverse' : 'forward';
+    var speed = parseFloat(marquee.dataset.marqueeSpeed || '45');
+    if (Number.isNaN(speed) || speed <= 0) {
+      speed = 45;
+    }
+
+    var baseHTML = originalItems
+      .map(function (item) {
+        return item.outerHTML;
+      })
+      .join('');
+
+    var cycleHTML = baseHTML;
+    track.innerHTML = cycleHTML;
+
+    var cycleWidth = track.scrollWidth || track.getBoundingClientRect().width;
+    var loopCount = 1;
+    var maxLoops = 8;
+    while (cycleWidth < marqueeWidth && loopCount < maxLoops) {
+      cycleHTML += baseHTML;
+      track.innerHTML = cycleHTML;
+      cycleWidth = track.scrollWidth || track.getBoundingClientRect().width;
+      loopCount += 1;
+    }
+
+    track.innerHTML = cycleHTML + cycleHTML;
+    cycleWidth = track.scrollWidth ? track.scrollWidth / 2 : (track.getBoundingClientRect().width / 2);
+
+    if (cycleWidth <= 0) {
+      return;
+    }
+
+    var offset = direction === 'reverse' ? -cycleWidth : 0;
+    track.style.transform = 'translateX(' + offset + 'px)';
+
+    var running = true;
+    var lastTime = null;
+
+    function step(timestamp) {
+      if (!running) {
+        lastTime = timestamp;
+        requestAnimationFrame(step);
+        return;
       }
-      track.appendChild(fragment);
-    }
 
-    var clonesNeeded = 2;
-    duplicateContent(primaryTrack, clonesNeeded);
+      if (lastTime !== null) {
+        var delta = (timestamp - lastTime) / 1000;
+        var distance = speed * delta;
 
-    for (var i = 1; i < tracks.length; i += 1) {
-      var track = tracks[i];
-      track.innerHTML = '';
-      duplicateContent(track, clonesNeeded + 1);
-      track.classList.add('marquee-track--delay');
-    }
+        if (direction === 'reverse') {
+          offset += distance;
+          if (offset >= 0) {
+            offset -= cycleWidth;
+          }
+        } else {
+          offset -= distance;
+          if (offset <= -cycleWidth) {
+            offset += cycleWidth;
+          }
+        }
 
-    var totalWidth = 0;
-    var elementCount = 0;
-    primaryTrack.childNodes.forEach(function (node) {
-      if (node.nodeType === 1) {
-        var rect = node.getBoundingClientRect();
-        totalWidth += rect.width;
-        elementCount += 1;
+        track.style.transform = 'translateX(' + offset + 'px)';
       }
-    });
 
-    var gap = 32;
-    totalWidth += gap * Math.max(0, elementCount - 1);
-
-    if (totalWidth === 0) {
-      totalWidth = primaryTrack.scrollWidth;
+      lastTime = timestamp;
+      requestAnimationFrame(step);
     }
 
-    if (totalWidth > 0) {
-      wrapper.style.minWidth = totalWidth + 'px';
-      marquee.style.setProperty('--marquee-duration', Math.max(40, Math.min(90, totalWidth / 4)) + 's');
+    requestAnimationFrame(step);
+
+    function pauseMarquee() {
+      running = false;
     }
+
+    function resumeMarquee() {
+      if (!running) {
+        running = true;
+        lastTime = null;
+      }
+    }
+
+    wrapper.addEventListener('mouseenter', pauseMarquee);
+    wrapper.addEventListener('mouseleave', resumeMarquee);
 
     var modal = document.querySelector('[data-gallery-modal]');
     var modalImage = modal ? modal.querySelector('[data-gallery-modal-image]') : null;
     var modalCaption = modal ? modal.querySelector('[data-gallery-modal-caption]') : null;
     var closeButton = modal ? modal.querySelector('[data-gallery-close]') : null;
-    var activeAnimationState = null;
-
-    function pauseTracks() {
-      tracks.forEach(function (track) {
-        track.style.animationPlayState = 'paused';
-      });
-    }
-
-    function resumeTracks() {
-      tracks.forEach(function (track) {
-        track.style.animationPlayState = 'running';
-      });
-    }
-
-    wrapper.addEventListener('mouseenter', pauseTracks);
-    wrapper.addEventListener('mouseleave', resumeTracks);
 
     function openModal(src, alt, caption) {
       if (!modal || !modalImage) {
@@ -96,8 +122,7 @@
       modal.classList.remove('hidden');
       modal.classList.add('flex');
       modal.setAttribute('aria-hidden', 'false');
-      activeAnimationState = tracks[0].style.animationPlayState;
-      pauseTracks();
+      pauseMarquee();
       closeButton && closeButton.focus();
     }
 
@@ -108,8 +133,10 @@
       modal.classList.remove('flex');
       modal.classList.add('hidden');
       modal.setAttribute('aria-hidden', 'true');
-      modalImage && (modalImage.src = '');
-      resumeTracks();
+      if (modalImage) {
+        modalImage.src = '';
+      }
+      resumeMarquee();
     }
 
     if (modal && closeButton) {

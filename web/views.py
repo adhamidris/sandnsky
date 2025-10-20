@@ -236,11 +236,46 @@ class HomePageView(TemplateView):
             "items": self._featured_destinations(),
         }
 
+        gallery_items = self._gallery_items()
+        primary_row = gallery_items[::2]
+        secondary_row = gallery_items[1::2]
+        gallery_rows = [primary_row]
+        if secondary_row:
+            gallery_rows.append(secondary_row)
+
         context["gallery_section"] = {
             "title": "Moments from the Sahara",
             "subtitle": "A glimpse into the landscapes and quiet rituals that shape our journeys.",
-            "items": self._gallery_items(),
+            "items": gallery_items,
+            "rows": gallery_rows,
         }
+
+        features = [
+            {
+                "badge": "EG",
+                "icon": "expert-guides",
+                "title": "Expert guides",
+                "description": "Licensed Egyptologists and desert naturalists reveal stories beneath the dunes.",
+            },
+            {
+                "badge": "SS",
+                "icon": "licensed-operators",
+                "title": "Licensed tour operators",
+                "description": "Every expedition is fully permitted and supported by veteran Sahara operators.",
+            },
+            {
+                "badge": "PS",
+                "icon": "personalized-service",
+                "title": "Personalized service",
+                "description": "We tailor each itinerary to your pace, passions, and preferred level of adventure.",
+            },
+            {
+                "badge": "SG",
+                "icon": "comfort",
+                "title": "Sleep & travel in comfort",
+                "description": "Private camps, boutique lodges, and plush transfers keep every desert mile effortless.",
+            },
+        ]
 
         context["about_section"] = {
             "title": "About Sand & Sky",
@@ -250,32 +285,12 @@ class HomePageView(TemplateView):
                 "landscapes - from the tranquil oases of Siwa, Fayoum, Bahariya, and Farafra to the surreal beauty "
                 "of the White and Black Deserts."
             ),
-            "features": [
-                {
-                    "badge": "EG",
-                    "icon": "expert-guides",
-                    "title": "Expert guides",
-                    "description": "Licensed Egyptologists and desert naturalists reveal stories beneath the dunes.",
-                },
-                {
-                    "badge": "SS",
-                    "icon": "licensed-operators",
-                    "title": "Licensed tour operators",
-                    "description": "Every expedition is fully permitted and supported by veteran Sahara operators.",
-                },
-                {
-                    "badge": "PS",
-                    "icon": "personalized-service",
-                    "title": "Personalized service",
-                    "description": "We tailor each itinerary to your pace, passions, and preferred level of adventure.",
-                },
-                {
-                    "badge": "SG",
-                    "icon": "comfort",
-                    "title": "Sleep & travel in comfort",
-                    "description": "Private camps, boutique lodges, and plush transfers keep every desert mile effortless.",
-                },
-            ],
+        }
+
+        context["features_section"] = {
+            "title": "Why travel with Sand & Sky",
+            "subtitle": "Four promises that guide every journey we design.",
+            "features": features,
         }
 
         context["contact_section"] = {

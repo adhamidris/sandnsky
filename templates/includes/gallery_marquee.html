@@ -2,42 +2,53 @@
 {% if gallery_section.items %}
 <section id="gallery" class="bg-secondary/30 px-4 py-20 sm:px-6 lg:px-8">
   <div class="mx-auto max-w-7xl">
-    <div class="mb-12 flex flex-col gap-4 text-center sm:flex-row sm:items-end sm:justify-between sm:text-left">
-      <div class="space-y-3">
-        <p class="text-xs font-semibold uppercase tracking-[0.3em] text-primary">Gallery</p>
-        <h2 class="font-serif text-3xl text-foreground sm:text-4xl">{{ gallery_section.title }}</h2>
-        <p class="max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">{{ gallery_section.subtitle }}</p>
+    <div class="mb-12 flex justify-center text-center">
+      <div class="space-y-3 max-w-3xl">
+        <p class="text-xs font-semibold uppercase tracking-[0.3em] text-primary">
+          Gallery
+        </p>
+        <h2 class="font-serif text-3xl text-foreground sm:text-4xl">
+          {{ gallery_section.title }}
+        </h2>
+        <p class="max-w-2xl mx-auto text-sm leading-relaxed text-muted-foreground sm:text-base">
+          {{ gallery_section.subtitle }}
+        </p>
       </div>
     </div>
-
-    <div class="relative overflow-hidden rounded-3xl bg-secondary/20 py-10" data-marquee>
-      <div class="pointer-events-none absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-background via-background/70 to-transparent"></div>
-      <div class="pointer-events-none absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-background via-background/70 to-transparent"></div>
-      <div class="flex items-center" data-marquee-wrapper>
-        <div data-marquee-track>
-          {% for item in gallery_section.items %}
-          <figure class="flex shrink-0 flex-col gap-3" data-marquee-card>
-            <button type="button" class="group block overflow-hidden rounded-3xl border border-border/40 bg-card shadow-subtle" data-gallery-open data-gallery-src="{{ item.image_url }}" data-gallery-alt="{{ item.alt }}" data-gallery-caption="{{ item.caption|default:item.destination }}">
-              <img src="{{ item.image_url }}" alt="{{ item.alt }}" class="w-full object-cover transition-transform duration-500 group-hover:scale-105" data-marquee-image loading="lazy" />
-            </button>
-            <figcaption class="text-sm text-muted-foreground">
-              {{ item.caption|default:item.destination }}
-            </figcaption>
-          </figure>
-          {% endfor %}
+    
+    <div class="space-y-10">
+      {% for row in gallery_section.rows %}
+      {% if row %}
+      <div
+        class="relative overflow-hidden rounded-3xl bg-secondary/20 py-10"
+        data-marquee
+        data-marquee-direction="{% if forloop.counter|divisibleby:2 %}reverse{% else %}forward{% endif %}"
+        data-marquee-size="{% if forloop.counter == 1 %}large{% else %}regular{% endif %}"
+      >
+        <div class="pointer-events-none absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-background via-background/70 to-transparent"></div>
+        <div class="pointer-events-none absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-background via-background/70 to-transparent"></div>
+        <div class="flex items-center" data-marquee-wrapper>
+          <div data-marquee-track>
+            {% for item in row %}
+            <figure class="flex shrink-0 flex-col gap-3" data-marquee-card>
+              <button type="button" class="group block overflow-hidden {% if forloop.parentloop.counter == 1 %}rounded-none{% else %}rounded-3xl{% endif %} border border-border/40 bg-card shadow-subtle" data-gallery-open data-gallery-src="{{ item.image_url }}" data-gallery-alt="{{ item.alt }}" data-gallery-caption="{{ item.caption|default:item.destination }}">
+                <img src="{{ item.image_url }}" alt="{{ item.alt }}" class="w-full object-cover transition-transform duration-500 group-hover:scale-105" data-marquee-image loading="lazy" />
+              </button>
+              <figcaption class="text-sm text-muted-foreground">
+                {{ item.caption|default:item.destination }}
+              </figcaption>
+            </figure>
+            {% endfor %}
+          </div>
         </div>
-        <div data-marquee-track aria-hidden="true"></div>
-        <div data-marquee-track aria-hidden="true"></div>
       </div>
+      {% endif %}
+      {% endfor %}
     </div>
   </div>
 </section>
 
 <style>
-  [data-marquee] {
-    --marquee-duration: 45s;
-    }
-
   [data-marquee-wrapper] {
     display: flex;
     align-items: center;
@@ -45,30 +56,33 @@
 
   [data-marquee-track] {
     display: inline-flex;
+    flex-wrap: nowrap;
+    flex-shrink: 0;
     gap: 2rem;
     will-change: transform;
-    animation: marquee var(--marquee-duration) linear infinite;
+    transform: translateX(0);
+    transition: transform 0.2s ease-out;
   }
 
-  .marquee-track--delay {
-    animation-delay: calc(var(--marquee-duration) / -2);
-  }
-
-  @keyframes marquee {
-    from {
-      transform: translateX(0);
-    }
-    to {
-      transform: translateX(-100%);
-    }
+  [data-marquee][data-marquee-direction="reverse"] [data-marquee-track] {
+    /* animation handled via JS */
   }
 
   [data-marquee-card] {
     width: 200px;
+    flex-shrink: 0;
+  }
+
+  [data-marquee][data-marquee-size="large"] [data-marquee-card] {
+    width: 320px;
   }
 
   [data-marquee-image] {
     height: 150px;
+  }
+
+  [data-marquee][data-marquee-size="large"] [data-marquee-image] {
+    height: 220px;
   }
 
   [data-gallery-open] {
@@ -83,6 +97,14 @@
     [data-marquee-image] {
       height: 170px;
     }
+
+    [data-marquee][data-marquee-size="large"] [data-marquee-card] {
+      width: 360px;
+    }
+
+    [data-marquee][data-marquee-size="large"] [data-marquee-image] {
+      height: 250px;
+    }
   }
 
   @media (min-width: 1024px) {
@@ -92,6 +114,14 @@
 
     [data-marquee-image] {
       height: 190px;
+    }
+
+    [data-marquee][data-marquee-size="large"] [data-marquee-card] {
+      width: 400px;
+    }
+
+    [data-marquee][data-marquee-size="large"] [data-marquee-image] {
+      height: 280px;
     }
   }
 </style>

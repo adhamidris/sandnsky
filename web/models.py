@@ -214,7 +214,7 @@ class BlogSection(models.Model):
 
 
 class SiteConfiguration(models.Model):
-    hero_title = models.CharField(max_length=200, default="Discover the Magic of Egypt")
+    hero_title = models.CharField(max_length=200, blank=True, default="Discover the Magic of Egypt")
     hero_subtitle = models.TextField(
         blank=True,
         default="Embark on an unforgettable journey through ancient wonders and timeless beauty",
