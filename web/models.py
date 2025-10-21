@@ -231,6 +231,11 @@ class SiteConfiguration(models.Model):
         help_text="Video shown on desktop hero. Prefer optimized MP4/WebM under 10 MB.",
     )
     trips_hero_image = models.ImageField(upload_to="site/trips_hero/", blank=True)
+    gallery_background_image = models.ImageField(
+        upload_to="site/gallery/frame/",
+        blank=True,
+        help_text="Optional background image for the gallery marquee frame.",
+    )
 
     class Meta:
         verbose_name = "Site configuration"

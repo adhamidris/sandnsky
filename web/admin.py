@@ -303,6 +303,14 @@ class SiteConfigurationAdmin(admin.ModelAdmin):
                 )
             },
         ),
+        (
+            "Gallery",
+            {
+                "fields": (
+                    "gallery_background_image",
+                )
+            },
+        ),
     )
 
     def has_add_permission(self, request):

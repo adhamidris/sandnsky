@@ -243,11 +243,19 @@ class HomePageView(TemplateView):
         if secondary_row:
             gallery_rows.append(secondary_row)
 
+        gallery_background = ""
+        gallery_background_is_media = False
+        if site_config.gallery_background_image:
+            gallery_background = site_config.gallery_background_image.url
+            gallery_background_is_media = True
+
         context["gallery_section"] = {
             "title": "Moments from the Sahara",
             "subtitle": "A glimpse into the landscapes and quiet rituals that shape our journeys.",
             "items": gallery_items,
             "rows": gallery_rows,
+            "background_image": gallery_background,
+            "background_image_is_media": gallery_background_is_media,
         }
 
         features = [

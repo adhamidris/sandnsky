@@ -15,12 +15,20 @@
         </p>
       </div>
     </div>
-    
-    <div class="space-y-10">
-      {% for row in gallery_section.rows %}
-      {% if row %}
+    {% if gallery_section.background_image %}
+      {% if gallery_section.background_image_is_media %}
+      <div class="gallery-frame" style="--gallery-frame-bg: url('{{ gallery_section.background_image }}');">
+      {% else %}
+      <div class="gallery-frame" style="--gallery-frame-bg: url('{% static gallery_section.background_image %}');">
+      {% endif %}
+    {% else %}
+      <div class="gallery-frame">
+    {% endif %}
+        <div class="gallery-frame__inner space-y-10">
+        {% for row in gallery_section.rows %}
+        {% if row %}
       <div
-        class="relative overflow-hidden rounded-3xl bg-secondary/20 py-10"
+        class="relative overflow-hidden rounded-3xl bg-secondary/20 py-10 shadow-[0_18px_45px_rgba(17,24,39,0.18)]"
         data-marquee
         data-marquee-direction="{% if forloop.counter|divisibleby:2 %}reverse{% else %}forward{% endif %}"
         data-marquee-size="{% if forloop.counter == 1 %}large{% else %}regular{% endif %}"
@@ -31,7 +39,7 @@
           <div data-marquee-track>
             {% for item in row %}
             <figure class="flex shrink-0 flex-col gap-3" data-marquee-card>
-              <button type="button" class="group block overflow-hidden {% if forloop.parentloop.counter == 1 %}rounded-none{% else %}rounded-3xl{% endif %} border border-border/40 bg-card shadow-subtle" data-gallery-open data-gallery-src="{{ item.image_url }}" data-gallery-alt="{{ item.alt }}" data-gallery-caption="{{ item.caption|default:item.destination }}">
+              <button type="button" class="group block overflow-hidden {% if forloop.parentloop.counter == 1 %}rounded-xl{% else %}rounded-3xl{% endif %} border border-border/40 bg-card shadow-[0_14px_32px_rgba(17,24,39,0.16)] transition-shadow duration-300 hover:shadow-[0_18px_38px_rgba(17,24,39,0.22)]" data-gallery-open data-gallery-src="{{ item.image_url }}" data-gallery-alt="{{ item.alt }}" data-gallery-caption="{{ item.caption|default:item.destination }}">
                 <img src="{{ item.image_url }}" alt="{{ item.alt }}" class="w-full object-cover transition-transform duration-500 group-hover:scale-105" data-marquee-image loading="lazy" />
               </button>
               <figcaption class="text-sm text-muted-foreground">
@@ -41,14 +49,61 @@
             {% endfor %}
           </div>
         </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+        </div>
       </div>
-      {% endif %}
-      {% endfor %}
     </div>
   </div>
 </section>
 
 <style>
+  .gallery-frame {
+    position: relative;
+    border-radius: 3rem;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
+    --gallery-frame-bg: none;
+  }
+
+  .gallery-frame::before {
+    content: "";
+    position: absolute;
+    inset: -12%;
+    border-radius: inherit;
+    background-image: var(--gallery-frame-bg);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.95;
+    z-index: -2;
+  }
+
+  .gallery-frame::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0));
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  .gallery-frame__inner {
+    position: relative;
+    border-radius: calc(3rem - 14px);
+    padding: clamp(2.5rem, 4vw, 3.5rem);
+    background: transparent;
+    backdrop-filter: none;
+    overflow: hidden;
+  }
+
+  .gallery-frame__inner::before {
+    content: none;
+  }
+
   [data-marquee-wrapper] {
     display: flex;
     align-items: center;
