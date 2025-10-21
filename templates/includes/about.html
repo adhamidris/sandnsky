@@ -1,11 +1,5 @@
 <section id="about" class="about-section my-16 px-4 sm:px-6 sm:py-20 lg:my-24 overflow-x-clip">
   <div class="about-section__layout">
-    <div class="about-section__nav about-section__nav--left">
-      <a class="about-nav-link" href="">
-        <span class="about-nav-icon" aria-hidden="true">&lt;</span>
-        <span class="about-nav-text">Upper Egypt Trips</span>
-      </a>
-    </div>
 
     <div class="about-section__outer">
       <div class="about-section__inner relative top-0 overflow-visible rounded-2xl px-6 py-10 sm:px-8 lg:px-10">
@@ -28,13 +22,6 @@
         </div>
       </div>
     </div>
-
-    <div class="about-section__nav about-section__nav--right">
-      <a class="about-nav-link" href="">
-        <span class="about-nav-text">Sahari Trips</span>
-        <span class="about-nav-icon" aria-hidden="true">&gt;</span>
-      </a>
-    </div>
   </div>
 </section>
 
@@ -42,31 +29,31 @@
   .about-section {
     position: relative;
     overflow-x: clip; /* Allow horizontal overflow */
-    background-color: #92a2b9;
-    
+    background-color: #f5f2ec;
   }
 
   .about-section__layout {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     width: 100%;
-    
   }
 
   .about-section__outer {
     position: relative;
-    justify-self: center;
-    width: 100% !important;
+    width: min(100%, 90rem);
     display: flex;
     justify-content: center;
-  }
+    margin: 0 auto;
+    }
 
   .about-section__inner {
     overflow: visible; /* Keep this */
     top: 0 !important;
     width: 100%;
-    max-width: 80rem;
+    max-width: 90rem;
     margin: 0 auto;
+    margin-top: -60px !important;
+    padding: 20px !important;
   }
 
   .about-section__media {
@@ -82,10 +69,34 @@
   }
 
   .about-section__nav {
+    position: relative;
     display: flex;
-    justify-content: center;
+    align-items: center;
+    padding: clamp(1.5rem, 4vw, 3rem);
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    justify-self: stretch;
+    align-self: stretch;
   }
 
+  .about-section__nav::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.25);
+    z-index: 0;
+  }
+
+  .about-section__nav--left {
+    justify-content: flex-start;
+    background-image: url('/media/upper.jpg');
+  }
+
+  .about-section__nav--right {
+    justify-content: flex-end;
+    background-image: url('/media/desert.jpg');
+  }
 
   .about-nav-link {
     display: inline-flex;
@@ -100,6 +111,8 @@
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     transition: background 0.2s ease, transform 0.2s ease;
     white-space: nowrap;
+    position: relative;
+    z-index: 1;
   }
 
   .about-nav-link:hover,
@@ -148,6 +161,7 @@
     }
   }
 
+
   @media (max-width: 768px) {
     .about-section__nav {
       display: none;
@@ -195,5 +209,9 @@
       border-radius: 10px !important;
     }
   }
+
+
+
+
 
 </style>
