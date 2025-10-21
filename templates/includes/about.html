@@ -1,63 +1,130 @@
 <section id="about" class="about-section my-16 px-4 sm:px-6 sm:py-20 lg:my-24 overflow-x-clip">
-  <div class="relative mx-auto max-w-7xl">
-    <div class="about-section__inner relative top-0 overflow-visible rounded-2xl px-6 py-10 sm:px-8 lg:px-10">
-      <div class="about-section__media shadow-xl" aria-hidden="true">
-        <img
-          src="/media/usethis.jpg"
-          alt=""
-          loading="lazy"
-          decoding="async"
-        />
-      </div>
+  <div class="about-section__layout">
+    <div class="about-section__nav about-section__nav--left">
+      <a class="about-nav-link" href="">
+        <span class="about-nav-icon" aria-hidden="true">&lt;</span>
+        <span class="about-nav-text">Upper Egypt Trips</span>
+      </a>
+    </div>
 
-      <div class="about-section__content relative space-y-5 text-left">
-        <p class="about-header text-xs font-semibold uppercase tracking-[0.2em] text-[#1a1410]">
-          {{ about_section.title }}
-        </p>
-        <p class="about-sub text-lg leading-relaxed whitespace-pre-line text-[#2a1a0d]">
-          {{ about_section.subtitle }}
-        </p>
+    <div class="about-section__outer">
+      <div class="about-section__inner relative top-0 overflow-visible rounded-2xl px-6 py-10 sm:px-8 lg:px-10">
+        <div class="about-section__media shadow-xl" aria-hidden="true">
+          <img
+            src="/media/usethis.jpg"
+            alt=""
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+
+        <div class="about-section__content relative space-y-5 text-left">
+          <p class="about-header text-xs font-semibold uppercase tracking-[0.2em] text-[#1a1410]">
+            {{ about_section.title }}
+          </p>
+          <p class="about-sub text-lg leading-relaxed whitespace-pre-line text-[#2a1a0d]">
+            {{ about_section.subtitle }}
+          </p>
+        </div>
       </div>
+    </div>
+
+    <div class="about-section__nav about-section__nav--right">
+      <a class="about-nav-link" href="">
+        <span class="about-nav-text">Sahari Trips</span>
+        <span class="about-nav-icon" aria-hidden="true">&gt;</span>
+      </a>
     </div>
   </div>
 </section>
 
 <style>
   .about-section {
-  position: relative;
-  overflow-x: clip; /* Allow horizontal overflow */
-  background-color: #92a2b9;
-}
+    position: relative;
+    overflow-x: clip; /* Allow horizontal overflow */
+    background-color: #92a2b9;
+    
+  }
 
-.about-section__inner {
-  overflow: visible; /* Keep this */
-  top: 0 !important;
-}
+  .about-section__layout {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    
+  }
 
-.about-section__media {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 100% !important;
-  border-radius: 40px !important;
-  height: 100%; /* Match parent height instead of fixed */
-  transform: translateX(-50%);
-  pointer-events: none;
-  z-index: 0;
-}
+  .about-section__outer {
+    position: relative;
+    justify-self: center;
+    width: 100% !important;
+    display: flex;
+    justify-content: center;
+  }
 
-.about-section__media img {
+  .about-section__inner {
+    overflow: visible; /* Keep this */
+    top: 0 !important;
+    width: 100%;
+    max-width: 80rem;
+    margin: 0 auto;
+  }
+
+  .about-section__media {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 100% !important;
     border-radius: 40px !important;
-}
+    height: 100%; /* Match parent height instead of fixed */
+    transform: translateX(-50%);
+    pointer-events: none;
+    z-index: 0;
+  }
 
-.about-header {
-  color: #000000;
-  font-weight: bold !important;
-}
+  .about-section__nav {
+    display: flex;
+    justify-content: center;
+  }
 
-.about-sub {
-  opacity: 1 !important;
-}
+
+  .about-nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.85);
+    color: #1a1410;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    transition: background 0.2s ease, transform 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .about-nav-link:hover,
+  .about-nav-link:focus-visible {
+    background: #ffffff;
+    transform: translateY(-2px);
+  }
+
+  .about-nav-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+
+  .about-section__media img {
+    border-radius: 40px !important;
+  }
+
+  .about-header {
+    color: #000000;
+    font-weight: bold !important;
+  }
+
+  .about-sub {
+    opacity: 1 !important;
+  }
 
   .about-section__media img {
     width: 100%;
@@ -74,47 +141,59 @@
     padding-bottom: 20px !important;
   }
 
+  @media (min-width: 1024px) {
+    .about-section {
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+    }
+  }
+
   @media (max-width: 768px) {
-  .about-header {
-    opacity: 1 !important;
-    font-weight: bold !important;
-    color: #000000 !important;
-  }
+    .about-section__nav {
+      display: none;
+    }
 
-  .about-sub {
-    opacity: 1 !important;
-    color: #2a1a0d !important;
-  }
+    .about-header {
+      opacity: 1 !important;
+      font-weight: bold !important;
+      color: #000000 !important;
+    }
 
-  .about-section {
-    margin-right: 20px !important;
-    margin-left: 20px !important;
-    margin-top: -40px !important;
-    border-radius: 10px !important;
-    overflow: hidden !important; /* ADD THIS - prevents image overflow */
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-  }
+    .about-sub {
+      opacity: 1 !important;
+      color: #2a1a0d !important;
+    }
 
-  .about-section__inner {
-    width: 100% !important; /* CHANGE from 100vw to 100% */
-    border-radius: 10px !important; /* ADD THIS - matches parent */
-    overflow: hidden !important; /* ADD THIS */
-  }
+    .about-section {
+      margin-right: 20px !important;
+      margin-left: 20px !important;
+      margin-top: -40px !important;
+      border-radius: 10px !important;
+      overflow: hidden !important; /* Prevent image overflow */
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+    }
 
-  .about-section__media {
-    width: 100% !important; /* CHANGE from 100vw to 100% */
-    height: 100% !important; /* ADD THIS - fills parent height */
-    left: 0 !important; /* ADD THIS - removes the centering transform */
-    transform: none !important; /* ADD THIS - removes the -50% translation */
-  }
+    .about-section__inner {
+      width: 100% !important; /* Ensure it fits parent */
+      border-radius: 10px !important;
+      overflow: hidden !important;
+      max-width: none;
+    }
 
-  .about-section__media img {
-    object-fit: cover !important;
-    width: 100% !important;
-    height: 100% !important; /* ADD THIS - makes image fill container */
-    border-radius: 10px !important;
+    .about-section__media {
+      width: 100% !important;
+      height: 100% !important; /* fills parent height */
+      left: 0 !important;
+      transform: none !important;
+    }
+
+    .about-section__media img {
+      object-fit: cover !important;
+      width: 100% !important;
+      height: 100% !important;
+      border-radius: 10px !important;
+    }
   }
-}
 
 </style>
