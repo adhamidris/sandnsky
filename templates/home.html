@@ -62,51 +62,57 @@
   var current = 0;
   var timer = null;
 
-  cards.forEach(function (card, index) {
-    card.setAttribute('aria-hidden', index === 0 ? 'false' : 'true');
-    if (index === 0) {
-      card.classList.add('is-active');
-    } else {
-      card.classList.remove('is-active');
-    }
-  });
+  function updateCardStates(options) {
+    var prevIndex = (current - 1 + cards.length) % cards.length;
+    var nextIndex = (current + 1) % cards.length;
 
-  dots.forEach(function (dot, index) {
-    if (index === 0) {
-      dot.classList.add('is-active');
-      dot.setAttribute('aria-selected', 'true');
-      dot.setAttribute('tabindex', '0');
-    } else {
-      dot.classList.remove('is-active');
-      dot.setAttribute('aria-selected', 'false');
-      dot.setAttribute('tabindex', '-1');
+    cards.forEach(function (card) {
+      card.classList.remove('is-active', 'is-prev', 'is-next');
+      card.setAttribute('aria-hidden', 'true');
+    });
+
+    if (cards[current]) {
+      cards[current].classList.add('is-active');
+      cards[current].setAttribute('aria-hidden', 'false');
     }
-  });
+
+    if (cards.length > 1) {
+      if (prevIndex !== current && cards[prevIndex]) {
+        cards[prevIndex].classList.add('is-prev');
+      }
+      if (nextIndex !== current && cards[nextIndex]) {
+        cards[nextIndex].classList.add('is-next');
+        if (nextIndex === prevIndex) {
+          cards[nextIndex].classList.add('is-prev');
+        }
+      }
+    }
+
+    dots.forEach(function (dot, index) {
+      if (index === current) {
+        dot.classList.add('is-active');
+        dot.setAttribute('aria-selected', 'true');
+        dot.setAttribute('tabindex', '0');
+        if (options && options.focusDot) {
+          dot.focus();
+        }
+      } else {
+        dot.classList.remove('is-active');
+        dot.setAttribute('aria-selected', 'false');
+        dot.setAttribute('tabindex', '-1');
+      }
+    });
+  }
+
+  updateCardStates();
 
   function setActive(nextIndex, options) {
     if (nextIndex === current) {
       return;
     }
 
-    cards[current].classList.remove('is-active');
-    cards[current].setAttribute('aria-hidden', 'true');
-    if (dots[current]) {
-      dots[current].classList.remove('is-active');
-      dots[current].setAttribute('aria-selected', 'false');
-      dots[current].setAttribute('tabindex', '-1');
-    }
-
     current = nextIndex;
-    cards[current].classList.add('is-active');
-    cards[current].setAttribute('aria-hidden', 'false');
-    if (dots[current]) {
-      dots[current].classList.add('is-active');
-      dots[current].setAttribute('aria-selected', 'true');
-      dots[current].setAttribute('tabindex', '0');
-      if (options && options.focusDot) {
-        dots[current].focus();
-      }
-    }
+    updateCardStates(options);
   }
 
   function showNext() {

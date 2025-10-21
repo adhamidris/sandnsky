@@ -15,25 +15,27 @@
       </div>
       
     </div>
-    {% if destinations_section.items %}
+{% if destinations_section.items %}
     <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
       {% for destination in destinations_section.items %}
-      <article class="group relative h-64 overflow-hidden border-0 rounded-md bg-card shadow-medium transition-all duration-300 hover:shadow-xl animate-fade-in" style="animation-delay: {{ forloop.counter0 }}00ms">
-        <div class="absolute inset-0 overflow-hidden">
-          {% if destination.image_url %}
-          <img src="{{ destination.image_url }}" alt="{{ destination.title }}" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
-          {% else %}
-          <div class="flex h-full items-center justify-center bg-muted text-muted-foreground">
-            <span class="text-lg font-semibold">{{ destination.title }}</span>
+      <a href="{{ destination.cta.href }}" class="group block" aria-label="{{ destination.cta.label }} for {{ destination.title }}">
+        <article class="relative h-64 overflow-hidden border-0 rounded-md bg-card shadow-medium transition-all duration-300 group-hover:shadow-xl animate-fade-in" style="animation-delay: {{ forloop.counter0 }}00ms">
+          <div class="absolute inset-0 overflow-hidden">
+            {% if destination.image_url %}
+            <img src="{{ destination.image_url }}" alt="{{ destination.title }}" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+            {% else %}
+            <div class="flex h-full items-center justify-center bg-muted text-muted-foreground">
+              <span class="text-lg font-semibold">{{ destination.title }}</span>
+            </div>
+            {% endif %}
+            <div class="absolute inset-0 bg-gradient-to-t from-black/35 via-black/15 to-transparent"></div>
+            <div class="absolute inset-x-0 bottom-0 p-6">
+              <h3 class="font-serif text-2xl font-semibold text-white">{{ destination.title }}</h3>
+              <span class="mt-2 inline-flex items-center text-white underline-offset-4 group-hover:underline">{{ destination.cta.label }} →</span>
+            </div>
           </div>
-          {% endif %}
-          <div class="absolute inset-0 bg-gradient-to-t from-black/35 via-black/15 to-transparent"></div>
-       <div class="absolute inset-x-0 bottom-0 p-6">
-         <h3 class="font-serif text-2xl font-semibold text-white">{{ destination.title }}</h3>
-         <a href="{{ destination.cta.href }}" class="mt-2 inline-flex items-center text-white hover:underline">{{ destination.cta.label }} →</a>
-       </div>
-        </div>
-      </article>
+        </article>
+      </a>
       {% endfor %}
     </div>
     {% else %}

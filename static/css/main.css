@@ -949,48 +949,48 @@ body {
 
 /* Testimonials slider */
 
-.testimonial-stack {
-  position: relative;
-  min-height: 18rem;
-  background: linear-gradient(
-      135deg,
-      hsl(var(--secondary) / 0.6),
-      hsl(var(--card) / 0.92)
-    );
-  border: 1px solid hsl(var(--border) / 0.6);
-  box-shadow: 0 18px 40px rgba(18, 24, 40, 0.12);
-  padding: clamp(2.2rem, 8vw, 3rem) clamp(1.75rem, 9vw, 3.4rem);
-  border-radius: 1.75rem;
+.testimonial-carousel {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: clamp(1rem, 3vw, 1.75rem);
   overflow: hidden;
-}
-
-@media (min-width: 768px) {
-  .testimonial-stack {
-    min-height: 19rem;
-    padding: clamp(2.6rem, 7vw, 3.4rem) clamp(2.2rem, 7vw, 3.25rem);
-  }
+  position: relative;
 }
 
 .testimonial-card {
-  position: absolute;
-  inset: 0;
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  opacity: 0;
-  transform: translateY(1.5rem);
-  pointer-events: none;
-  transition: opacity 0.4s ease, transform 0.4s ease;
+  padding: clamp(2.1rem, 6vw, 3.1rem);
+  border-radius: 1.75rem;
+  background: hsl(var(--secondary) / 0.3);
+  border: 0;
+  box-shadow: none;
+  opacity: 1;
+  transform: scale(0.94);
+  transition: transform 0.5s ease;
 }
 
-.dark .testimonial-stack {
-  background: linear-gradient(
-      135deg,
-      hsl(var(--secondary) / 0.35),
-      hsl(var(--card) / 0.35)
-    );
-  border-color: hsl(var(--border) / 0.4);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+.testimonial-card.is-active {
+  transform: scale(1);
+}
+
+.testimonial-card.is-prev,
+.testimonial-card.is-next {
+  transform: scale(0.9);
+}
+
+@media (max-width: 1023px) {
+  .testimonial-carousel {
+    overflow: visible;
+  }
+
+  .testimonial-card {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .testimonial-card > div {
@@ -998,12 +998,6 @@ body {
   max-width: 680px;
   margin-left: auto;
   margin-right: auto;
-}
-
-.testimonial-card.is-active {
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: auto;
 }
 
 .testimonial-card figure,

@@ -1,10 +1,120 @@
-<section id="about" class="bg-secondary/30 px-4 py-24 sm:px-6 lg:px-8">
-  <div class="mx-auto max-w-7xl">
-    <div class="animate-fade-in">
-      <div class="space-y-5 text-left">
-        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">{{ about_section.title }}</p>
-        <p class="text-lg leading-relaxed text-muted-foreground whitespace-pre-line">{{ about_section.subtitle }}</p>
+<section id="about" class="about-section my-16 px-4 sm:px-6 sm:py-20 lg:my-24 overflow-x-clip">
+  <div class="relative mx-auto max-w-7xl">
+    <div class="about-section__inner relative top-0 overflow-visible rounded-2xl px-6 py-10 sm:px-8 lg:px-10">
+      <div class="about-section__media shadow-xl" aria-hidden="true">
+        <img
+          src="/media/usethis.jpg"
+          alt=""
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+
+      <div class="about-section__content relative space-y-5 text-left">
+        <p class="about-header text-xs font-semibold uppercase tracking-[0.2em] text-[#1a1410]">
+          {{ about_section.title }}
+        </p>
+        <p class="about-sub text-lg leading-relaxed whitespace-pre-line text-[#2a1a0d]">
+          {{ about_section.subtitle }}
+        </p>
       </div>
     </div>
   </div>
 </section>
+
+<style>
+  .about-section {
+  position: relative;
+  overflow-x: clip; /* Allow horizontal overflow */
+  background-color: #92a2b9;
+}
+
+.about-section__inner {
+  overflow: visible; /* Keep this */
+  top: 0 !important;
+}
+
+.about-section__media {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 100% !important;
+  border-radius: 40px !important;
+  height: 100%; /* Match parent height instead of fixed */
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.about-section__media img {
+    border-radius: 40px !important;
+}
+
+.about-header {
+  color: #000000;
+  font-weight: bold !important;
+}
+
+.about-sub {
+  opacity: 1 !important;
+}
+
+  .about-section__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    justify-self: center !important;
+    align-self: center !important;
+  }
+
+  .about-section__content {
+    position: relative;
+    z-index: 1;
+    padding-top: 20px !important;
+    padding-bottom: 20px !important;
+  }
+
+  @media (max-width: 768px) {
+  .about-header {
+    opacity: 1 !important;
+    font-weight: bold !important;
+    color: #000000 !important;
+  }
+
+  .about-sub {
+    opacity: 1 !important;
+    color: #2a1a0d !important;
+  }
+
+  .about-section {
+    margin-right: 20px !important;
+    margin-left: 20px !important;
+    margin-top: -40px !important;
+    border-radius: 10px !important;
+    overflow: hidden !important; /* ADD THIS - prevents image overflow */
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .about-section__inner {
+    width: 100% !important; /* CHANGE from 100vw to 100% */
+    border-radius: 10px !important; /* ADD THIS - matches parent */
+    overflow: hidden !important; /* ADD THIS */
+  }
+
+  .about-section__media {
+    width: 100% !important; /* CHANGE from 100vw to 100% */
+    height: 100% !important; /* ADD THIS - fills parent height */
+    left: 0 !important; /* ADD THIS - removes the centering transform */
+    transform: none !important; /* ADD THIS - removes the -50% translation */
+  }
+
+  .about-section__media img {
+    object-fit: cover !important;
+    width: 100% !important;
+    height: 100% !important; /* ADD THIS - makes image fill container */
+    border-radius: 10px !important;
+  }
+}
+
+</style>
