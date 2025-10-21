@@ -15,6 +15,7 @@
         </p>
       </div>
     </div>
+
     {% if gallery_section.background_image %}
       {% if gallery_section.background_image_is_media %}
       <div class="gallery-frame" style="--gallery-frame-bg: url('{{ gallery_section.background_image }}');">
@@ -24,38 +25,50 @@
     {% else %}
       <div class="gallery-frame">
     {% endif %}
+
         <div class="gallery-decor gallery-decor--top" aria-hidden="true">
           <img src="/media/top.png" alt="" role="presentation" loading="lazy" />
         </div>
-        <div class="gallery-frame__inner space-y-10">
-        {% for row in gallery_section.rows %}
-        {% if row %}
-      <div
-        class="gallery-marquee-row relative overflow-hidden bg-secondary/20 py-10 shadow-[0_18px_45px_rgba(17,24,39,0.18)]"
-        data-marquee
-        data-marquee-direction="{% if forloop.counter|divisibleby:2 %}reverse{% else %}forward{% endif %}"
-        data-marquee-size="{% if forloop.counter == 1 %}large{% else %}regular{% endif %}"
-      >
-        <div class="pointer-events-none absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-background via-background/70 to-transparent"></div>
-        <div class="pointer-events-none absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-background via-background/70 to-transparent"></div>
-        <div class="flex items-center" data-marquee-wrapper>
-          <div data-marquee-track>
-            {% for item in row %}
-            <figure class="flex shrink-0 flex-col gap-3" data-marquee-card>
-              <button type="button" class="group block overflow-hidden rounded-xl border border-border/40 bg-card shadow-[0_18px_45px_rgba(17,24,39,0.18)] transition-shadow duration-300 hover:shadow-[0_20px_50px_rgba(17,24,39,0.24)]" data-gallery-open data-gallery-src="{{ item.image_url }}" data-gallery-alt="{{ item.alt }}" data-gallery-caption="{{ item.caption|default:item.destination }}">
-                <img src="{{ item.image_url }}" alt="{{ item.alt }}" class="w-full object-cover transition-transform duration-500 group-hover:scale-105" data-marquee-image loading="lazy" />
-              </button>
-              <figcaption class="text-sm text-muted-foreground">
-                {{ item.caption|default:item.destination }}
-              </figcaption>
-            </figure>
-            {% endfor %}
+
+        <div class="gallery-frame__inner">
+
+          <!-- symbols marquee (top) -->
+          <div class="symbols-marquee symbols-marquee--top" aria-hidden="true"></div>
+
+          {% for row in gallery_section.rows %}
+          {% if row %}
+          <div
+            class="gallery-marquee-row gallery-row relative overflow-hidden bg-secondary/20 py-10 shadow-[0_18px_45px_rgba(17,24,39,0.18)]"
+            data-marquee
+            data-marquee-direction="{% if forloop.counter|divisibleby:2 %}reverse{% else %}forward{% endif %}"
+            data-marquee-size="{% if forloop.counter == 1 %}large{% else %}regular{% endif %}"
+          >
+            <div class="pointer-events-none absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-background via-background/70 to-transparent"></div>
+            <div class="pointer-events-none absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-background via-background/70 to-transparent"></div>
+
+            <div class="flex items-center" data-marquee-wrapper>
+              <div data-marquee-track>
+                {% for item in row %}
+                <figure class="flex shrink-0 flex-col gap-3" data-marquee-card>
+                  <button type="button" class="group block overflow-hidden rounded-xl border border-border/40 bg-card shadow-[0_18px_45px_rgba(17,24,39,0.18)] transition-shadow duration-300 hover:shadow-[0_20px_50px_rgba(17,24,39,0.24)]" data-gallery-open data-gallery-src="{{ item.image_url }}" data-gallery-alt="{{ item.alt }}" data-gallery-caption="{{ item.caption|default:item.destination }}">
+                    <img src="{{ item.image_url }}" alt="{{ item.alt }}" class="w-full object-cover transition-transform duration-500 group-hover:scale-105" data-marquee-image loading="lazy" />
+                  </button>
+                  <figcaption class="text-sm text-muted-foreground">
+                    {{ item.caption|default:item.destination }}
+                  </figcaption>
+                </figure>
+                {% endfor %}
+              </div>
+            </div>
           </div>
+          {% endif %}
+          {% endfor %}
+
+          <!-- symbols marquee (bottom) -->
+          <div class="symbols-marquee symbols-marquee--bottom" aria-hidden="true"></div>
+
         </div>
-        </div>
-        {% endif %}
-        {% endfor %}
-        </div>
+
         <div class="gallery-decor gallery-decor--bottom" aria-hidden="true">
           <img src="/media/bottom.png" alt="" role="presentation" loading="lazy" />
         </div>
@@ -65,6 +78,46 @@
 </section>
 
 <style>
+  /* ===== Symbols Marquee Strips (full-bleed, one above + one below) ===== */
+  .symbols-marquee {
+    display: block;
+    height: 56px;               /* larger strip */
+    width: 100vw;               /* full viewport width */
+    margin: 0;
+    /* center the 100vw inside the inner container so it reaches screen edges */
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+
+    background-image: url('/media/symbolsfinal.png');
+    background-repeat: repeat-x;
+    background-position: 0 50%;
+    background-size: auto 100%;
+    border-radius: 0;           /* flush edges */
+  }
+
+  @keyframes symbols-scroll-left {
+    from { background-position-x: 0; }
+    to   { background-position-x: -1200px; }
+  }
+  @keyframes symbols-scroll-right {
+    from { background-position-x: 0; }
+    to   { background-position-x: 1200px; }
+  }
+  .symbols-marquee--top    { animation: symbols-scroll-left 28s linear infinite; }
+  .symbols-marquee--bottom { animation: symbols-scroll-right 28s linear infinite; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .symbols-marquee--top,
+    .symbols-marquee--bottom {
+      animation: none;
+      background-position-x: 0;
+    }
+  }
+  @media (max-width: 639px) {
+    .symbols-marquee { height: 48px; }
+  }
+
+  /* ===== Frame + decor (unchanged except overflow visible) ===== */
   .gallery-frame {
     position: relative;
     border-radius: 3rem;
@@ -103,7 +156,7 @@
     padding: clamp(2.5rem, 4vw, 3.5rem);
     background: transparent;
     backdrop-filter: none;
-    overflow: hidden;
+    overflow: visible; /* allow full-bleed strips to extend */
   }
 
   .gallery-frame__inner::before {
@@ -129,6 +182,9 @@
     margin-top: clamp(0.5rem, 2vw, 1rem);
   }
 
+  /* ===== Marquee rows (keep spacing only between rows) ===== */
+  .gallery-row + .gallery-row { margin-top: 2.5rem; }
+
   @media (max-width: 639px) {
     .gallery-decor {
       width: 140vw;
@@ -146,6 +202,18 @@
       width: 100vw;
       margin-left: calc((100vw - 100%) / -2);
       margin-right: calc((100vw - 100%) / -2);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .gallery-decor {
+      width: 100vw;
+      margin-left: calc((100vw - 100%) / -2);
+      margin-right: calc((100vw - 100%) / -2);
+    }
+
+    .gallery-decor img {
+      width: 100vw;
     }
   }
 
@@ -193,15 +261,12 @@
     [data-marquee-card] {
       width: 220px;
     }
-
     [data-marquee-image] {
       height: 170px;
     }
-
     [data-marquee][data-marquee-size="large"] [data-marquee-card] {
       width: 360px;
     }
-
     [data-marquee][data-marquee-size="large"] [data-marquee-image] {
       height: 250px;
     }
@@ -211,15 +276,12 @@
     [data-marquee-card] {
       width: 240px;
     }
-
     [data-marquee-image] {
       height: 190px;
     }
-
     [data-marquee][data-marquee-size="large"] [data-marquee-card] {
       width: 400px;
     }
-
     [data-marquee][data-marquee-size="large"] [data-marquee-image] {
       height: 280px;
     }
