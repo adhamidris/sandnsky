@@ -27,7 +27,7 @@
     {% endif %}
 
         <div class="gallery-decor gallery-decor--top" aria-hidden="true">
-          <img src="/media/top.png" alt="" role="presentation" loading="lazy" />
+          <img src="/media/top_4k.png" alt="" role="presentation" loading="lazy" />
         </div>
 
         <div class="gallery-band">
@@ -72,7 +72,7 @@
         </div>
 
         <div class="gallery-decor gallery-decor--bottom" aria-hidden="true">
-          <img src="/media/bottom.png" alt="" role="presentation" loading="lazy" />
+          <img src="/media/bottom_4k.png" alt="" role="presentation" loading="lazy" />
         </div>
       </div>
     </div>
@@ -367,7 +367,11 @@ html, body { overflow-x: clip; }  /* or hidden if you need wider support */
     }
 
     .gallery-decor--top img {
-      height: clamp(7rem, 24vw, 12rem) !important; 
+      height: clamp(10rem, 24vw, 13rem) !important; 
+    }
+
+    .gallery-decor--bottom img {
+      height: clamp(8rem, 24vw, 9rem) !important; 
     }
 
   }
