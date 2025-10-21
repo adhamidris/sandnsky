@@ -24,11 +24,14 @@
     {% else %}
       <div class="gallery-frame">
     {% endif %}
+        <div class="gallery-decor gallery-decor--top" aria-hidden="true">
+          <img src="/media/top.png" alt="" role="presentation" loading="lazy" />
+        </div>
         <div class="gallery-frame__inner space-y-10">
         {% for row in gallery_section.rows %}
         {% if row %}
       <div
-        class="relative overflow-hidden rounded-3xl bg-secondary/20 py-10 shadow-[0_18px_45px_rgba(17,24,39,0.18)]"
+        class="gallery-marquee-row relative overflow-hidden bg-secondary/20 py-10 shadow-[0_18px_45px_rgba(17,24,39,0.18)]"
         data-marquee
         data-marquee-direction="{% if forloop.counter|divisibleby:2 %}reverse{% else %}forward{% endif %}"
         data-marquee-size="{% if forloop.counter == 1 %}large{% else %}regular{% endif %}"
@@ -39,7 +42,7 @@
           <div data-marquee-track>
             {% for item in row %}
             <figure class="flex shrink-0 flex-col gap-3" data-marquee-card>
-              <button type="button" class="group block overflow-hidden {% if forloop.parentloop.counter == 1 %}rounded-xl{% else %}rounded-3xl{% endif %} border border-border/40 bg-card shadow-[0_14px_32px_rgba(17,24,39,0.16)] transition-shadow duration-300 hover:shadow-[0_18px_38px_rgba(17,24,39,0.22)]" data-gallery-open data-gallery-src="{{ item.image_url }}" data-gallery-alt="{{ item.alt }}" data-gallery-caption="{{ item.caption|default:item.destination }}">
+              <button type="button" class="group block overflow-hidden rounded-xl border border-border/40 bg-card shadow-[0_18px_45px_rgba(17,24,39,0.18)] transition-shadow duration-300 hover:shadow-[0_20px_50px_rgba(17,24,39,0.24)]" data-gallery-open data-gallery-src="{{ item.image_url }}" data-gallery-alt="{{ item.alt }}" data-gallery-caption="{{ item.caption|default:item.destination }}">
                 <img src="{{ item.image_url }}" alt="{{ item.alt }}" class="w-full object-cover transition-transform duration-500 group-hover:scale-105" data-marquee-image loading="lazy" />
               </button>
               <figcaption class="text-sm text-muted-foreground">
@@ -52,6 +55,9 @@
         </div>
         {% endif %}
         {% endfor %}
+        </div>
+        <div class="gallery-decor gallery-decor--bottom" aria-hidden="true">
+          <img src="/media/bottom.png" alt="" role="presentation" loading="lazy" />
         </div>
       </div>
     </div>
@@ -102,6 +108,45 @@
 
   .gallery-frame__inner::before {
     content: none;
+  }
+
+  .gallery-decor {
+    width: min(100%, 72rem);
+    margin-inline: auto;
+    overflow: hidden;
+  }
+
+  .gallery-decor img {
+    display: block;
+    width: 100%;
+  }
+
+  .gallery-decor--top {
+    margin-bottom: clamp(0.5rem, 2vw, 1rem);
+  }
+
+  .gallery-decor--bottom {
+    margin-top: clamp(0.5rem, 2vw, 1rem);
+  }
+
+  @media (max-width: 639px) {
+    .gallery-decor {
+      width: 140vw;
+      margin-left: calc((140vw - 100%) / -2);
+      margin-right: calc((140vw - 100%) / -2);
+    }
+
+    .gallery-decor img {
+      width: 140vw;
+      height: clamp(5rem, 20vw, 8rem);
+      object-fit: cover;
+    }
+
+    .gallery-marquee-row {
+      width: 100vw;
+      margin-left: calc((100vw - 100%) / -2);
+      margin-right: calc((100vw - 100%) / -2);
+    }
   }
 
   [data-marquee-wrapper] {
