@@ -30,9 +30,11 @@
           <img src="/media/top.png" alt="" role="presentation" loading="lazy" />
         </div>
 
-        <div class="symbols-marquee symbols-marquee--top" aria-hidden="true"></div>
+        <div class="gallery-band">
 
-        <div class="gallery-frame__inner">
+          <div class="symbols-marquee symbols-marquee--top" aria-hidden="true"></div>
+
+          <div class="gallery-frame__inner">
 
           {% for row in gallery_section.rows %}
           {% if row %}
@@ -49,7 +51,7 @@
               <div data-marquee-track>
                 {% for item in row %}
                 <figure class="flex shrink-0 flex-col gap-3" data-marquee-card>
-                  <button type="button" class="group block overflow-hidden rounded-xl border border-border/40 bg-card shadow-[0_18px_45px_rgba(17,24,39,0.18)] transition-shadow duration-300 hover:shadow-[0_20px_50px_rgba(17,24,39,0.24)]" data-gallery-open data-gallery-src="{{ item.image_url }}" data-gallery-alt="{{ item.alt }}" data-gallery-caption="{{ item.caption|default:item.destination }}">
+                  <button type="button" class="card-Lframe group block overflow-hidden rounded-xl border border-border/40 bg-card shadow-[0_18px_45px_rgba(17,24,39,0.18)] transition-shadow duration-300 hover:shadow-[0_20px_50px_rgba(17,24,39,0.24)]" data-gallery-open data-gallery-src="{{ item.image_url }}" data-gallery-alt="{{ item.alt }}" data-gallery-caption="{{ item.caption|default:item.destination }}">
                     <img src="{{ item.image_url }}" alt="{{ item.alt }}" class="w-full object-cover transition-transform duration-500 group-hover:scale-105" data-marquee-image loading="lazy" />
                   </button>
                   <figcaption class="text-sm text-muted-foreground">
@@ -63,9 +65,11 @@
           {% endif %}
           {% endfor %}
 
-        </div>
+          </div>
 
-        <div class="symbols-marquee symbols-marquee--bottom" aria-hidden="true"></div>
+          <div class="symbols-marquee symbols-marquee--bottom" aria-hidden="true"></div>
+
+        </div>
 
         <div class="gallery-decor gallery-decor--bottom" aria-hidden="true">
           <img src="/media/bottom.png" alt="" role="presentation" loading="lazy" />
@@ -100,7 +104,6 @@ html, body { overflow-x: clip; }  /* or hidden if you need wider support */
     background-repeat: repeat-x;
     background-position: 0 50%;
     background-size: auto 100%;
-    border-radius: clamp(1.75rem, 4vw, 2.75rem);
     overflow: hidden;
   }
 
@@ -165,6 +168,15 @@ html, body { overflow-x: clip; }  /* or hidden if you need wider support */
     pointer-events: none;
   }
 
+  .gallery-band {
+    position: relative;
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    background: #ece2d3;
+    padding: clamp(1rem, 3vw, 1.75rem) 0;
+  }
+
   .gallery-frame__inner {
     position: relative;
     border-radius: calc(3rem - 14px);
@@ -190,11 +202,11 @@ html, body { overflow-x: clip; }  /* or hidden if you need wider support */
   }
 
   .gallery-decor--top {
-    margin-bottom: clamp(0.5rem, 2vw, 1rem);
+    margin-bottom: 0;
   }
 
   .gallery-decor--bottom {
-    margin-top: clamp(0.5rem, 2vw, 1rem);
+    margin-top: 0;
   }
 
   /* ===== Marquee rows (keep spacing only between rows) ===== */
@@ -213,7 +225,14 @@ html, body { overflow-x: clip; }  /* or hidden if you need wider support */
       object-fit: cover;
       display: block; /* no inline-gap */
     }
-}
+
+    .gallery-band {
+      width: 100vw;
+      margin-left: calc(50% - 50vw);
+      margin-right: calc(50% - 50vw);
+      padding: clamp(1.25rem, 6vw, 2rem) 0;
+    }
+  }
 
 @media (max-width: 639px) {
   .gallery-marquee-row {
@@ -231,20 +250,24 @@ html, body { overflow-x: clip; }  /* or hidden if you need wider support */
     }
 
     .gallery-decor img {
-      width: 100%;
-      /* FIX: correct clamp order (min <= preferred <= max) */
+      width: 100vw;
       height: clamp(5rem, 20vw, 8rem);
-      object-fit: cover;          /* still fills width */
-      object-position: center top;/* show more of the top if it was getting cut */
+      object-fit: cover;
+      object-position: center top;
       display: block;
+    }
+
+    .gallery-band {
+      width: 100vw;
+      margin-left: calc(50% - 50vw);
+      margin-right: calc(50% - 50vw);
+      padding: clamp(1.5rem, 3vw, 2.25rem) 0;
     }
 
     .gallery-marquee-row {
       width: 100vw;
       margin-left: calc(50% - 50vw);
       margin-right: calc(50% - 50vw);
-      /* remove radius if you want square edges: */
-      /* border-radius: 0; */
     }
   }
 
@@ -272,12 +295,20 @@ html, body { overflow-x: clip; }  /* or hidden if you need wider support */
     flex-shrink: 0;
   }
 
+  [data-marquee][data-marquee-size="regular"] [data-marquee-card] {
+    width: 240px;
+  }
+
   [data-marquee][data-marquee-size="large"] [data-marquee-card] {
     width: 320px;
   }
 
   [data-marquee-image] {
     height: 150px;
+  }
+
+  [data-marquee][data-marquee-size="regular"] [data-marquee-image] {
+    height: 180px;
   }
 
   [data-marquee][data-marquee-size="large"] [data-marquee-image] {
@@ -295,6 +326,15 @@ html, body { overflow-x: clip; }  /* or hidden if you need wider support */
     [data-marquee-image] {
       height: 170px;
     }
+
+    [data-marquee][data-marquee-size="regular"] [data-marquee-card] {
+      width: 270px;
+    }
+
+    [data-marquee][data-marquee-size="regular"] [data-marquee-image] {
+      height: 205px;
+    }
+
     [data-marquee][data-marquee-size="large"] [data-marquee-card] {
       width: 360px;
     }
@@ -310,6 +350,15 @@ html, body { overflow-x: clip; }  /* or hidden if you need wider support */
     [data-marquee-image] {
       height: 190px;
     }
+
+    [data-marquee][data-marquee-size="regular"] [data-marquee-card] {
+      width: 300px;
+    }
+
+    [data-marquee][data-marquee-size="regular"] [data-marquee-image] {
+      height: 220px;
+    }
+
     [data-marquee][data-marquee-size="large"] [data-marquee-card] {
       width: 400px;
     }
@@ -322,6 +371,55 @@ html, body { overflow-x: clip; }  /* or hidden if you need wider support */
     }
 
   }
+
+  /* ===== Minimal L-corner frame for gallery cards ===== */
+.card-Lframe {
+  position: relative;
+  isolation: isolate;                 /* keep overlay above bg but under content if needed */
+  border-radius: 0.75rem;             /* aligns with rounded-xl; tweak if you change radius */
+  --l-color: color-mix(in srgb, var(--ph-ink, #3e2f22) 88%, #000 12%);
+  --l-thick: 2px;                     /* 2px is crisper on retina than 1px */
+  --l-len: 16px;                      /* arm length of the L */
+  --l-inset: 10px;                    /* how far in from the edges */
+  --l-opacity: 0.7;                   /* base visibility */
+}
+
+.card-Lframe::before {
+  content: "";
+  position: absolute;
+  inset: var(--l-inset);
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: var(--l-opacity);
+  transition: opacity .2s ease, transform .2s ease;
+
+  /* Draw 8 tiny bars (2 per corner) as an L */
+  background:
+    /* top-left */     linear-gradient(var(--l-color), var(--l-color)) 0 0 / var(--l-len) var(--l-thick) no-repeat,
+                       linear-gradient(var(--l-color), var(--l-color)) 0 0 / var(--l-thick) var(--l-len) no-repeat,
+    /* top-right */    linear-gradient(var(--l-color), var(--l-color)) 100% 0 / var(--l-len) var(--l-thick) no-repeat,
+                       linear-gradient(var(--l-color), var(--l-color)) 100% 0 / var(--l-thick) var(--l-len) no-repeat,
+    /* bottom-left */  linear-gradient(var(--l-color), var(--l-color)) 0 100% / var(--l-len) var(--l-thick) no-repeat,
+                       linear-gradient(var(--l-color), var(--l-color)) 0 100% / var(--l-thick) var(--l-len) no-repeat,
+    /* bottom-right */ linear-gradient(var(--l-color), var(--l-color)) 100% 100% / var(--l-len) var(--l-thick) no-repeat,
+                       linear-gradient(var(--l-color), var(--l-color)) 100% 100% / var(--l-thick) var(--l-len) no-repeat;
+}
+
+/* Nice little emphasis on hover/focus */
+.card-Lframe:hover::before,
+.card-Lframe:focus-visible::before {
+  opacity: 0.95;
+  transform: translateZ(0); /* prevents blurring on some GPUs */
+}
+
+/* Optional: tighter corners on small cards */
+@media (max-width: 640px) {
+  .card-Lframe {
+    --l-len: 12px;
+    --l-inset: 8px;
+  }
+}
+
 </style>
 
 <div class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 p-6" data-gallery-modal aria-hidden="true" role="dialog" aria-modal="true">
