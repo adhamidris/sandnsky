@@ -1,23 +1,30 @@
-<section id="testimonials" class="bg-secondary/30 px-0 py-24 sm:px-0">
+<section id="testimonials" class="testo bg-secondary/30 px-0 py-24 sm:px-0">
   <div class="mx-auto w-full">
-    <div class="desti max-w-3xl mx-auto text-center space-y-3">
-      <p class="text-xs font-semibold uppercase tracking-[0.3em] text-primary">
-        Traveler stories
-      </p>
-      <h2 class="mt-1 font-serif text-3xl text-foreground sm:text-4xl">
-        Why guests love our guides
-      </h2>
-      <p class="mt-2 text-sm leading-relaxed text-muted-foreground sm:text-base">
-        Real travelers sharing the moments that made their journeys unforgettable.
-      </p>
+    <div class="desti2 max-w-7xl mx-auto">
+      <div class="desti mx-auto text-center space-y-3">
+
+        <div class="testi-mob">
+          <p class="animated-section-label text-xs font-semibold uppercase tracking-[0.3em] text-primary">
+            Traveler stories
+          </p>
+          <h2 class="font-serif text-3xl text-foreground sm:text-4xl">
+            Why guests love our guides
+          </h2>
+        </div>
+
+        <p class="px-4 mt-2 text-sm leading-relaxed text-muted-foreground sm:text-base">
+          Real travelers sharing the moments that made their journeys unforgettable.
+        </p>
+      </div>
     </div>
+
     
 
     <div class="relative mx-auto mt-14 w-full max-w-6xl px-4 sm:px-6 lg:px-8" data-testimonials data-interval="6500">
       <div class="testimonial-stack" aria-live="polite" aria-atomic="true">
         <div class="testimonial-carousel">
         <article class="testi testimonial-card is-active" data-testimonial aria-hidden="false" role="tabpanel" id="testimonial-panel-1">
-          <div class="mx-auto max-w-2xl text-left">
+          <div class="testi-inner mx-auto max-w-2xl text-left">
             <figure class="space-y-6">
               <span class="sr-only">Rated five stars</span>
               <div class="testimonial-stars" aria-hidden="true">
@@ -133,12 +140,21 @@
 </section>
 
 <style>
+
+
   .testi {
     background-image: url('media/testio.png');
     background-repeat: no-repeat;
     background-position: center;
-    background-size: cover;
-    background-clip: border-box;
+    background-size: fill;
+  }
+
+  @media (max-width: 768px) {
+    .testi-mob {
+      background-image: url('media/tsfinal.svg');
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: fill;
+    }
   }
 </style>
-

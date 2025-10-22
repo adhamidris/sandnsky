@@ -1,20 +1,26 @@
 {% load static %}
 {% if gallery_section.items %}
-<section id="gallery" class="bg-secondary/30 px-4 py-20 sm:px-6 lg:px-8">
+<section id="gallery" class="bg-secondary/30 py-20 sm:px-6 lg:px-8">
   <div class="mx-auto max-w-7xl">
-    <div class="desti mb-12 flex justify-center text-center">
-      <div class="space-y-3 max-w-3xl">
-        <p class="text-xs font-semibold uppercase tracking-[0.3em] text-primary">
-          Gallery
-        </p>
-        <h2 class="font-serif text-3xl text-foreground sm:text-4xl">
-          {{ gallery_section.title }}
-        </h2>
-        <p class="max-w-2xl mx-auto text-sm leading-relaxed text-muted-foreground sm:text-base">
-          {{ gallery_section.subtitle }}
-        </p>
+    <div class="desti2 px-0">
+      <div class="desti mb-12 flex justify-center text-center">
+        <div class="space-y-3 max-w-3xl">
+          <div class="gal-mob">
+            <p class="animated-section-label text-xs font-semibold uppercase tracking-[0.3em] text-primary">
+              Gallery
+            </p>
+            <h2 class="font-serif text-3xl text-foreground sm:text-4xl">
+              {{ gallery_section.title }}
+            </h2>
+          </div>
+  
+          <p class="px-4 max-w-2xl mx-auto text-sm leading-relaxed text-muted-foreground sm:text-base">
+            {{ gallery_section.subtitle }}
+          </p>
+        </div>
       </div>
     </div>
+
 
     {% if gallery_section.background_image %}
       {% if gallery_section.background_image_is_media %}
@@ -35,7 +41,7 @@
           {% for row in gallery_section.rows %}
           {% if row %}
           <div
-            class="gallery-marquee-row gallery-row relative overflow-hidden bg-secondary/20 py-10 shadow-[0_18px_45px_rgba(17,24,39,0.18)]"
+            class="gali gallery-marquee-row gallery-row relative overflow-hidden bg-secondary/20 py-10 shadow-[0_18px_45px_rgba(17,24,39,0.18)]"
             data-marquee
             data-marquee-direction="{% if forloop.counter|divisibleby:2 %}reverse{% else %}forward{% endif %}"
             data-marquee-size="{% if forloop.counter == 1 %}large{% else %}regular{% endif %}"
@@ -47,7 +53,7 @@
               <div data-marquee-track>
                 {% for item in row %}
                 <figure class="flex shrink-0 flex-col gap-3" data-marquee-card>
-                  <button type="button" class="card-Lframe group block overflow-hidden rounded-xl border border-border/40 bg-card shadow-[0_18px_45px_rgba(17,24,39,0.18)] transition-shadow duration-300 hover:shadow-[0_20px_50px_rgba(17,24,39,0.24)]" data-gallery-open data-gallery-src="{{ item.image_url }}" data-gallery-alt="{{ item.alt }}" data-gallery-caption="{{ item.caption|default:item.destination }}">
+                  <button type="button" class="card-Lframe group block overflow-hidden rounded-xl border border-border/40 bg-card" data-gallery-open data-gallery-src="{{ item.image_url }}" data-gallery-alt="{{ item.alt }}" data-gallery-caption="{{ item.caption|default:item.destination }}">
                     <img src="{{ item.image_url }}" alt="{{ item.alt }}" class="w-full object-cover transition-transform duration-500 group-hover:scale-105" data-marquee-image loading="lazy" />
                   </button>
                   <figcaption class="text-sm text-muted-foreground">
@@ -166,10 +172,7 @@ html, body { overflow-x: clip; }  /* or hidden if you need wider support */
     width: 100vw;
     margin-left: calc(50% - 50vw);
     margin-right: calc(50% - 50vw);
-    background-image: url('media/aboutustest.png');
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: cover;
+    background-color: #EBE2D3;
     }
 
   .gallery-frame__inner {
@@ -364,6 +367,16 @@ html, body { overflow-x: clip; }  /* or hidden if you need wider support */
     --l-inset: 8px;
   }
 }
+
+@media (max-width: 768px) {
+  .gal-mob {
+    background-image: url('media/galleryheadfinal1.svg');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: fill;
+  }
+}
+
 
 </style>
 

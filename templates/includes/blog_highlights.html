@@ -1,22 +1,28 @@
-<section id="journal" class="bg-secondary/30 px-4 py-24 sm:px-6 lg:px-8">
+<section id="journal" class="bg-secondary/30 py-24 sm:px-6 lg:px-8">
   <div class="mx-auto max-w-7xl">
-    <div class="mb-16 space-y-3 text-center">
-      <p class="text-xs font-semibold uppercase tracking-[0.3em] text-primary">
-        Journal
-      </p>
-      <h2 class="font-serif text-3xl text-foreground sm:text-4xl">
-        {{ blog_section.title }}
-      </h2>
-      <p class="max-w-2xl mx-auto text-sm leading-relaxed text-muted-foreground sm:text-base">
-        {{ blog_section.subtitle }}
-      </p>
+    <div class="desti2 px-0">
+      <div class="desti mb-16 space-y-3 text-center">
+        <div class="blog-mob">
+          <p class="animated-section-label text-xs font-semibold uppercase tracking-[0.3em] text-primary">
+            Journal
+          </p>
+          <h2 class="font-serif text-3xl text-foreground sm:text-4xl">
+            {{ blog_section.title }}
+          </h2>
+        </div>
+  
+        <p class="px-4 max-w-2xl mx-auto text-sm leading-relaxed text-muted-foreground sm:text-base">
+          {{ blog_section.subtitle }}
+        </p>
+      </div>
     </div>
+
     
 
     {% if blog_section.items %}
-    <div class="grid gap-10 md:grid-cols-2 xl:grid-cols-3">
+    <div class="px-4 grid gap-10 md:grid-cols-2 xl:grid-cols-3">
       {% for post in blog_section.items %}
-      <article class="group flex h-full flex-col overflow-hidden rounded-3xl border border-border/60 bg-card/95 shadow-subtle transition-transform duration-300 hover:-translate-y-1 hover:shadow-medium">
+      <article class="blogi group flex h-full flex-col overflow-hidden rounded-3xl border border-border/60 bg-card/95 shadow-subtle transition-transform duration-300 hover:-translate-y-1 hover:shadow-medium">
         {% if post.image_url %}
         <div class="relative h-48 overflow-hidden">
           <img src="{{ post.image_url }}" alt="{{ post.title }}" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
@@ -61,3 +67,22 @@
     {% endif %}
   </div>
 </section>
+
+<style>
+  .blogi {
+    background-image: url('media/testio.png');
+    background-repeat: no-repeat;
+    background-position: bottom;
+    background-size: cover;
+
+  }
+
+  @media (max-width: 768px) {
+    .blog-mob {
+      background-image: url('media/blogheadfinal1.svg');
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: fill;
+    }
+  }
+</style>

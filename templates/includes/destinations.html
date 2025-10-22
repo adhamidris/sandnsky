@@ -1,22 +1,27 @@
 {% load static %}
-<section id="destinations" class="bg-secondary/30 px-4 py-24 sm:px-6 lg:px-8">
+<section id="destinations" class="bg-secondary/30  py-24 sm:px-6 lg:px-8">
   <div class="mx-auto max-w-7xl">
-    <div class="desti mb-16 animate-fade-in">
-      <div class="space-y-3 text-center">
-        <p class="text-xs font-semibold uppercase tracking-[0.3em] text-primary">
-          Featured Destinations
-        </p>
-        <h2 class="font-serif text-3xl text-foreground sm:text-4xl">
-          {{ destinations_section.title }}
-        </h2>
-        <p class="max-w-2xl mx-auto text-sm leading-relaxed text-muted-foreground sm:text-base">
-          {{ destinations_section.subtitle }}
-        </p>
+    <div class="desti2 px-0">
+      <div class="desti mb-16 animate-fade-in">
+        <div class="space-y-3 text-center">
+          <div class="desti-mob">
+            <p class="animated-section-label text-xs font-semibold uppercase tracking-[0.3em] text-primary">
+              Featured Destinations
+            </p>
+            <h2 class="font-serif text-3xl text-foreground sm:text-4xl">
+              {{ destinations_section.title }}
+            </h2>
+          </div>
+          <p class="max-w-2xl mx-auto text-sm leading-relaxed text-muted-foreground sm:text-base">
+            {{ destinations_section.subtitle }}
+          </p>
+        </div>
+        
       </div>
-      
     </div>
+
 {% if destinations_section.items %}
-    <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
+    <div class="px-4 grid grid-cols-1 gap-8 md:grid-cols-3">
       {% for destination in destinations_section.items %}
       <a href="{{ destination.cta.href }}" class="group block" aria-label="{{ destination.cta.label }} for {{ destination.title }}">
         <article class="relative h-64 overflow-hidden border-0 rounded-md bg-card shadow-medium transition-all duration-300 group-hover:shadow-xl animate-fade-in" style="animation-delay: {{ forloop.counter0 }}00ms">
@@ -45,12 +50,32 @@
 
   <style>
     .desti {
-      background-image: url('media/headtit.png');
+      background-image: url('media/canva9.svg');
       background-repeat: no-repeat;
-      background-size:cover;
+      background-size:fill;
       background-position: center;
-      padding: 20px !important;
-    }
+        }
+
+      .desti2 {
+        background-image: url('media/headtit.png');
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: cover !important;
+      }
+
+      @media (max-width: 768px) {
+        .desti-mob{
+          background-image: url('media/canva18.svg');
+          background-repeat: no-repeat;
+          background-position: center;
+          background-size: fill;
+        }
+
+        .desti {
+          background-image: url('media/headtit.png');
+          background-size: fill !important;
+        }
+      }
   </style>
   
 </section>
