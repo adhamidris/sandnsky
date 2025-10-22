@@ -26,10 +26,6 @@
       <div class="gallery-frame">
     {% endif %}
 
-        <div class="gallery-decor gallery-decor--top" aria-hidden="true">
-          <img src="/media/top_4k.png" alt="" role="presentation" loading="lazy" />
-        </div>
-
         <div class="gallery-band">
 
           <div class="symbols-marquee symbols-marquee--top" aria-hidden="true"></div>
@@ -71,9 +67,6 @@
 
         </div>
 
-        <div class="gallery-decor gallery-decor--bottom" aria-hidden="true">
-          <img src="/media/bottom_4k.png" alt="" role="presentation" loading="lazy" />
-        </div>
       </div>
     </div>
   </div>
@@ -135,7 +128,7 @@ html, body { overflow-x: clip; }  /* or hidden if you need wider support */
   }
 }
 
-  /* ===== Frame + decor (unchanged except overflow visible) ===== */
+  /* ===== Frame styling ===== */
   .gallery-frame {
     position: relative;
     border-radius: 3rem;
@@ -173,9 +166,11 @@ html, body { overflow-x: clip; }  /* or hidden if you need wider support */
     width: 100vw;
     margin-left: calc(50% - 50vw);
     margin-right: calc(50% - 50vw);
-    background: #ece2d3;
-    padding: clamp(1rem, 3vw, 1.75rem) 0;
-  }
+    background-image: url('media/aboutustest.png');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    }
 
   .gallery-frame__inner {
     position: relative;
@@ -190,42 +185,10 @@ html, body { overflow-x: clip; }  /* or hidden if you need wider support */
     content: none;
   }
 
-  .gallery-decor {
-    width: min(100%, 72rem);
-    margin-inline: auto;
-    overflow: hidden;
-  }
-
-  .gallery-decor img {
-    display: block;
-    width: 100%;
-  }
-
-  .gallery-decor--top {
-    margin-bottom: 0;
-  }
-
-  .gallery-decor--bottom {
-    margin-top: 0;
-  }
-
   /* ===== Marquee rows (keep spacing only between rows) ===== */
   .gallery-row + .gallery-row { margin-top: 2.5rem; }
 
   @media (max-width: 639px) {
-    .gallery-decor {
-      width: 100vw;
-      margin-left: calc(50% - 50vw);
-      margin-right: calc(50% - 50vw);
-      overflow: hidden; /* hide any internal image bleed */
-    }
-    .gallery-decor img {
-      width: 100%;
-      height: clamp(5rem, 20vw, 8rem);
-      object-fit: cover;
-      display: block; /* no inline-gap */
-    }
-
     .gallery-band {
       width: 100vw;
       margin-left: calc(50% - 50vw);
@@ -234,29 +197,15 @@ html, body { overflow-x: clip; }  /* or hidden if you need wider support */
     }
   }
 
-@media (max-width: 639px) {
-  .gallery-marquee-row {
-    width: 100vw;
-    margin-left: calc(50% - 50vw);
-    margin-right: calc(50% - 50vw);
-  }
-}
-
-  @media (min-width: 1024px) {
-    .gallery-decor {
+  @media (max-width: 639px) {
+    .gallery-marquee-row {
       width: 100vw;
       margin-left: calc(50% - 50vw);
       margin-right: calc(50% - 50vw);
     }
+  }
 
-    .gallery-decor img {
-      width: 100vw;
-      height: clamp(5rem, 20vw, 8rem);
-      object-fit: cover;
-      object-position: center top;
-      display: block;
-    }
-
+  @media (min-width: 1024px) {
     .gallery-band {
       width: 100vw;
       margin-left: calc(50% - 50vw);
@@ -364,14 +313,6 @@ html, body { overflow-x: clip; }  /* or hidden if you need wider support */
     }
     [data-marquee][data-marquee-size="large"] [data-marquee-image] {
       height: 280px;
-    }
-
-    .gallery-decor--top img {
-      height: clamp(10rem, 24vw, 13rem) !important; 
-    }
-
-    .gallery-decor--bottom img {
-      height: clamp(8rem, 24vw, 9rem) !important; 
     }
 
   }
