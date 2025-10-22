@@ -152,11 +152,13 @@
   </div>
 </nav>
 
-<section id="destination-summary" class="scroll-mt-32 bg-secondary/30 px-4 py-20 sm:px-6 lg:px-8">
+<section id="destination-summary" class="whytext why scroll-mt-32 bg-secondary/30 px-4 py-20 sm:px-6 lg:px-8">
   <div class="mx-auto max-w-7xl">
-    <div class="space-y-8">
+    <div class=" space-y-8">
       <div class="space-y-5 text-left">
-        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Why visit {{ selected_destination.name }}</p>
+        <div class="why-img">
+          <p class="whytext2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Why visit {{ selected_destination.name }}</p>
+        </div>
         {% if selected_destination.description %}
         <p class="text-lg leading-relaxed text-muted-foreground whitespace-pre-line">{{ selected_destination.description }}</p>
         {% else %}
@@ -178,17 +180,20 @@
 </section>
 {% endif %}
 
-<section id="trip-list" class="scroll-mt-32 bg-background px-4 pt-20 pb-24 sm:px-6 lg:px-8">
+<section id="trip-list" class="trips-head scroll-mt-32 bg-secondary/30 px-4 pt-20 pb-24 sm:px-6 lg:px-8">
   <div class="mx-auto max-w-7xl lg:grid lg:grid-cols-[minmax(0,1fr)_280px] lg:gap-12">
     <div id="trip-results" class="space-y-10" aria-live="polite">
       <div class="space-y-4 text-center md:text-left">
-        <h2 class="font-serif text-3xl text-foreground sm:text-4xl">
-          {% if selected_destination %}
-          Trips in {{ selected_destination.name }}
-          {% else %}
-          Available Tours
-          {% endif %}
-        </h2>
+        <div class="desti">
+          <h2 class="font-serif text-3xl text-foreground sm:text-4xl">
+            {% if selected_destination %}
+            Trips in {{ selected_destination.name }}
+            {% else %}
+            Available Tours
+            {% endif %}
+          </h2>
+        </div>
+
         <p class="text-base leading-relaxed text-muted-foreground">
           {% if selected_destination %}
           Explore {{ trips|length }} hand-crafted itineraries designed to reveal the heart of {{ selected_destination.name }}. Each journey balances iconic highlights with quieter moments only locals know.
@@ -201,7 +206,7 @@
       {% if trips %}
       <div class="grid gap-10 sm:grid-cols-2 xl:grid-cols-3">
         {% for trip in trips %}
-        <article class="max-h-[520px] group flex h-full flex-col overflow-hidden rounded-md border border-border bg-card shadow-sm transition-colors">
+        <article class="trip-cardi  max-h-[520px] group flex h-full flex-col overflow-hidden rounded-md border border-border bg-card shadow-sm transition-colors">
           <div class="relative h-48 overflow-hidden">
             {% if trip.image_url %}
             <img src="{{ trip.image_url }}" alt="{{ trip.title }}" class="h-full w-full object-cover" />
@@ -285,7 +290,7 @@
       {% endif %}
     </div>
 
-    <aside class="mb-12 space-y-6 rounded-2xl border border-border bg-card p-6 shadow-subtle lg:mb-0 lg:self-start">
+    <aside class="filter-bar mb-12 space-y-6 rounded-2xl border border-border bg-card p-6 shadow-subtle lg:mb-0 lg:self-start">
       <form action="{% url 'web:trips' %}" method="get" class="space-y-6" data-live-filter>
         <div class="space-y-1">
           <h3 class="text-sm font-semibold uppercase tracking-[0.25em] text-muted-foreground">Refine tours</h3>
@@ -363,11 +368,11 @@
   </div>
 </section>
 {% if destination_gallery %}
-<section id="destination-gallery" class="scroll-mt-32 bg-secondary/30 px-4 py-20 sm:px-6 lg:px-8">
+<section id="destination-gallery" class="dest-gal scroll-mt-32 bg-secondary/30 px-4 py-20 sm:px-6 lg:px-8">
   <div class="mx-auto max-w-7xl space-y-8">
-    <div class="space-y-2 text-left">
+    <div class="desti space-y-2 text-left">
       <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Gallery</p>
-      <div class="flex flex-wrap items-end justify-between gap-3">
+      <div class=" flex flex-wrap items-end justify-between gap-3">
         <h2 class="font-serif text-3xl text-foreground">Scenes from {{ selected_destination.name }}</h2>
         <span class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">{{ destination_gallery|length }} image{% if destination_gallery|length != 1 %}s{% endif %}</span>
       </div>
@@ -418,7 +423,38 @@
 {% endif %}
 {% endblock %}
 
+
 {% block scripts %}
+<style>
+
+  .trip-cardi {
+
+  }
+
+  .whytext {
+
+  }
+
+
+
+  .dest-gal {
+  }
+
+  .why {
+    background-color: #EBE2D3;
+  }
+
+  .filter-bar {
+    background-image: url('/media/testio.png') !important;
+    background-size: cover;
+    background-repeat: no-repeat;
+    border-radius: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background-color: transparent;
+  }
+
+</style>
 {{ block.super }}
 {% if destination_gallery %}
 <script src="{% static 'js/gallery-lightbox.js' %}"></script>
