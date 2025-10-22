@@ -13,10 +13,10 @@
         </div>
 
         <div class="about-section__content relative space-y-5 text-left">
-          <p class="about-header about-animate about-animate--accent text-xs font-semibold uppercase tracking-[0.2em] text-[#1a1410]">
+          <p class="about-header about-animate about-animate--accent text-xs font-semibold uppercase tracking-[0.2em] text-[#f8f4eb]">
             {{ about_section.title }}
           </p>
-          <p class="about-sub about-animate text-lg leading-relaxed whitespace-pre-line text-[#2a1a0d]">
+          <p class="about-sub about-animate text-lg leading-relaxed whitespace-pre-line text-[#f0e6d6]">
             {{ about_section.subtitle }}
           </p>
         </div>
@@ -137,12 +137,13 @@
   }
 
   .about-header {
-    color: #000000;
+    color: #f8f4eb;
     font-weight: bold !important;
   }
 
   .about-sub {
     opacity: 1 !important;
+    color: #f0e6d6;
   }
 
   .about-section__media img {
@@ -163,23 +164,23 @@
   .about-animate {
     position: relative;
     display: inline-block;
-    color: #2a1a0d;
+    color: #f6efe2;
     will-change: background-position;
   }
 
   .about-animate--accent {
-    color: #1a1410;
+    color: #faf5ec;
   }
 
   @supports ((-webkit-background-clip: text) or (background-clip: text)) {
     .about-animate {
       background-image: linear-gradient(
         120deg,
-        rgba(42, 26, 13, 0.82) 0%,
-        rgba(42, 26, 13, 0.82) 45%,
-        rgba(224, 198, 164, 0.24) 50%,
-        rgba(42, 26, 13, 0.82) 55%,
-        rgba(42, 26, 13, 0.82) 100%
+        rgba(246, 239, 226, 0.92) 0%,
+        rgba(246, 239, 226, 0.92) 46%,
+        rgba(255, 242, 217, 0.24) 50%,
+        rgba(246, 239, 226, 0.92) 54%,
+        rgba(246, 239, 226, 0.92) 100%
       );
       background-size: 180% 180%;
       color: transparent;
@@ -191,11 +192,11 @@
     .about-animate--accent {
       background-image: linear-gradient(
         120deg,
-        rgba(26, 20, 16, 0.8) 0%,
-        rgba(26, 20, 16, 0.8) 45%,
-        rgba(187, 155, 115, 0.22) 50%,
-        rgba(26, 20, 16, 0.8) 55%,
-        rgba(26, 20, 16, 0.8) 100%
+        rgba(250, 245, 236, 0.94) 0%,
+        rgba(250, 245, 236, 0.94) 46%,
+        rgba(255, 235, 205, 0.26) 50%,
+        rgba(250, 245, 236, 0.94) 54%,
+        rgba(250, 245, 236, 0.94) 100%
       );
     }
 
@@ -204,14 +205,14 @@
       .about-section:focus-within .about-animate {
         animation-play-state: paused;
         background-image: none;
-        color: #2a1a0d;
+        color: #f6efe2;
         -webkit-background-clip: initial;
         background-clip: initial;
       }
 
       .about-section:hover .about-animate--accent,
       .about-section:focus-within .about-animate--accent {
-        color: #1a1410;
+        color: #faf5ec;
       }
     }
   }
