@@ -452,6 +452,11 @@ class TripRelation(models.Model):
 # -----------------------------
 
 class Booking(models.Model):
+    class Status(models.TextChoices):
+        RECEIVED = "received", "Received"
+        CONFIRMED = "confirmed", "Confirmed"
+        CANCELLED = "cancelled", "Cancelled"
+
     trip = models.ForeignKey(Trip, on_delete=models.PROTECT, related_name="bookings")
     travel_date = models.DateField()
 
@@ -470,6 +475,15 @@ class Booking(models.Model):
     extras_subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     grand_total = models.DecimalField(max_digits=10, decimal_places=2)
 
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.RECEIVED,
+        db_index=True,
+    )
+    status_note = models.CharField(max_length=255, blank=True)
+    status_updated_at = models.DateTimeField(default=timezone.now)
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -487,6 +501,23 @@ class Booking(models.Model):
             return "PENDING"
         timestamp = self.created_at or timezone.now()
         return f"SKY{timestamp:%y%m%d}-{self.pk:06d}"
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            previous_status = (
+                Booking.objects.filter(pk=self.pk)
+                .values_list("status", flat=True)
+                .first()
+            )
+            if previous_status and previous_status != self.status:
+                self.status_updated_at = timezone.now()
+        else:
+            if not self.status:
+                self.status = self.Status.RECEIVED
+            if not self.status_updated_at:
+                self.status_updated_at = timezone.now()
+
+        super().save(*args, **kwargs)
 
 
 class BookingExtra(models.Model):

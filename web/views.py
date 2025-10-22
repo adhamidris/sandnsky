@@ -6,9 +6,10 @@ from django.contrib import messages
 from django.core import signing
 from django.db import transaction
 from django.db.models import Prefetch, Q, Min, Max, Count
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
+from django.views import View
 from django.views.generic import TemplateView
 from django.utils import timezone
 
@@ -31,6 +32,8 @@ from .models import (
 
 CURRENCY_SYMBOLS = {"USD": "$"}
 DEFAULT_CURRENCY = "USD"
+BOOKING_REFERENCE_SALT = "booking-success"
+BOOKING_REFERENCE_MAX_AGE = 60 * 60 * 24 * 14  # 14 days
 
 
 def format_currency(amount, currency=DEFAULT_CURRENCY):
@@ -118,6 +121,25 @@ def _destination_gallery_context(destination):
             }
         )
     return gallery
+
+
+def load_booking_from_token(token, *, max_age=BOOKING_REFERENCE_MAX_AGE):
+    if not token:
+        raise Http404("Booking reference not provided.")
+    try:
+        booking_id = signing.loads(
+            token,
+            salt=BOOKING_REFERENCE_SALT,
+            max_age=max_age,
+        )
+    except (signing.BadSignature, signing.SignatureExpired):
+        raise Http404("Booking reference invalid.")
+
+    queryset = (
+        Booking.objects.select_related("trip", "trip__destination")
+        .prefetch_related("trip__additional_destinations", "booking_extras__extra")
+    )
+    return get_object_or_404(queryset, pk=booking_id)
 
 
 def build_trip_card(trip):
@@ -1009,26 +1031,11 @@ class TripDetailView(TemplateView):
 
 class BookingSuccessView(TemplateView):
     template_name = "booking_success.html"
-    SUCCESS_LINK_MAX_AGE = 60 * 60 * 24 * 14  # 14 days
+    SUCCESS_LINK_MAX_AGE = BOOKING_REFERENCE_MAX_AGE
 
     def get_booking(self):
         token = self.request.GET.get("ref")
-        if not token:
-            raise Http404("Booking reference not provided.")
-        try:
-            booking_id = signing.loads(
-                token,
-                salt="booking-success",
-                max_age=self.SUCCESS_LINK_MAX_AGE,
-            )
-        except (signing.BadSignature, signing.SignatureExpired):
-            raise Http404("Booking reference invalid.")
-
-        queryset = (
-            Booking.objects.select_related("trip", "trip__destination")
-            .prefetch_related("trip__additional_destinations", "booking_extras__extra")
-        )
-        return get_object_or_404(queryset, pk=booking_id)
+        return load_booking_from_token(token, max_age=self.SUCCESS_LINK_MAX_AGE)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1073,6 +1080,13 @@ class BookingSuccessView(TemplateView):
             "currency": DEFAULT_CURRENCY,
         }
 
+        status = {
+            "code": booking.status,
+            "label": booking.get_status_display(),
+            "note": booking.status_note,
+            "updated_at": booking.status_updated_at,
+        }
+
         context.update(
             booking=booking,
             trip=trip,
@@ -1082,5 +1096,55 @@ class BookingSuccessView(TemplateView):
             contact_actions=contact_actions(),
             trip_url=reverse("web:trip-detail", args=[trip.slug]),
             additional_destinations=additional_destinations,
+            booking_status=status,
         )
         return context
+
+
+class BookingStatusView(View):
+    http_method_names = ["get"]
+
+    def get(self, request, *args, **kwargs):
+        token = request.GET.get("ref")
+        if not token:
+            return JsonResponse({"error": "Missing booking reference."}, status=400)
+
+        try:
+            booking = load_booking_from_token(token)
+        except Http404 as exc:
+            message = str(exc) or "Booking not found."
+            return JsonResponse({"error": message}, status=404)
+
+        traveler_count = max(booking.adults + booking.children, 1)
+
+        payload = {
+            "reference": booking.reference_code,
+            "status": {
+                "code": booking.status,
+                "label": booking.get_status_display(),
+                "note": booking.status_note,
+                "updated_at": booking.status_updated_at.isoformat() if booking.status_updated_at else None,
+            },
+            "booking": {
+                "created_at": booking.created_at.isoformat() if booking.created_at else None,
+                "travel_date": booking.travel_date.isoformat() if booking.travel_date else None,
+                "adults": booking.adults,
+                "children": booking.children,
+                "infants": booking.infants,
+                "traveler_summary": traveler_summary(
+                    booking.adults,
+                    booking.children,
+                    booking.infants,
+                    "",
+                ),
+                "grand_total": str(booking.grand_total),
+                "currency": DEFAULT_CURRENCY,
+                "per_person_total": str(booking.grand_total / traveler_count) if traveler_count else None,
+            },
+            "trip": {
+                "title": booking.trip.title,
+                "slug": booking.trip.slug,
+            },
+        }
+
+        return JsonResponse(payload)

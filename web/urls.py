@@ -5,6 +5,7 @@ from .views import (
     TripDetailView,
     TripListView,
     BookingSuccessView,
+    BookingStatusView,
     BlogListView,
     BlogDetailView,
 )
@@ -18,4 +19,5 @@ urlpatterns = [
     path("trips/", TripListView.as_view(), name="trips"),
     path("trips/<slug:slug>/", TripDetailView.as_view(), name="trip-detail"),
     path("booking/success/", BookingSuccessView.as_view(), name="booking-success"),
+    path("booking/status/", BookingStatusView.as_view(), name="booking-status"),
 ]

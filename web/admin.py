@@ -2,6 +2,7 @@ from django import forms
 from django.contrib import admin
 from django.core.exceptions import ValidationError
 from django.db.models import Max
+from django.utils import timezone
 from .models import (
     BlogCategory,
     BlogPost,
@@ -397,6 +398,7 @@ class BookingAdmin(admin.ModelAdmin):
     list_display = (
         "trip",
         "travel_date",
+        "status",
         "full_name",
         "email",
         "phone",
@@ -404,9 +406,10 @@ class BookingAdmin(admin.ModelAdmin):
         "children",
         "infants",
         "grand_total",
+        "status_updated_at",
         "created_at",
     )
-    list_filter = ("trip", "travel_date", "created_at")
+    list_filter = ("trip", "travel_date", "status", "created_at")
     search_fields = ("full_name", "email", "phone", "trip__title")
     date_hierarchy = "created_at"
     ordering = ("-created_at",)
@@ -416,7 +419,41 @@ class BookingAdmin(admin.ModelAdmin):
         "extras_subtotal",
         "grand_total",
         "created_at",
+        "status_updated_at",
     )
+
+    actions = (
+        "mark_as_received",
+        "mark_as_confirmed",
+        "mark_as_cancelled",
+    )
+
+    @admin.action(description="Mark selected bookings as received")
+    def mark_as_received(self, request, queryset):
+        count = queryset.exclude(status=Booking.Status.RECEIVED).update(
+            status=Booking.Status.RECEIVED,
+            status_updated_at=timezone.now(),
+        )
+        if count:
+            self.message_user(request, f"{count} booking(s) marked as received.")
+
+    @admin.action(description="Mark selected bookings as confirmed")
+    def mark_as_confirmed(self, request, queryset):
+        count = queryset.exclude(status=Booking.Status.CONFIRMED).update(
+            status=Booking.Status.CONFIRMED,
+            status_updated_at=timezone.now(),
+        )
+        if count:
+            self.message_user(request, f"{count} booking(s) marked as confirmed.")
+
+    @admin.action(description="Mark selected bookings as cancelled")
+    def mark_as_cancelled(self, request, queryset):
+        count = queryset.exclude(status=Booking.Status.CANCELLED).update(
+            status=Booking.Status.CANCELLED,
+            status_updated_at=timezone.now(),
+        )
+        if count:
+            self.message_user(request, f"{count} booking(s) marked as cancelled.")
 
 
 @admin.register(Review)
