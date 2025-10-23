@@ -18,6 +18,7 @@ from django.template.loader import render_to_string
 from .forms import BookingRequestForm, BookingCartCheckoutForm
 from .booking_cart import (
     add_entry,
+    build_booking_help_link,
     build_cart_entry,
     clear_cart,
     get_cart,
@@ -886,6 +887,7 @@ class TripDetailView(TemplateView):
                             "booking_cart_entries": summary["entries"],
                             "booking_cart_currency": summary["currency"],
                             "booking_cart_total_display": summary["total_display"],
+                            "booking_cart_help_link": build_booking_help_link(summary["entries"]),
                         },
                         request=request,
                     )
@@ -1186,6 +1188,7 @@ class CartQuickAddView(View):
                     "booking_cart_entries": summary["entries"],
                     "booking_cart_currency": summary["currency"],
                     "booking_cart_total_display": summary["total_display"],
+                    "booking_cart_help_link": build_booking_help_link(summary["entries"]),
                 },
                 request=request,
             )

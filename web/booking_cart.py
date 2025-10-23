@@ -5,6 +5,7 @@ import datetime as dt
 import uuid
 from decimal import Decimal, ROUND_HALF_UP
 from typing import Any, Dict, List
+from urllib.parse import quote_plus
 
 from django.utils import timezone
 
@@ -13,6 +14,7 @@ from .models import Trip, TripExtra
 DEFAULT_CURRENCY = "USD"
 
 SESSION_KEY = "booking_cart"
+WHATSAPP_BOOKING_HELP_NUMBER = "201108741159"
 
 
 def _default_cart() -> Dict[str, Any]:
@@ -233,6 +235,36 @@ def summarize_cart(session) -> Dict[str, Any]:
         "total_cents": total_cents,
         "total_display": total_display,
     }
+
+
+def build_booking_help_link(entries: List[Dict[str, Any]]) -> str:
+    lines = ["Hi Sand & Sky, I need help with my booking list."]
+
+    for entry in entries:
+        parts: List[str] = []
+        title = entry.get("trip_title")
+        if title:
+            parts.append(str(title))
+
+        travel_date = entry.get("travel_date_display")
+        if travel_date:
+            parts.append(str(travel_date))
+
+        traveler_label = entry.get("traveler_label")
+        if traveler_label:
+            parts.append(str(traveler_label))
+
+        currency = entry.get("currency")
+        total_display = entry.get("grand_total_display")
+        if currency and total_display:
+            parts.append(f"{currency} {total_display}")
+
+        if parts:
+            lines.append(f"- {' • '.join(parts)}")
+
+    message = "\n".join(lines)
+    encoded = quote_plus(message)
+    return f"https://wa.me/{WHATSAPP_BOOKING_HELP_NUMBER}?text={encoded}"
 
 
 def add_entry(session, entry: Dict[str, Any], *, contact: Dict[str, str] | None = None) -> Dict[str, Any]:
