@@ -123,8 +123,11 @@
               </dl>
 
               <div class="space-y-3">
+                {% if trip_in_cart %}
+                <p class="text-center text-xs font-medium text-primary">This trip is already in your booking list.</p>
+                {% endif %}
                 <button type="button" class="inline-flex w-full items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-mobile-sheet-open aria-controls="booking-drawer" aria-expanded="false">
-                  Start booking
+                  {% if trip_in_cart %}Review &amp; confirm{% else %}Start booking{% endif %}
                 </button>
                 <p class="text-center text-xs text-muted-foreground">No payment required at this stage.</p>
               </div>
@@ -143,13 +146,16 @@
         <span class="text-xs text-muted-foreground">{{ trip.tour_length }}</span>
       </div>
       <button type="button" class="inline-flex items-center gap-3 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-mobile-sheet-open aria-controls="booking-drawer" aria-expanded="false">
-        <span>Book this trip</span>
+        <span>{% if trip_in_cart %}Review &amp; confirm{% else %}Book this trip{% endif %}</span>
         <span aria-hidden="true" class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary/15 text-primary-foreground">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4">
             <path stroke-linecap="round" stroke-linejoin="round" d="m9 6 6 6-6 6" />
           </svg>
         </span>
       </button>
+      {% if trip_in_cart %}
+      <span class="text-xs font-medium text-primary/80">This trip is already in your booking list.</span>
+      {% endif %}
     </div>
   </div>
 
@@ -188,16 +194,6 @@
           </div>
         </div>
       </details>
-
-      {% if messages %}
-      <div class="mt-6 space-y-3">
-        {% for message in messages %}
-        <div class="rounded-md border px-4 py-3 text-sm {% if message.tags == 'success' %}border-green-300 bg-green-50 text-green-700{% elif message.tags == 'error' %}border-red-300 bg-red-50 text-red-700{% else %}border-border bg-background text-foreground{% endif %}">
-          {{ message }}
-        </div>
-        {% endfor %}
-      </div>
-      {% endif %}
 
       <div class="mt-6">
         {% include "includes/booking_form.html" %}
@@ -274,16 +270,6 @@
               </div>
             </div>
           </details>
-
-          {% if messages %}
-          <div class="space-y-3">
-            {% for message in messages %}
-            <div class="rounded-md border px-4 py-3 text-sm {% if message.tags == 'success' %}border-green-300 bg-green-50 text-green-700{% elif message.tags == 'error' %}border-red-300 bg-red-50 text-red-700{% else %}border-border bg-background text-foreground{% endif %}">
-              {{ message }}
-            </div>
-            {% endfor %}
-          </div>
-          {% endif %}
 
           {% include "includes/booking_form.html" %}
         </div>
