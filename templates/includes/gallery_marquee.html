@@ -78,6 +78,7 @@
   </div>
 </section>
 
+{% block script %}
 <style>
 
   .galo {
@@ -383,7 +384,7 @@ html, body { overflow-x: clip; }  /* or hidden if you need wider support */
 
 
 </style>
-
+{% endblock %}
 <div class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 p-6" data-gallery-modal aria-hidden="true" role="dialog" aria-modal="true">
   <div class="relative max-w-4xl w-full">
     <button type="button" class="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-black/80" data-gallery-close aria-label="Close gallery">

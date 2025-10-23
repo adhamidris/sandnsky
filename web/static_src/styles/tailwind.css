@@ -583,4 +583,13 @@ body.gallery-lightbox--open {
     color: hsl(var(--muted-foreground) / 0.8);
     margin-bottom: 0.05rem;
   }
+
+  /* About section spacing tweaks */
+  .about-section__inner {
+    padding-top: 20px !important;
+  }
+
+  .about-section__content {
+    padding-top: 20px !important;
+  }
 }

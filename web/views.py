@@ -14,6 +14,7 @@ from django.views.generic import TemplateView
 from django.utils import timezone
 
 from .forms import BookingRequestForm
+from .booking_cart import add_entry, build_cart_entry, get_contact
 from .models import (
     BlogCategory,
     BlogPost,
@@ -737,7 +738,15 @@ class TripDetailView(TemplateView):
             (str(extra.pk), extra.name)
             for extra in trip.extras.order_by("position", "id")
         ]
-        initial = None if data is not None else {"date": timezone.localdate()}
+        if data is not None:
+            initial = None
+        else:
+            initial = {"date": timezone.localdate()}
+            contact_initial = get_contact(self.request.session)
+            for field in ("name", "email", "phone"):
+                value = contact_initial.get(field)
+                if value:
+                    initial[field] = value
         return BookingRequestForm(data=data, initial=initial, extra_choices=extra_choices)
 
     def get_context_data(self, **kwargs):
@@ -761,7 +770,21 @@ class TripDetailView(TemplateView):
     def post(self, request, *args, **kwargs):
         trip = self.get_trip()
         form = self.get_form(request.POST)
+        action = request.POST.get("action") or "book_only"
         if form.is_valid():
+            if action == "add_to_list":
+                entry = build_cart_entry(trip, form.cleaned_data)
+                contact_details = {
+                    key: form.cleaned_data.get(key, "")
+                    for key in ("name", "email", "phone")
+                }
+                add_entry(request.session, entry, contact=contact_details)
+                messages.success(
+                    request,
+                    "Trip added to your booking list. Add more trips or submit them together once you're ready.",
+                )
+                return redirect(reverse("web:trip-detail", kwargs={"slug": trip.slug}))
+
             booking = self._create_booking(trip, form.cleaned_data)
             token = signing.dumps(booking.pk, salt="booking-success")
             success_url = f"{reverse('web:booking-success')}?ref={token}"

@@ -14,9 +14,16 @@
       </div>
       {% with request.resolver_match as match %}
       {% if match and match.url_name == 'trip-detail' %}
-      <a href="#booking-form" class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90" data-mobile-sheet-open aria-controls="booking-drawer" aria-expanded="false">
-        Book Now
-      </a>
+      <div class="flex items-center gap-3">
+        <a href="#booking-form" class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90" data-mobile-sheet-open aria-controls="booking-drawer" aria-expanded="false">
+          Book Now
+        </a>
+        {% if booking_cart_count %}
+        <span class="hidden md:inline-flex items-center gap-2 rounded-full border border-primary/60 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary" role="status" aria-label="{{ booking_cart_count }} trip{{ booking_cart_count|pluralize }} in booking list">
+          Booking list ({{ booking_cart_count }})
+        </span>
+        {% endif %}
+      </div>
       {% else %}
       <div class="flex items-center gap-3">
         <a href="/trips" class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90">
@@ -30,6 +37,11 @@
             Book Now
           {% endif %}
         </a>
+        {% if booking_cart_count %}
+        <span class="hidden md:inline-flex items-center gap-2 rounded-full border border-primary/60 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary" role="status" aria-label="{{ booking_cart_count }} trip{{ booking_cart_count|pluralize }} in booking list">
+          Booking list ({{ booking_cart_count }})
+        </span>
+        {% endif %}
         {% if match %}
         {% if match.url_name == 'home' or match.url_name == 'blog-list' or match.url_name == 'blog-detail' %}
         {% with whatsapp_message="Hi Sand and Sky Tours, I have an inquiry about your tours." %}
