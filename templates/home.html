@@ -48,9 +48,14 @@
     return;
   }
 
-  var cards = slider.querySelectorAll('[data-testimonial]');
+  var track = slider.querySelector('[data-testimonial-track]');
+  if (!track) {
+    return;
+  }
+
   var dots = slider.querySelectorAll('[data-testimonial-dot]');
-  if (!cards.length) {
+  var totalCards = track.querySelectorAll('[data-testimonial]').length;
+  if (!totalCards) {
     return;
   }
 
@@ -59,65 +64,78 @@
     interval = 6000;
   }
 
-  var current = 0;
   var timer = null;
+  var isAnimating = false;
+  var pendingShifts = 0;
+  var appendedClones = [];
 
-  function updateCardStates(options) {
-    var prevIndex = (current - 1 + cards.length) % cards.length;
-    var nextIndex = (current + 1) % cards.length;
-
-    cards.forEach(function (card) {
-      card.classList.remove('is-active', 'is-prev', 'is-next');
-      card.setAttribute('aria-hidden', 'true');
-    });
-
-    if (cards[current]) {
-      cards[current].classList.add('is-active');
-      cards[current].setAttribute('aria-hidden', 'false');
-    }
-
-    if (cards.length > 1) {
-      if (prevIndex !== current && cards[prevIndex]) {
-        cards[prevIndex].classList.add('is-prev');
-      }
-      if (nextIndex !== current && cards[nextIndex]) {
-        cards[nextIndex].classList.add('is-next');
-        if (nextIndex === prevIndex) {
-          cards[nextIndex].classList.add('is-prev');
-        }
-      }
-    }
-
-    dots.forEach(function (dot, index) {
-      if (index === current) {
-        dot.classList.add('is-active');
-        dot.setAttribute('aria-selected', 'true');
-        dot.setAttribute('tabindex', '0');
-        if (options && options.focusDot) {
-          dot.focus();
-        }
-      } else {
-        dot.classList.remove('is-active');
-        dot.setAttribute('aria-selected', 'false');
-        dot.setAttribute('tabindex', '-1');
-      }
-    });
+  function getGap() {
+    var style = window.getComputedStyle(track);
+    var value = style.columnGap || style.gap || '0';
+    var parsed = parseFloat(value);
+    return Number.isNaN(parsed) ? 0 : parsed;
   }
 
-  updateCardStates();
+  function getStep() {
+    var firstCard = track.querySelector('[data-testimonial]');
+    if (!firstCard) {
+      return 0;
+    }
+    var rect = firstCard.getBoundingClientRect();
+    return rect.width + getGap();
+  }
 
-  function setActive(nextIndex, options) {
-    if (nextIndex === current) {
+  function getCardsPerView() {
+    if (window.matchMedia('(min-width: 1024px)').matches) {
+      return 4;
+    }
+    if (window.matchMedia('(min-width: 640px)').matches) {
+      return 2;
+    }
+    return 1;
+  }
+
+  function setDotState(dot, isActive) {
+    if (!dot) {
       return;
     }
 
-    current = nextIndex;
-    updateCardStates(options);
+    if (isActive) {
+      dot.classList.add('is-active');
+      dot.setAttribute('aria-selected', 'true');
+      dot.setAttribute('tabindex', '0');
+    } else {
+      dot.classList.remove('is-active');
+      dot.setAttribute('aria-selected', 'false');
+      dot.setAttribute('tabindex', '-1');
+    }
   }
 
-  function showNext() {
-    var next = (current + 1) % cards.length;
-    setActive(next);
+  function updateDots() {
+    if (!dots.length) {
+      return;
+    }
+
+    var firstVisible = track.querySelector('[data-testimonial]');
+    if (!firstVisible) {
+      return;
+    }
+
+    var activeIndex = parseInt(firstVisible.getAttribute('data-testimonial-index'), 10);
+    if (Number.isNaN(activeIndex)) {
+      activeIndex = 0;
+    }
+
+    dots.forEach(function (dot, index) {
+      setDotState(dot, index === activeIndex);
+    });
+  }
+
+  function updateVisibility() {
+    var perView = Math.max(1, Math.min(getCardsPerView(), track.children.length));
+    Array.prototype.forEach.call(track.children, function (card, idx) {
+      card.setAttribute('aria-hidden', idx >= perView ? 'true' : 'false');
+    });
   }
 
   function stopTimer() {
@@ -128,17 +146,143 @@
   }
 
   function startTimer() {
+    if (totalCards <= 1) {
+      return;
+    }
+
     stopTimer();
-    timer = window.setInterval(showNext, interval);
+    timer = window.setInterval(function () {
+      shift(1);
+    }, interval);
   }
 
-  dots.forEach(function (dot, index) {
-    dot.addEventListener('click', function () {
-      stopTimer();
-      setActive(index);
+  function resetTrack() {
+    if (!appendedClones.length) {
+      return;
+    }
+
+    appendedClones.forEach(function (clone) {
+      if (clone.parentNode === track) {
+        track.removeChild(clone);
+      }
+    });
+    appendedClones = [];
+    pendingShifts = 0;
+    isAnimating = false;
+    track.style.transition = 'none';
+    track.style.transform = 'translateX(0)';
+    track.offsetHeight;
+    track.style.transition = '';
+  }
+
+  function shift(count) {
+    if (isAnimating) {
+      return;
+    }
+
+    var step = getStep();
+    if (!step) {
+      return;
+    }
+
+    stopTimer();
+
+    appendedClones = [];
+    pendingShifts = 0;
+
+    for (var i = 0; i < count; i += 1) {
+      var source = track.children[i];
+      if (!source) {
+        break;
+      }
+
+      var clone = source.cloneNode(true);
+      if (clone.id) {
+        clone.dataset.originalId = clone.id;
+        clone.removeAttribute('id');
+      }
+      clone.setAttribute('data-testimonial-clone', 'true');
+      track.appendChild(clone);
+      appendedClones.push(clone);
+      pendingShifts += 1;
+    }
+
+    if (!pendingShifts) {
       startTimer();
+      return;
+    }
+
+    requestAnimationFrame(function () {
+      track.style.transition = 'transform 0.65s ease';
+      track.style.transform = 'translateX(' + -(step * pendingShifts) + 'px)';
     });
 
+    isAnimating = true;
+  }
+
+  track.addEventListener('transitionend', function (event) {
+    if (event.target !== track || !isAnimating) {
+      return;
+    }
+
+    track.style.transition = 'none';
+    track.style.transform = 'translateX(0)';
+
+    for (var i = 0; i < pendingShifts; i += 1) {
+      if (!track.firstElementChild) {
+        break;
+      }
+      track.removeChild(track.firstElementChild);
+    }
+
+    appendedClones.forEach(function (clone) {
+      if (clone.dataset.originalId) {
+        clone.id = clone.dataset.originalId;
+        delete clone.dataset.originalId;
+      }
+      clone.removeAttribute('data-testimonial-clone');
+    });
+
+    appendedClones = [];
+    pendingShifts = 0;
+    isAnimating = false;
+
+    updateVisibility();
+    updateDots();
+
+    track.offsetHeight;
+    track.style.transition = '';
+
+    startTimer();
+  });
+
+  dots.forEach(function (dot) {
+    dot.addEventListener('click', function () {
+      if (isAnimating) {
+        return;
+      }
+
+      var controlId = dot.getAttribute('aria-controls');
+      if (!controlId) {
+        return;
+      }
+
+      var targetCard = slider.querySelector('#' + controlId);
+      if (!targetCard) {
+        return;
+      }
+
+      var order = Array.from(track.children);
+      var distance = order.indexOf(targetCard);
+      if (distance <= 0) {
+        return;
+      }
+
+      shift(distance);
+    });
+  });
+
+  dots.forEach(function (dot) {
     dot.addEventListener('keydown', function (event) {
       var key = event.key;
       if (key !== 'ArrowRight' && key !== 'ArrowLeft' && key !== 'Home' && key !== 'End') {
@@ -146,35 +290,82 @@
       }
 
       event.preventDefault();
-      stopTimer();
-
-      if (key === 'ArrowRight') {
-        setActive((current + 1) % cards.length, { focusDot: true });
-      } else if (key === 'ArrowLeft') {
-        setActive((current - 1 + cards.length) % cards.length, { focusDot: true });
-      } else if (key === 'Home') {
-        setActive(0, { focusDot: true });
-      } else if (key === 'End') {
-        setActive(cards.length - 1, { focusDot: true });
+      if (isAnimating) {
+        return;
       }
 
-      startTimer();
+      var firstCard = track.querySelector('[data-testimonial]');
+      if (!firstCard) {
+        return;
+      }
+
+      var currentIndex = parseInt(firstCard.getAttribute('data-testimonial-index'), 10) || 0;
+      var targetIndex = currentIndex;
+
+      if (key === 'ArrowRight') {
+        targetIndex = (currentIndex + 1) % totalCards;
+      } else if (key === 'ArrowLeft') {
+        targetIndex = (currentIndex - 1 + totalCards) % totalCards;
+      } else if (key === 'Home') {
+        targetIndex = 0;
+      } else if (key === 'End') {
+        targetIndex = totalCards - 1;
+      }
+
+      if (targetIndex === currentIndex) {
+        return;
+      }
+
+      var targetCard = slider.querySelector('[data-testimonial-index="' + targetIndex + '"]');
+      if (!targetCard) {
+        return;
+      }
+
+      var order = Array.from(track.children);
+      var distance = order.indexOf(targetCard);
+      if (distance <= 0) {
+        distance += totalCards;
+      }
+
+      shift(distance);
     });
   });
 
-  slider.addEventListener('mouseenter', stopTimer);
-  slider.addEventListener('mouseleave', startTimer);
-  slider.addEventListener('focusin', stopTimer);
-  slider.addEventListener('focusout', startTimer);
+  slider.addEventListener('mouseenter', function () {
+    stopTimer();
+  });
 
-  document.addEventListener('visibilitychange', function () {
-    if (document.hidden) {
-      stopTimer();
-    } else {
+  slider.addEventListener('mouseleave', function () {
+    if (!isAnimating) {
       startTimer();
     }
   });
 
+  slider.addEventListener('focusin', stopTimer);
+  slider.addEventListener('focusout', function (event) {
+    if (!slider.contains(event.relatedTarget)) {
+      startTimer();
+    }
+  });
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) {
+      stopTimer();
+    } else if (!isAnimating) {
+      startTimer();
+    }
+  });
+
+  window.addEventListener('resize', function () {
+    stopTimer();
+    resetTrack();
+    updateVisibility();
+    updateDots();
+    startTimer();
+  });
+
+  updateVisibility();
+  updateDots();
   startTimer();
 })();
 </script>

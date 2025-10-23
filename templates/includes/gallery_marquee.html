@@ -41,14 +41,11 @@
           {% for row in gallery_section.rows %}
           {% if row %}
           <div
-            class="gali gallery-marquee-row gallery-row relative overflow-hidden bg-secondary/20 py-10 shadow-[0_18px_45px_rgba(17,24,39,0.18)]"
+            class="gali gallery-marquee-row gallery-row relative overflow-hidden bg-secondary/20 py-4"
             data-marquee
             data-marquee-direction="{% if forloop.counter|divisibleby:2 %}reverse{% else %}forward{% endif %}"
             data-marquee-size="{% if forloop.counter == 1 %}large{% else %}regular{% endif %}"
           >
-            <div class="pointer-events-none absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-background via-background/70 to-transparent"></div>
-            <div class="pointer-events-none absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-background via-background/70 to-transparent"></div>
-
             <div class="flex items-center" data-marquee-wrapper>
               <div data-marquee-track>
                 {% for item in row %}
@@ -163,13 +160,7 @@ html, body { overflow-x: clip; }  /* or hidden if you need wider support */
   }
 
   .gallery-frame::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0));
-    z-index: -1;
-    pointer-events: none;
+    content: none;
   }
 
   .gallery-band {
@@ -194,7 +185,7 @@ html, body { overflow-x: clip; }  /* or hidden if you need wider support */
   }
 
   /* ===== Marquee rows (keep spacing only between rows) ===== */
-  .gallery-row + .gallery-row { margin-top: 2.5rem; }
+  .gallery-row + .gallery-row { margin-top: 0.75rem; }
 
   @media (max-width: 639px) {
     .gallery-band {

@@ -1,4 +1,4 @@
-<section id="testimonials" class="testo bg-secondary/30 px-0 py-24 sm:px-0">
+<section id="testimonials" class="testo px-0 py-24 sm:px-0">
   <div class="mx-auto w-full">
     <div class="desti2 max-w-7xl mx-auto">
       <div class="desti mx-auto text-center space-y-3">
@@ -20,10 +20,10 @@
 
     
 
-    <div class="relative mx-auto mt-14 w-full max-w-6xl px-4 sm:px-6 lg:px-8" data-testimonials data-interval="6500">
+    <div class="relative mt-14 w-full max-w-none px-0 sm:px-4 lg:px-8" data-testimonials data-interval="6500">
       <div class="testimonial-stack" aria-live="polite" aria-atomic="true">
-        <div class="testimonial-carousel">
-        <article class="testi testimonial-card is-active" data-testimonial aria-hidden="false" role="tabpanel" id="testimonial-panel-1">
+        <div class="testimonial-carousel" data-testimonial-track>
+        <article class="testi testimonial-card" data-testimonial data-testimonial-index="0" role="tabpanel" id="testimonial-panel-1">
           <div class="testi-inner mx-auto max-w-2xl text-left">
             <figure class="space-y-6">
               <span class="sr-only">Rated five stars</span>
@@ -49,8 +49,8 @@
           </div>
         </article>
 
-        <article class="testi testimonial-card" data-testimonial aria-hidden="true" role="tabpanel" id="testimonial-panel-2">
-          <div class="mx-auto max-w-2xl text-left">
+        <article class="testi testimonial-card" data-testimonial data-testimonial-index="1" role="tabpanel" id="testimonial-panel-2">
+          <div class="testi-inner mx-auto max-w-2xl text-left">
             <figure class="space-y-6">
               <span class="sr-only">Rated five stars</span>
               <div class="testimonial-stars" aria-hidden="true">
@@ -75,8 +75,8 @@
           </div>
         </article>
 
-        <article class="testi testimonial-card" data-testimonial aria-hidden="true" role="tabpanel" id="testimonial-panel-3">
-          <div class="mx-auto max-w-2xl text-left">
+        <article class="testi testimonial-card" data-testimonial data-testimonial-index="2" role="tabpanel" id="testimonial-panel-3">
+          <div class="testi-inner mx-auto max-w-2xl text-left">
             <figure class="space-y-6">
               <span class="sr-only">Rated five stars</span>
               <div class="testimonial-stars" aria-hidden="true">
@@ -101,8 +101,8 @@
           </div>
         </article>
 
-        <article class="testi testimonial-card" data-testimonial aria-hidden="true" role="tabpanel" id="testimonial-panel-4">
-          <div class="mx-auto max-w-2xl text-left">
+        <article class="testi testimonial-card" data-testimonial data-testimonial-index="3" role="tabpanel" id="testimonial-panel-4">
+          <div class="testi-inner mx-auto max-w-2xl text-left">
             <figure class="space-y-6">
               <span class="sr-only">Rated five stars</span>
               <div class="testimonial-stars" aria-hidden="true">
@@ -138,28 +138,3 @@
     </div>
   </div>
 </section>
-
-{% block scripts %}
-<style>
-
-.testo {
-  background-color: #EBE2D3;
-}
-
-  .testi {
-    background-image: url('media/testio.png');
-    background-repeat: no-repeat;
-    background-position: bottom;
-    background-size: fill;
-  }
-
-  @media (max-width: 768px) {
-    .testi-mob {
-      background-image: url('media/tsfinal.svg');
-      background-repeat: no-repeat;
-      background-position: bottom;
-      background-size: fill;
-    }
-  }
-</style>
-{% endblock %}
