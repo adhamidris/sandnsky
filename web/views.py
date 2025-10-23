@@ -847,83 +847,23 @@ class TripDetailView(TemplateView):
     def post(self, request, *args, **kwargs):
         trip = self.get_trip()
         action = request.POST.get("action") or "book_only"
-        require_contact = action != "add_to_list"
-        form = self.get_form(request.POST, require_contact=require_contact)
+        form = self.get_form(request.POST, require_contact=False)
         if form.is_valid():
-            if action == "add_to_list":
-                current_cart = get_cart(request.session)
-                existing = any(
-                    entry.get("trip_id") == trip.pk
-                    for entry in current_cart.get("entries", [])
-                )
+            contact_details = {
+                key: form.cleaned_data.get(key, "")
+                for key in ("name", "email", "phone")
+            }
 
+            if action == "book_only":
+                clear_cart(request.session)
+            else:
                 remove_trip_entries(request.session, trip.pk)
 
-                entry = build_cart_entry(trip, form.cleaned_data)
-                contact_details = {
-                    key: form.cleaned_data.get(key, "")
-                    for key in ("name", "email", "phone")
-                }
-                add_entry(request.session, entry, contact=contact_details)
-                return redirect(reverse("web:trip-detail", kwargs={"slug": trip.slug}))
-
-            booking = self._create_booking(trip, form.cleaned_data)
-            token = signing.dumps(booking.pk, salt="booking-success")
-            success_url = f"{reverse('web:booking-success')}?ref={token}"
-            return redirect(success_url)
+            entry = build_cart_entry(trip, form.cleaned_data)
+            add_entry(request.session, entry, contact=contact_details)
+            return redirect(reverse("web:booking-cart-checkout"))
 
         return self.render_to_response(self.get_context_data(form=form))
-
-    @transaction.atomic
-    def _create_booking(self, trip, cleaned_data):
-        adults = int(cleaned_data.get("adults") or 0)
-        children = int(cleaned_data.get("children") or 0)
-        infants = int(cleaned_data.get("infants") or 0)
-
-        traveler_count = max(adults + children, 1)
-
-        extras_raw = cleaned_data.get("extras") or []
-        try:
-            extras_ids = {int(extra_id) for extra_id in extras_raw}
-        except (TypeError, ValueError):
-            extras_ids = set()
-
-        selected_extras = list(
-            trip.extras.filter(pk__in=extras_ids).order_by("position", "id")
-        )
-
-        extras_total = sum((extra.price for extra in selected_extras), Decimal("0"))
-        base_subtotal = trip.base_price_per_person * traveler_count
-        grand_total = base_subtotal + extras_total
-
-        booking = Booking.objects.create(
-            trip=trip,
-            travel_date=cleaned_data["date"],
-            adults=adults,
-            children=children,
-            infants=infants,
-            full_name=cleaned_data.get("name"),
-            email=cleaned_data.get("email"),
-            phone=cleaned_data.get("phone"),
-            special_requests=cleaned_data.get("message", ""),
-            base_subtotal=base_subtotal,
-            extras_subtotal=extras_total,
-            grand_total=grand_total,
-        )
-
-        if selected_extras:
-            BookingExtra.objects.bulk_create(
-                [
-                    BookingExtra(
-                        booking=booking,
-                        extra=extra,
-                        price_at_booking=extra.price,
-                    )
-                    for extra in selected_extras
-                ]
-            )
-
-        return booking
 
     def _pricing_context(self, trip, form):
         currency = getattr(trip, "currency", DEFAULT_CURRENCY)
