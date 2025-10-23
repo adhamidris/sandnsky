@@ -847,18 +847,52 @@ class TripDetailView(TemplateView):
     def post(self, request, *args, **kwargs):
         trip = self.get_trip()
         action = request.POST.get("action") or "book_only"
+        if action == "add_to_list":
+            form = self.get_form(request.POST, require_contact=False)
+        if form.is_valid():
+            remove_trip_entries(request.session, trip.pk)
+            entry = build_cart_entry(trip, form.cleaned_data)
+            add_entry(request.session, entry, contact={})
+            if request.headers.get("X-Requested-With") == "XMLHttpRequest" or "application/json" in (request.headers.get("Accept") or ""):
+                summary = summarize_cart(request.session)
+                cart_label = (
+                    "No trips yet"
+                    if summary["count"] == 0
+                    else f"{summary['count']} trip{'s' if summary['count'] != 1 else ''}"
+                )
+                panel_html = render_to_string(
+                    "includes/navigation_cart_panel.html",
+                    {
+                        "booking_cart_entries": summary["entries"],
+                        "booking_cart_currency": summary["currency"],
+                        "booking_cart_total_display": summary["total_display"],
+                    },
+                    request=request,
+                )
+                toast_message = (
+                    "Trip removed from list"
+                    if summary["count"] == 0
+                    else f"Trip added. {summary['count']} trip{'s' if summary['count'] != 1 else ''} saved."
+                )
+                return JsonResponse(
+                    {
+                        "in_cart": True,
+                        "cart_count": summary["count"],
+                        "cart_label": cart_label,
+                        "panel_html": panel_html,
+                        "toast_message": toast_message,
+                    }
+                )
+            return redirect(reverse("web:trips"))
+            return self.render_to_response(self.get_context_data(form=form))
+
         form = self.get_form(request.POST, require_contact=False)
         if form.is_valid():
             contact_details = {
                 key: form.cleaned_data.get(key, "")
                 for key in ("name", "email", "phone")
             }
-
-            if action == "book_only":
-                clear_cart(request.session)
-            else:
-                remove_trip_entries(request.session, trip.pk)
-
+            clear_cart(request.session)
             entry = build_cart_entry(trip, form.cleaned_data)
             add_entry(request.session, entry, contact=contact_details)
             return redirect(reverse("web:booking-cart-checkout"))
@@ -1093,7 +1127,7 @@ class CartQuickAddView(View):
 
         if has_trip:
             remove_trip_entries(request.session, trip.pk)
-            message_text = f"{trip.title} was removed from your booking list."
+            toast_message = f"Removed \"{trip.title}\""
             in_cart = False
         else:
             cleaned_data = {
@@ -1111,7 +1145,7 @@ class CartQuickAddView(View):
             entry = build_cart_entry(trip, cleaned_data)
             contact = get_contact(request.session)
             add_entry(request.session, entry, contact=contact)
-            message_text = f"{trip.title} was added to your booking list."
+            toast_message = f"Added \"{trip.title}\""
             in_cart = True
 
         summary = summarize_cart(request.session)
@@ -1141,6 +1175,7 @@ class CartQuickAddView(View):
                     "cart_count": summary["count"],
                     "cart_label": cart_label,
                     "panel_html": panel_html,
+                    "toast_message": toast_message,
                 }
             )
 
