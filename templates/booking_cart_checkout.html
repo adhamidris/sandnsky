@@ -6,13 +6,9 @@
 {% block content %}
 <section class="bg-muted/20 py-16">
   <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-    <header class="space-y-2 rounded-3xl bg-card/70 p-6 text-center shadow-[var(--shadow-subtle)] ring-1 ring-border/60 lg:hidden">
-      <p class="text-xs font-semibold uppercase tracking-[0.22em] text-primary">Booking overview</p>
-      <h1 class="font-serif text-3xl text-foreground sm:text-4xl">Review &amp; confirm your booking list</h1>
-      <p class="text-sm text-muted-foreground">Fine-tune your selection and submit when ready.</p>
-    </header>
+    <h1 class="mb-6 text-center font-serif text-3xl text-foreground sm:text-4xl lg:hidden">Review &amp; confirm your booking list</h1>
   </div>
-  <div class="mx-auto grid max-w-6xl gap-8 px-4 sm:px-6 lg:grid-cols-[1fr,2fr] lg:gap-12 lg:px-8">
+  <div class="mx-auto grid max-w-6xl gap-8 px-4 sm:px-6 lg:grid-cols-[2fr,1fr] lg:gap-12 lg:px-8">
     {% if messages %}
     <div class="lg:col-span-2">
       <div class="rounded-3xl border border-border bg-card p-4 shadow-[var(--shadow-subtle)]">
@@ -24,7 +20,7 @@
       </div>
     </div>
     {% endif %}
-    <aside class="space-y-6">
+    <aside class="order-1 lg:order-2 lg:col-start-2 lg:row-start-1">
       <div class="rounded-3xl bg-card p-6 shadow-[var(--shadow-medium)]">
         <h2 class="text-lg font-semibold text-foreground">Guest details</h2>
         <p class="mt-1 text-sm text-muted-foreground">We use this information to tailor your quote and follow up with availability.</p>
@@ -43,53 +39,11 @@
             {% endif %}
           </div>
           {% endfor %}
-          <div class="space-y-2 rounded-2xl bg-muted/40 p-4 text-sm text-muted-foreground">
-            <p class="font-semibold text-foreground">What happens next?</p>
-            <ul class="list-disc space-y-1 pl-5">
-              <li>Our travel specialist will review your itinerary and confirm availability.</li>
-              <li>You'll receive a tailored proposal with any suggested refinements.</li>
-              <li>No payment is collected until you approve your final itinerary.</li>
-            </ul>
-          </div>
-          <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 {% if not cart_has_entries %}opacity-60 cursor-not-allowed{% endif %}" {% if not cart_has_entries %}disabled{% endif %}>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4">
-              <path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4 10-10" />
-            </svg>
-            Confirm booking list
-          </button>
         </form>
-      </div>
-
-      <div class="rounded-3xl bg-card p-6 shadow-[var(--shadow-subtle)]">
-        <h2 class="text-lg font-semibold text-foreground">Summary</h2>
-        <dl class="mt-4 space-y-3 text-sm text-muted-foreground">
-          <div class="flex justify-between">
-            <dt>Trips in list</dt>
-            <dd class="font-semibold text-foreground">{{ cart_summary.count }}</dd>
-          </div>
-          <div class="flex justify-between">
-            <dt>Estimated total</dt>
-            <dd class="font-semibold text-foreground">{{ cart_currency }} {{ cart_total_display }}</dd>
-          </div>
-        </dl>
-        <div class="mt-4">
-          <a href="{% url 'web:trips' %}" class="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80">
-            Add another trip
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-          </a>
-        </div>
-        <button type="submit" form="cart-checkout-form" class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-primary to-primary/80 px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:from-primary/90 hover:to-primary/80 {% if not cart_has_entries %}opacity-60 cursor-not-allowed{% endif %}" {% if not cart_has_entries %}disabled{% endif %}>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4 10-10" />
-          </svg>
-          Confirm booking list
-        </button>
       </div>
     </aside>
 
-    <div>
+    <div class="order-2 lg:order-1 lg:col-start-1 lg:row-start-1 lg:row-span-2">
       <div class="space-y-6">
         <header class="hidden space-y-2 lg:block">
           <p class="text-sm uppercase tracking-wide text-muted-foreground">Your curated adventures</p>
@@ -146,6 +100,34 @@
         </div>
         {% endif %}
       </div>
+    </div>
+
+    <div class="order-3 rounded-3xl bg-card p-6 shadow-[var(--shadow-subtle)] lg:order-2 lg:col-start-2 lg:row-start-2">
+      <h2 class="text-lg font-semibold text-foreground">Summary</h2>
+      <dl class="mt-4 space-y-3 text-sm text-muted-foreground">
+        <div class="flex justify-between">
+          <dt>Trips in list</dt>
+          <dd class="font-semibold text-foreground">{{ cart_summary.count }}</dd>
+        </div>
+        <div class="flex justify-between">
+          <dt>Estimated total</dt>
+          <dd class="font-semibold text-foreground">{{ cart_currency }} {{ cart_total_display }}</dd>
+        </div>
+      </dl>
+      <div class="mt-4">
+        <a href="{% url 'web:trips' %}" class="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80">
+          Add another trip
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+        </a>
+      </div>
+      <button type="submit" form="cart-checkout-form" class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-primary to-primary/80 px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:from-primary/90 hover:to-primary/80 {% if not cart_has_entries %}opacity-60 cursor-not-allowed{% endif %}" {% if not cart_has_entries %}disabled{% endif %}>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4 10-10" />
+        </svg>
+        Confirm booking list
+      </button>
     </div>
 
   </div>

@@ -145,14 +145,6 @@
       <button type="submit" name="action" value="add_to_list" class="inline-flex w-full items-center justify-center rounded-lg border border-primary px-5 py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
         Add to booking list &amp; add more trips
       </button>
-      {% if booking_cart_count %}
-      <div class="space-y-2 text-center">
-        <p class="text-xs text-muted-foreground">Currently {{ booking_cart_count }} trip{{ booking_cart_count|pluralize }} in your booking list.</p>
-        <a href="{% url 'web:booking-cart-checkout' %}" class="inline-flex items-center justify-center rounded-full border border-primary/60 px-4 py-2 text-xs font-semibold text-primary transition-colors hover:border-primary hover:bg-primary/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
-          Review &amp; confirm all trips
-        </a>
-      </div>
-      {% endif %}
     </div>
     <p class="text-center text-xs text-muted-foreground">
       Prefer to talk to someone? <a href="tel:+201234567890" class="font-semibold text-primary hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Call us</a> or <a href="mailto:info@niledreams.com" class="font-semibold text-primary hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">send an inquiry</a>.
