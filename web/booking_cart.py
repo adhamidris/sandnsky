@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import copy
+import datetime as dt
 import uuid
 from decimal import Decimal, ROUND_HALF_UP
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 from django.utils import timezone
 
@@ -25,13 +26,17 @@ def _normalize_cart(cart: Any) -> Dict[str, Any]:
     entries = cart.get("entries")
     if not isinstance(contact, dict):
         contact = {}
+    normalized_contact = {}
+    for key, value in contact.items():
+        if isinstance(value, str):
+            normalized_contact[key] = value
     if not isinstance(entries, list):
         entries = []
     normalized_entries: List[Dict[str, Any]] = []
     for entry in entries:
         if isinstance(entry, dict):
             normalized_entries.append(copy.deepcopy(entry))
-    return {"contact": copy.deepcopy(contact), "entries": normalized_entries}
+    return {"contact": normalized_contact, "entries": normalized_entries}
 
 
 def get_cart(session) -> Dict[str, Any]:
@@ -61,7 +66,14 @@ def get_contact(session) -> Dict[str, str]:
     return {key: value for key, value in contact.items() if isinstance(value, str)}
 
 
-def update_contact(session, *, name: str | None = None, email: str | None = None, phone: str | None = None) -> Dict[str, Any]:
+def update_contact(
+    session,
+    *,
+    name: str | None = None,
+    email: str | None = None,
+    phone: str | None = None,
+    notes: str | None = None,
+) -> Dict[str, Any]:
     cart = get_cart(session)
     contact = cart.setdefault("contact", {})
     if name is not None:
@@ -70,6 +82,8 @@ def update_contact(session, *, name: str | None = None, email: str | None = None
         contact["email"] = email.strip()
     if phone is not None:
         contact["phone"] = phone.strip()
+    if notes is not None:
+        contact["notes"] = notes.strip()
     save_cart(session, cart)
     return cart
 
@@ -146,13 +160,90 @@ def build_cart_entry(trip: Trip, cleaned_data: Dict[str, Any]) -> Dict[str, Any]
     return entry
 
 
+def _format_money_cents(cents: int) -> str:
+    amount = Decimal(cents) / Decimal("100")
+    quantized = amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    return format(quantized, ",.2f")
+
+
+def _serialize_summary_entry(entry: Dict[str, Any]) -> Dict[str, Any]:
+    pricing = entry.get("pricing") or {}
+    try:
+        grand_total_cents = int(pricing.get("grand_total_cents", 0))
+    except (TypeError, ValueError):
+        grand_total_cents = 0
+
+    currency = pricing.get("currency") or DEFAULT_CURRENCY
+
+    date_raw = entry.get("travel_date")
+    travel_date: dt.date | None = None
+    travel_date_display = ""
+    if isinstance(date_raw, dt.date):
+        travel_date = date_raw
+    elif isinstance(date_raw, str):
+        try:
+            travel_date = dt.date.fromisoformat(date_raw)
+        except ValueError:
+            travel_date = None
+    if travel_date is not None:
+        travel_date_display = travel_date.strftime("%b %d, %Y")
+
+    adults = int(entry.get("adults") or 0)
+    children = int(entry.get("children") or 0)
+    infants = int(entry.get("infants") or 0)
+    traveler_count = max(adults + children, 1)
+
+    traveler_label = "1 traveler" if traveler_count == 1 else f"{traveler_count} travelers"
+    if infants:
+        infant_label = "infant" if infants == 1 else "infants"
+        traveler_label = f"{traveler_label} + {infants} {infant_label}"
+
+    return {
+        "id": entry.get("id"),
+        "trip_title": entry.get("trip_title", ""),
+        "travel_date_display": travel_date_display,
+        "traveler_label": traveler_label,
+        "currency": currency,
+        "grand_total_cents": grand_total_cents,
+        "grand_total_display": _format_money_cents(grand_total_cents),
+        "trip_slug": entry.get("trip_slug"),
+    }
+
+
+def summarize_cart(session) -> Dict[str, Any]:
+    cart = get_cart(session)
+    entries = []
+    total_cents = 0
+    currency = DEFAULT_CURRENCY
+
+    for raw_entry in cart.get("entries", []):
+        serialized = _serialize_summary_entry(raw_entry)
+        entries.append(serialized)
+        total_cents += serialized["grand_total_cents"]
+        if serialized.get("currency"):
+            currency = serialized["currency"]
+
+    total_display = _format_money_cents(total_cents) if total_cents else "0.00"
+
+    return {
+        "contact": cart.get("contact", {}),
+        "entries": entries,
+        "count": len(entries),
+        "currency": currency,
+        "total_cents": total_cents,
+        "total_display": total_display,
+    }
+
+
 def add_entry(session, entry: Dict[str, Any], *, contact: Dict[str, str] | None = None) -> Dict[str, Any]:
     cart = get_cart(session)
     if contact:
         update_payload = {
             key: value
             for key, value in contact.items()
-            if key in {"name", "email", "phone"} and isinstance(value, str)
+            if key in {"name", "email", "phone"}
+            and isinstance(value, str)
+            and value.strip()
         }
         if update_payload:
             contact_values = cart.setdefault("contact", {})
@@ -160,4 +251,24 @@ def add_entry(session, entry: Dict[str, Any], *, contact: Dict[str, str] | None 
                 contact_values[key] = value.strip()
     cart.setdefault("entries", []).append(entry)
     save_cart(session, cart)
+    return cart
+
+
+def remove_entry(session, entry_id: str) -> Dict[str, Any]:
+    cart = get_cart(session)
+    entries = cart.get("entries", [])
+    updated_entries = [entry for entry in entries if entry.get("id") != entry_id]
+    if len(updated_entries) != len(entries):
+        cart["entries"] = updated_entries
+        save_cart(session, cart)
+    return cart
+
+
+def remove_trip_entries(session, trip_id: int) -> Dict[str, Any]:
+    cart = get_cart(session)
+    entries = cart.get("entries", [])
+    updated_entries = [entry for entry in entries if entry.get("trip_id") != trip_id]
+    if len(updated_entries) != len(entries):
+        cart["entries"] = updated_entries
+        save_cart(session, cart)
     return cart

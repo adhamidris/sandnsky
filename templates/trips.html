@@ -271,6 +271,19 @@
                  class="inline-flex w-full items-center justify-center rounded-md bg-primary px-3 py-2 text-xs sm:text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
                 View details
               </a>
+              <form method="post" action="{% url 'web:booking-cart-quick-add' trip.slug %}" class="mt-2" data-cart-toggle>
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+                {% if trip.in_cart %}
+                <button type="submit" class="inline-flex w-full items-center justify-center rounded-md border px-3 py-2 text-xs sm:text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary border-destructive/60 text-destructive hover:bg-muted/40" data-cart-state="added" data-cart-class-added="border-destructive/60 text-destructive hover:bg-muted/40" data-cart-class-removed="border-primary text-primary hover:bg-primary/10">
+                  Remove from booking list
+                </button>
+                {% else %}
+                <button type="submit" class="inline-flex w-full items-center justify-center rounded-md border px-3 py-2 text-xs sm:text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary border-primary text-primary hover:bg-primary/10" data-cart-state="removed" data-cart-class-added="border-destructive/60 text-destructive hover:bg-muted/40" data-cart-class-removed="border-primary text-primary hover:bg-primary/10">
+                  Add to booking list
+                </button>
+                {% endif %}
+              </form>
             </div>
           </div>
         </article>
@@ -599,6 +612,7 @@
         }
 
         initTripFilters();
+        initCartToggleButtons();
       })
       .catch(function (error) {
         console.error('Trip filter update failed:', error);
@@ -658,9 +672,127 @@
 
   }
 
+  function getClassTokens(button, attr) {
+    var value = button.getAttribute(attr);
+    if (!value) {
+      return [];
+    }
+    return value.split(/\s+/).filter(function (token) {
+      return Boolean(token);
+    });
+  }
+
+  function setCartButtonState(button, inCart) {
+    var added = getClassTokens(button, 'data-cart-class-added');
+    var removed = getClassTokens(button, 'data-cart-class-removed');
+    var all = added.concat(removed);
+
+    for (var i = 0; i < all.length; i += 1) {
+      if (all[i]) {
+        button.classList.remove(all[i]);
+      }
+    }
+
+    if (inCart) {
+      for (var j = 0; j < added.length; j += 1) {
+        if (added[j]) {
+          button.classList.add(added[j]);
+        }
+      }
+      button.textContent = 'Remove from booking list';
+      button.setAttribute('data-cart-state', 'added');
+    } else {
+      for (var k = 0; k < removed.length; k += 1) {
+        if (removed[k]) {
+          button.classList.add(removed[k]);
+        }
+      }
+      button.textContent = 'Add to booking list';
+      button.setAttribute('data-cart-state', 'removed');
+    }
+  }
+
+  function updateNavCart(data) {
+    var badge = document.querySelector('[data-cart-count-badge]');
+    if (badge) {
+      if (data.cart_count > 0) {
+        badge.textContent = data.cart_count;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    }
+
+    var label = document.querySelector('[data-cart-label-text]');
+    if (label) {
+      label.textContent = data.cart_label;
+      label.classList.toggle('font-semibold', data.cart_count > 0);
+      label.classList.toggle('text-foreground', data.cart_count > 0);
+      label.classList.toggle('text-muted-foreground', data.cart_count === 0);
+    }
+
+    var panel = document.querySelector('[data-cart-panel]');
+    if (panel && typeof data.panel_html === 'string') {
+      panel.innerHTML = data.panel_html;
+    }
+  }
+
+  function bindCartToggle(form) {
+    if (form.dataset.cartToggleBound === 'true') {
+      return;
+    }
+    form.dataset.cartToggleBound = 'true';
+
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      var button = form.querySelector('button[type="submit"]');
+      if (!button) {
+        return;
+      }
+
+      var formData = new FormData(form);
+      if (!formData.get('next')) {
+        formData.set('next', window.location.pathname + window.location.search);
+      }
+
+      button.disabled = true;
+
+      fetch(form.action, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        body: formData,
+      })
+        .then(function (response) {
+          if (!response.ok) {
+            throw new Error('Request failed');
+          }
+          return response.json();
+        })
+        .then(function (data) {
+          setCartButtonState(button, Boolean(data.in_cart));
+          updateNavCart(data);
+        })
+        .catch(function () {
+          // silence errors; nav/cart state remains unchanged
+        })
+        .finally(function () {
+          button.disabled = false;
+        });
+    });
+  }
+
+  function initCartToggleButtons() {
+    var forms = document.querySelectorAll('[data-cart-toggle]');
+    if (!forms.length) {
+      return;
+    }
+    Array.prototype.forEach.call(forms, bindCartToggle);
+  }
+
   function initPageEnhancements() {
     initTripFilters();
     initDestinationNav();
+    initCartToggleButtons();
   }
 
   if (document.readyState !== 'loading') {

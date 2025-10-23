@@ -32,7 +32,7 @@ class BookingRequestForm(forms.Form):
         widget=forms.Textarea(attrs={"rows": 4}),
     )
 
-    def __init__(self, *args, extra_choices=None, **kwargs):
+    def __init__(self, *args, extra_choices=None, require_contact=True, **kwargs):
         super().__init__(*args, **kwargs)
 
         classes = _default_classes()
@@ -57,6 +57,9 @@ class BookingRequestForm(forms.Form):
             widget = self.fields[field_name].widget
             widget.attrs["class"] = "h-8 w-12 rounded-md border border-border bg-background text-center font-semibold focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
             widget.attrs.setdefault("type", "number")
+
+        for field_name in ("name", "email", "phone"):
+            self.fields[field_name].required = require_contact
 
         self.fields["phone"].widget.attrs.setdefault("type", "tel")
         self.fields["message"].widget.attrs.setdefault("placeholder", "Tell us about any preferences or requirements")
@@ -83,4 +86,31 @@ class BookingRequestForm(forms.Form):
                 "phone",
                 "message",
             ]
+        )
+
+
+class BookingCartCheckoutForm(forms.Form):
+    name = forms.CharField(label="Full Name", max_length=150)
+    email = forms.EmailField(label="Email")
+    phone = forms.CharField(label="Phone Number", max_length=40)
+    notes = forms.CharField(
+        label="Additional Notes",
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 4}),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        classes = _default_classes()
+        for field in self.fields.values():
+            widget = field.widget
+            existing_class = widget.attrs.get("class", "")
+            widget.attrs["class"] = f"{existing_class} {classes}".strip()
+            widget.attrs.setdefault("placeholder", field.label)
+
+        self.fields["phone"].widget.attrs.setdefault("type", "tel")
+        self.fields["notes"].widget.attrs.setdefault(
+            "placeholder",
+            "Share preferences, group details, or travel notes",
         )

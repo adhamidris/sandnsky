@@ -1,5 +1,5 @@
 from decimal import Decimal, ROUND_HALF_UP
-
+import datetime as dt
 import mimetypes
 
 from django.contrib import messages
@@ -12,9 +12,21 @@ from django.urls import reverse
 from django.views import View
 from django.views.generic import TemplateView
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.template.loader import render_to_string
 
-from .forms import BookingRequestForm
-from .booking_cart import add_entry, build_cart_entry, get_contact
+from .forms import BookingRequestForm, BookingCartCheckoutForm
+from .booking_cart import (
+    add_entry,
+    build_cart_entry,
+    clear_cart,
+    get_cart,
+    get_contact,
+    remove_entry,
+    remove_trip_entries,
+    summarize_cart,
+    update_contact,
+)
 from .models import (
     BlogCategory,
     BlogPost,
@@ -28,6 +40,7 @@ from .models import (
     TripCategory,
     TripItineraryDay,
     TripRelation,
+    TripExtra,
 )
 
 
@@ -35,6 +48,8 @@ CURRENCY_SYMBOLS = {"USD": "$"}
 DEFAULT_CURRENCY = "USD"
 BOOKING_REFERENCE_SALT = "booking-success"
 BOOKING_REFERENCE_MAX_AGE = 60 * 60 * 24 * 14  # 14 days
+BOOKING_CART_REFERENCE_SALT = "booking-cart-success"
+BOOKING_CART_REFERENCE_MAX_AGE = BOOKING_REFERENCE_MAX_AGE
 
 
 def format_currency(amount, currency=DEFAULT_CURRENCY):
@@ -141,6 +156,49 @@ def load_booking_from_token(token, *, max_age=BOOKING_REFERENCE_MAX_AGE):
         .prefetch_related("trip__additional_destinations", "booking_extras__extra")
     )
     return get_object_or_404(queryset, pk=booking_id)
+
+
+def load_cart_bookings_from_token(token, *, max_age=BOOKING_CART_REFERENCE_MAX_AGE):
+    if not token:
+        raise Http404("Booking reference not provided.")
+
+    try:
+        payload = signing.loads(
+            token,
+            salt=BOOKING_CART_REFERENCE_SALT,
+            max_age=max_age,
+        )
+    except (signing.BadSignature, signing.SignatureExpired):
+        raise Http404("Booking reference invalid.")
+
+    contact_info = {}
+    if isinstance(payload, dict):
+        booking_ids = payload.get("bookings", [])
+        raw_contact = payload.get("contact", {})
+        if isinstance(raw_contact, dict):
+            contact_info = {
+                key: value for key, value in raw_contact.items() if isinstance(value, str)
+            }
+    else:
+        booking_ids = payload
+
+    if not isinstance(booking_ids, (list, tuple)) or not booking_ids:
+        raise Http404("Booking reference invalid.")
+
+    queryset = (
+        Booking.objects.select_related("trip", "trip__destination")
+        .prefetch_related("trip__additional_destinations", "booking_extras__extra")
+        .filter(pk__in=booking_ids)
+    )
+
+    bookings_map = {booking.pk: booking for booking in queryset}
+    ordered_bookings = [bookings_map.get(int(pk)) for pk in booking_ids]
+    ordered_bookings = [booking for booking in ordered_bookings if booking]
+
+    if not ordered_bookings:
+        raise Http404("Booking reference invalid.")
+
+    return ordered_bookings, contact_info
 
 
 def build_trip_card(trip):
@@ -549,7 +607,21 @@ class TripListView(TemplateView):
         filter_values = self._extract_filter_values()
         trips = self._apply_filters(trips, filter_values)
 
-        context["trips"] = [build_trip_card(trip) for trip in trips]
+        cart_summary = summarize_cart(self.request.session)
+        cart_trip_slugs = {
+            entry.get("trip_slug")
+            for entry in cart_summary.get("entries", [])
+            if entry.get("trip_slug")
+        }
+
+        context["trips"] = [
+            {
+                **build_trip_card(trip),
+                "in_cart": trip.slug in cart_trip_slugs,
+            }
+            for trip in trips
+        ]
+        context["cart_trip_slugs"] = cart_trip_slugs
         context["selected_destination"] = selected_destination
         context["destination_hero"] = destination_hero
         context["contact_actions"] = contact_actions()
@@ -732,7 +804,7 @@ class TripDetailView(TemplateView):
             )
         return self._trip
 
-    def get_form(self, data=None):
+    def get_form(self, data=None, *, require_contact=True):
         trip = self.get_trip()
         extra_choices = [
             (str(extra.pk), extra.name)
@@ -747,7 +819,12 @@ class TripDetailView(TemplateView):
                 value = contact_initial.get(field)
                 if value:
                     initial[field] = value
-        return BookingRequestForm(data=data, initial=initial, extra_choices=extra_choices)
+        return BookingRequestForm(
+            data=data,
+            initial=initial,
+            extra_choices=extra_choices,
+            require_contact=require_contact,
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -769,28 +846,32 @@ class TripDetailView(TemplateView):
 
     def post(self, request, *args, **kwargs):
         trip = self.get_trip()
-        form = self.get_form(request.POST)
         action = request.POST.get("action") or "book_only"
+        require_contact = action != "add_to_list"
+        form = self.get_form(request.POST, require_contact=require_contact)
         if form.is_valid():
             if action == "add_to_list":
+                current_cart = get_cart(request.session)
+                existing = any(
+                    entry.get("trip_id") == trip.pk
+                    for entry in current_cart.get("entries", [])
+                )
+
+                remove_trip_entries(request.session, trip.pk)
+
                 entry = build_cart_entry(trip, form.cleaned_data)
                 contact_details = {
                     key: form.cleaned_data.get(key, "")
                     for key in ("name", "email", "phone")
                 }
                 add_entry(request.session, entry, contact=contact_details)
-                messages.success(
-                    request,
-                    "Trip added to your booking list. Add more trips or submit them together once you're ready.",
-                )
                 return redirect(reverse("web:trip-detail", kwargs={"slug": trip.slug}))
 
             booking = self._create_booking(trip, form.cleaned_data)
             token = signing.dumps(booking.pk, salt="booking-success")
             success_url = f"{reverse('web:booking-success')}?ref={token}"
             return redirect(success_url)
-        else:
-            messages.error(request, "Please correct the errors below before submitting.")
+
         return self.render_to_response(self.get_context_data(form=form))
 
     @transaction.atomic
@@ -1052,6 +1133,321 @@ class TripDetailView(TemplateView):
         return nav
 
 
+class CartQuickAddView(View):
+    http_method_names = ["post"]
+
+    DEFAULT_ADULTS = 2
+
+    def post(self, request, slug):
+        if not hasattr(request, "session"):
+            raise Http404("Bookings require session support.")
+
+        trip = get_object_or_404(
+            Trip.objects.select_related("destination").prefetch_related("extras"),
+            slug=slug,
+        )
+
+        cart = get_cart(request.session)
+        entries = cart.get("entries", [])
+        has_trip = any(entry.get("trip_id") == trip.pk for entry in entries)
+
+        if has_trip:
+            remove_trip_entries(request.session, trip.pk)
+            message_text = f"{trip.title} was removed from your booking list."
+            in_cart = False
+        else:
+            cleaned_data = {
+                "date": timezone.localdate(),
+                "adults": self.DEFAULT_ADULTS,
+                "children": 0,
+                "infants": 0,
+                "extras": [],
+                "message": "",
+            }
+
+            # ensure unique by clearing any lingering duplicates
+            remove_trip_entries(request.session, trip.pk)
+
+            entry = build_cart_entry(trip, cleaned_data)
+            contact = get_contact(request.session)
+            add_entry(request.session, entry, contact=contact)
+            message_text = f"{trip.title} was added to your booking list."
+            in_cart = True
+
+        summary = summarize_cart(request.session)
+
+        is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest" or "application/json" in (request.headers.get("Accept") or "")
+
+        if is_ajax:
+            cart_label = (
+                "No trips yet"
+                if summary["count"] == 0
+                else f"{summary['count']} trip{'s' if summary['count'] != 1 else ''}"
+            )
+
+            panel_html = render_to_string(
+                "includes/navigation_cart_panel.html",
+                {
+                    "booking_cart_entries": summary["entries"],
+                    "booking_cart_currency": summary["currency"],
+                    "booking_cart_total_display": summary["total_display"],
+                },
+                request=request,
+            )
+
+            return JsonResponse(
+                {
+                    "in_cart": in_cart,
+                    "cart_count": summary["count"],
+                    "cart_label": cart_label,
+                    "panel_html": panel_html,
+                }
+            )
+
+        next_url = request.POST.get("next") or request.META.get("HTTP_REFERER")
+        if not next_url or not url_has_allowed_host_and_scheme(
+            next_url,
+            allowed_hosts={request.get_host()},
+            require_https=request.is_secure(),
+        ):
+            next_url = reverse("web:trips")
+        return redirect(next_url)
+
+
+class CartCheckoutView(TemplateView):
+    template_name = "booking_cart_checkout.html"
+    form_class = BookingCartCheckoutForm
+
+    def dispatch(self, request, *args, **kwargs):
+        if not hasattr(request, "session"):
+            raise Http404("Bookings require session support.")
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_summary(self):
+        summary = summarize_cart(self.request.session)
+        if summary:
+            return summary
+        return {
+            "entries": [],
+            "contact": {},
+            "count": 0,
+            "currency": DEFAULT_CURRENCY,
+            "total_cents": 0,
+            "total_display": "0.00",
+        }
+
+    def get_initial(self, summary):
+        contact = summary.get("contact", {}) or {}
+        return {
+            "name": contact.get("name", ""),
+            "email": contact.get("email", ""),
+            "phone": contact.get("phone", ""),
+            "notes": contact.get("notes", ""),
+        }
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        summary = kwargs.pop("summary", None)
+        if summary is None:
+            summary = self.get_summary()
+        form = kwargs.get("form") or self.form_class(initial=self.get_initial(summary))
+        context.update(
+            form=form,
+            cart_summary=summary,
+            cart_entries=summary.get("entries", []),
+            cart_contact=summary.get("contact", {}),
+            cart_total_display=summary.get("total_display", "0.00"),
+            cart_currency=summary.get("currency", DEFAULT_CURRENCY),
+            cart_has_entries=bool(summary.get("entries")),
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = request.POST.get("action")
+        if action == "remove":
+            entry_id = request.POST.get("entry_id")
+            if entry_id:
+                remove_entry(request.session, entry_id)
+                messages.info(request, "Trip removed from your booking list.")
+            else:
+                messages.error(request, "Unable to remove that trip. Please try again.")
+            return redirect(reverse("web:booking-cart-checkout"))
+
+        if action and action != "confirm":
+            return redirect(reverse("web:booking-cart-checkout"))
+
+        summary = summarize_cart(request.session)
+        form = self.form_class(data=request.POST)
+
+        if not summary.get("entries"):
+            messages.error(request, "Add at least one trip before confirming your booking list.")
+            return redirect(reverse("web:booking-cart-checkout"))
+
+        if form.is_valid():
+            cleaned = form.cleaned_data
+            update_contact(
+                request.session,
+                name=cleaned.get("name"),
+                email=cleaned.get("email"),
+                phone=cleaned.get("phone"),
+                notes=cleaned.get("notes"),
+            )
+
+            cart = get_cart(request.session)
+            try:
+                bookings = self._create_bookings(cart.get("entries", []), cleaned)
+            except Http404 as exc:
+                messages.error(request, str(exc))
+                return redirect(reverse("web:booking-cart-checkout"))
+
+            if not bookings:
+                messages.error(request, "We couldn't process your booking list. Please try again.")
+                return redirect(reverse("web:booking-cart-checkout"))
+
+            booking_ids = [booking.pk for booking in bookings]
+            contact_payload = {
+                key: cleaned.get(key, "")
+                for key in ("name", "email", "phone", "notes")
+            }
+            token = signing.dumps(
+                {"bookings": booking_ids, "contact": contact_payload},
+                salt=BOOKING_CART_REFERENCE_SALT,
+            )
+
+            clear_cart(request.session)
+            messages.success(request, "Booking request received. We'll be in touch shortly.")
+            success_url = f"{reverse('web:booking-cart-success')}?ref={token}"
+            return redirect(success_url)
+
+        return self.render_to_response(
+            self.get_context_data(form=form, summary=summary)
+        )
+
+    def _create_bookings(self, entries, contact):
+        if not entries:
+            return []
+
+        name = (contact.get("name") or "").strip()
+        email = (contact.get("email") or "").strip()
+        phone = (contact.get("phone") or "").strip()
+        notes = (contact.get("notes") or "").strip()
+
+        if not (name and email and phone):
+            return []
+
+        trip_ids = {
+            entry.get("trip_id")
+            for entry in entries
+            if entry.get("trip_id") is not None
+        }
+        trips = Trip.objects.filter(pk__in=trip_ids)
+        trip_map = {trip.pk: trip for trip in trips}
+
+        created_bookings = []
+
+        with transaction.atomic():
+            for entry in entries:
+                trip_id = entry.get("trip_id")
+                trip = trip_map.get(trip_id)
+                if trip is None:
+                    raise Http404("One of the trips in your list is no longer available.")
+
+                travel_date_raw = entry.get("travel_date")
+                if isinstance(travel_date_raw, dt.date):
+                    travel_date = travel_date_raw
+                elif isinstance(travel_date_raw, str):
+                    try:
+                        travel_date = dt.date.fromisoformat(travel_date_raw)
+                    except ValueError as exc:
+                        raise Http404("One of the trip dates is invalid. Please review your list.") from exc
+                else:
+                    raise Http404("One of the trip dates is invalid. Please review your list.")
+
+                adults = max(int(entry.get("adults") or 0), 0)
+                children = max(int(entry.get("children") or 0), 0)
+                infants = max(int(entry.get("infants") or 0), 0)
+                if adults + children <= 0:
+                    adults = 1
+
+                def cents_to_decimal(value):
+                    try:
+                        return (Decimal(str(value)) / Decimal("100")).quantize(Decimal("0.01"))
+                    except (TypeError, ValueError, ArithmeticError):
+                        return Decimal("0")
+
+                pricing = entry.get("pricing") or {}
+                base_total = cents_to_decimal(pricing.get("base_total_cents"))
+                extras_total = cents_to_decimal(pricing.get("extras_total_cents"))
+                grand_total = cents_to_decimal(pricing.get("grand_total_cents"))
+
+                if grand_total == Decimal("0"):
+                    base_price = getattr(trip, "base_price_per_person", Decimal("0"))
+                    traveler_count = max(adults + children, 1)
+                    base_total = (base_price * traveler_count).quantize(Decimal("0.01"))
+                    extras_total = Decimal("0")
+                    for extra_data in entry.get("extras", []):
+                        extras_total += cents_to_decimal(extra_data.get("price_cents"))
+                    grand_total = (base_total + extras_total).quantize(Decimal("0.01"))
+
+                entry_message = (entry.get("message") or "").strip()
+                note_sections = []
+                if entry_message:
+                    note_sections.append(entry_message)
+                if notes:
+                    note_sections.append(f"Additional notes:\n{notes}")
+                special_requests = "\n\n".join(note_sections)
+
+                booking = Booking.objects.create(
+                    trip=trip,
+                    travel_date=travel_date,
+                    adults=adults,
+                    children=children,
+                    infants=infants,
+                    full_name=name,
+                    email=email,
+                    phone=phone,
+                    special_requests=special_requests,
+                    base_subtotal=base_total,
+                    extras_subtotal=extras_total,
+                    grand_total=grand_total,
+                )
+
+                extras_data = entry.get("extras") or []
+                extra_ids = {
+                    extra.get("id")
+                    for extra in extras_data
+                    if extra.get("id") is not None
+                }
+                extras_queryset = TripExtra.objects.filter(trip=trip, pk__in=extra_ids)
+                extras_map = {extra.pk: extra for extra in extras_queryset}
+
+                booking_extras = []
+                for extra_data in extras_data:
+                    extra_id = extra_data.get("id")
+                    extra = extras_map.get(extra_id)
+                    if not extra:
+                        continue
+                    price_cents = extra_data.get("price_cents")
+                    if price_cents is None:
+                        price_value = extra.price
+                    else:
+                        price_value = cents_to_decimal(price_cents)
+                    booking_extras.append(
+                        BookingExtra(
+                            booking=booking,
+                            extra=extra,
+                            price_at_booking=price_value,
+                        )
+                    )
+
+                if booking_extras:
+                    BookingExtra.objects.bulk_create(booking_extras)
+
+                created_bookings.append(booking)
+
+        return created_bookings
+
+
 class BookingSuccessView(TemplateView):
     template_name = "booking_success.html"
     SUCCESS_LINK_MAX_AGE = BOOKING_REFERENCE_MAX_AGE
@@ -1120,6 +1516,64 @@ class BookingSuccessView(TemplateView):
             trip_url=reverse("web:trip-detail", args=[trip.slug]),
             additional_destinations=additional_destinations,
             booking_status=status,
+        )
+        return context
+
+
+class CartCheckoutSuccessView(TemplateView):
+    template_name = "booking_cart_success.html"
+    SUCCESS_LINK_MAX_AGE = BOOKING_CART_REFERENCE_MAX_AGE
+
+    def get_bookings_payload(self):
+        token = self.request.GET.get("ref")
+        return load_cart_bookings_from_token(token, max_age=self.SUCCESS_LINK_MAX_AGE)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        bookings, contact_info = self.get_bookings_payload()
+
+        itinerary = []
+        total = Decimal("0")
+
+        for booking in bookings:
+            trip = booking.trip
+            total += booking.grand_total
+            extras = [
+                {
+                    "name": record.extra.name,
+                    "price": record.price_at_booking,
+                    "price_display": format_currency(record.price_at_booking, DEFAULT_CURRENCY),
+                }
+                for record in booking.booking_extras.select_related("extra")
+            ]
+            special_requests = (booking.special_requests or "").strip()
+            itinerary.append(
+                {
+                    "trip_title": trip.title,
+                    "trip_slug": trip.slug,
+                    "travel_date_display": booking.travel_date.strftime("%b %d, %Y"),
+                    "traveler_summary": traveler_summary(
+                        booking.adults,
+                        booking.children,
+                        booking.infants,
+                    ),
+                    "grand_total_display": format_currency(booking.grand_total, DEFAULT_CURRENCY),
+                    "extras": extras,
+                    "special_requests": special_requests,
+                }
+            )
+
+        contact_display = {
+            "name": contact_info.get("name", ""),
+            "email": contact_info.get("email", ""),
+            "phone": contact_info.get("phone", ""),
+            "notes": contact_info.get("notes", ""),
+        }
+
+        context.update(
+            itinerary=itinerary,
+            contact=contact_display,
+            total_display=format_currency(total, DEFAULT_CURRENCY),
         )
         return context
 
