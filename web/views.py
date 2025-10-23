@@ -1311,8 +1311,7 @@ class CartCheckoutView(TemplateView):
             )
 
             clear_cart(request.session)
-            messages.success(request, "Booking request received. We'll be in touch shortly.")
-            success_url = f"{reverse('web:booking-cart-success')}?ref={token}"
+            success_url = f"{reverse('web:booking-success')}?ref={token}"
             return redirect(success_url)
 
         return self.render_to_response(
@@ -1340,6 +1339,7 @@ class CartCheckoutView(TemplateView):
         trip_map = {trip.pk: trip for trip in trips}
 
         created_bookings = []
+        group_reference = None
 
         with transaction.atomic():
             for entry in entries:
@@ -1393,7 +1393,7 @@ class CartCheckoutView(TemplateView):
                     note_sections.append(f"Additional notes:\n{notes}")
                 special_requests = "\n\n".join(note_sections)
 
-                booking = Booking.objects.create(
+                create_kwargs = dict(
                     trip=trip,
                     travel_date=travel_date,
                     adults=adults,
@@ -1407,6 +1407,19 @@ class CartCheckoutView(TemplateView):
                     extras_subtotal=extras_total,
                     grand_total=grand_total,
                 )
+
+                if group_reference:
+                    create_kwargs["group_reference"] = group_reference
+
+                booking = Booking.objects.create(**create_kwargs)
+
+                if group_reference is None:
+                    group_reference = booking.reference_code
+                elif booking.group_reference != group_reference:
+                    Booking.objects.filter(pk=booking.pk).update(
+                        group_reference=group_reference
+                    )
+                    booking.group_reference = group_reference
 
                 extras_data = entry.get("extras") or []
                 extra_ids = {
@@ -1446,132 +1459,190 @@ class CartCheckoutView(TemplateView):
 
 class BookingSuccessView(TemplateView):
     template_name = "booking_success.html"
-    SUCCESS_LINK_MAX_AGE = BOOKING_REFERENCE_MAX_AGE
+    SINGLE_MAX_AGE = BOOKING_REFERENCE_MAX_AGE
+    MULTI_MAX_AGE = BOOKING_CART_REFERENCE_MAX_AGE
 
-    def get_booking(self):
+    def _load_success_payload(self):
         token = self.request.GET.get("ref")
-        return load_booking_from_token(token, max_age=self.SUCCESS_LINK_MAX_AGE)
+        if not token:
+            raise Http404("Booking reference not provided.")
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        booking = self.get_booking()
-        trip = booking.trip
+        try:
+            booking = load_booking_from_token(token, max_age=self.SINGLE_MAX_AGE)
+        except Http404:
+            booking = None
 
-        billed_travelers = max(booking.adults + booking.children, 1)
-        if billed_travelers:
-            per_person_total = booking.grand_total / billed_travelers
-            per_person_phrase = f"{format_currency(per_person_total, DEFAULT_CURRENCY)} per paying traveler"
-        else:
-            per_person_total = Decimal("0")
-            per_person_phrase = ""
-
-        traveler_summary_display = traveler_summary(
-            booking.adults,
-            booking.children,
-            booking.infants,
-            per_person_phrase,
-        )
-
-        extras = [
-            {
-                "name": record.extra.name,
-                "price": record.price_at_booking,
-                "price_display": format_currency(record.price_at_booking, DEFAULT_CURRENCY),
+        if booking is not None:
+            contact_details = {
+                "name": booking.full_name,
+                "email": booking.email,
+                "phone": booking.phone,
+                "notes": booking.special_requests,
             }
-            for record in booking.booking_extras.select_related("extra")
-        ]
+            return [booking], contact_details
 
-        additional_destinations = [
-            destination.name for destination in trip.additional_destinations.all()
-        ]
-
-        pricing = {
-            "base": booking.base_subtotal,
-            "base_display": format_currency(booking.base_subtotal, DEFAULT_CURRENCY),
-            "extras": booking.extras_subtotal,
-            "extras_display": format_currency(booking.extras_subtotal, DEFAULT_CURRENCY),
-            "total": booking.grand_total,
-            "total_display": format_currency(booking.grand_total, DEFAULT_CURRENCY),
-            "currency": DEFAULT_CURRENCY,
-        }
-
-        status = {
-            "code": booking.status,
-            "label": booking.get_status_display(),
-            "note": booking.status_note,
-            "updated_at": booking.status_updated_at,
-        }
-
-        context.update(
-            booking=booking,
-            trip=trip,
-            traveler_summary=traveler_summary_display,
-            pricing=pricing,
-            extras=extras,
-            contact_actions=contact_actions(),
-            trip_url=reverse("web:trip-detail", args=[trip.slug]),
-            additional_destinations=additional_destinations,
-            booking_status=status,
+        bookings, contact_info = load_cart_bookings_from_token(
+            token, max_age=self.MULTI_MAX_AGE
         )
-        return context
-
-
-class CartCheckoutSuccessView(TemplateView):
-    template_name = "booking_cart_success.html"
-    SUCCESS_LINK_MAX_AGE = BOOKING_CART_REFERENCE_MAX_AGE
-
-    def get_bookings_payload(self):
-        token = self.request.GET.get("ref")
-        return load_cart_bookings_from_token(token, max_age=self.SUCCESS_LINK_MAX_AGE)
+        return bookings, contact_info
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        bookings, contact_info = self.get_bookings_payload()
+        bookings, contact_info = self._load_success_payload()
 
-        itinerary = []
-        total = Decimal("0")
+        if not bookings:
+            raise Http404("Booking reference invalid.")
+
+        primary_booking = bookings[0]
+        primary_trip = primary_booking.trip
+
+        summary_base = Decimal("0")
+        summary_extras = Decimal("0")
+        summary_total = Decimal("0")
+        bookings_detail = []
+        latest_status_update = primary_booking.status_updated_at
 
         for booking in bookings:
             trip = booking.trip
-            total += booking.grand_total
+            billed_travelers = max(booking.adults + booking.children, 1)
+            if billed_travelers:
+                per_person_total = booking.grand_total / billed_travelers
+                per_person_phrase = (
+                    f"{format_currency(per_person_total, DEFAULT_CURRENCY)} per paying traveler"
+                )
+            else:
+                per_person_phrase = ""
+
+            traveler_summary_display = traveler_summary(
+                booking.adults,
+                booking.children,
+                booking.infants,
+                per_person_phrase,
+            )
+
             extras = [
                 {
                     "name": record.extra.name,
                     "price": record.price_at_booking,
-                    "price_display": format_currency(record.price_at_booking, DEFAULT_CURRENCY),
+                    "price_display": format_currency(
+                        record.price_at_booking, DEFAULT_CURRENCY
+                    ),
                 }
                 for record in booking.booking_extras.select_related("extra")
             ]
-            special_requests = (booking.special_requests or "").strip()
-            itinerary.append(
+
+            additional_destinations = [
+                destination.name for destination in trip.additional_destinations.all()
+            ]
+
+            pricing = {
+                "base": booking.base_subtotal,
+                "base_display": format_currency(
+                    booking.base_subtotal, DEFAULT_CURRENCY
+                ),
+                "extras": booking.extras_subtotal,
+                "extras_display": format_currency(
+                    booking.extras_subtotal, DEFAULT_CURRENCY
+                ),
+                "total": booking.grand_total,
+                "total_display": format_currency(
+                    booking.grand_total, DEFAULT_CURRENCY
+                ),
+                "currency": DEFAULT_CURRENCY,
+            }
+
+            bookings_detail.append(
                 {
+                    "reference": booking.reference_code,
                     "trip_title": trip.title,
                     "trip_slug": trip.slug,
+                    "trip_url": reverse("web:trip-detail", args=[trip.slug]),
+                    "destination_name": trip.destination.name if trip.destination else "",
+                    "additional_destinations": additional_destinations,
                     "travel_date_display": booking.travel_date.strftime("%b %d, %Y"),
-                    "traveler_summary": traveler_summary(
-                        booking.adults,
-                        booking.children,
-                        booking.infants,
-                    ),
-                    "grand_total_display": format_currency(booking.grand_total, DEFAULT_CURRENCY),
+                    "traveler_summary": traveler_summary_display,
+                    "pricing": pricing,
                     "extras": extras,
-                    "special_requests": special_requests,
+                    "special_requests": (booking.special_requests or "").strip(),
                 }
             )
 
-        contact_display = {
-            "name": contact_info.get("name", ""),
-            "email": contact_info.get("email", ""),
-            "phone": contact_info.get("phone", ""),
-            "notes": contact_info.get("notes", ""),
+            summary_base += booking.base_subtotal
+            summary_extras += booking.extras_subtotal
+            summary_total += booking.grand_total
+
+            if booking.status_updated_at and (
+                latest_status_update is None
+                or booking.status_updated_at > latest_status_update
+            ):
+                latest_status_update = booking.status_updated_at
+
+        summary_pricing = {
+            "base": summary_base,
+            "base_display": format_currency(summary_base, DEFAULT_CURRENCY),
+            "extras": summary_extras,
+            "extras_display": format_currency(summary_extras, DEFAULT_CURRENCY),
+            "total": summary_total,
+            "total_display": format_currency(summary_total, DEFAULT_CURRENCY),
+            "currency": DEFAULT_CURRENCY,
         }
 
+        reference_codes = [booking.reference_code for booking in bookings]
+        unique_reference_codes = list(dict.fromkeys(reference_codes))
+        primary_reference = unique_reference_codes[0]
+        additional_reference_codes = unique_reference_codes[1:]
+        reference_copy = "\n".join(unique_reference_codes)
+
+        contact_details = {
+            "name": (contact_info.get("name") if isinstance(contact_info, dict) else None)
+            or primary_booking.full_name,
+            "email": (contact_info.get("email") if isinstance(contact_info, dict) else None)
+            or primary_booking.email,
+            "phone": (contact_info.get("phone") if isinstance(contact_info, dict) else None)
+            or primary_booking.phone,
+            "notes": (contact_info.get("notes") if isinstance(contact_info, dict) else None)
+            or (primary_booking.special_requests or ""),
+        }
+
+        status = {
+            "code": primary_booking.status,
+            "label": primary_booking.get_status_display(),
+            "note": primary_booking.status_note,
+            "updated_at": latest_status_update,
+        }
+
+        primary_details = bookings_detail[0]
+
         context.update(
-            itinerary=itinerary,
-            contact=contact_display,
-            total_display=format_currency(total, DEFAULT_CURRENCY),
+            booking=primary_booking,
+            primary_booking=primary_booking,
+            trip=primary_trip,
+            primary_trip=primary_trip,
+            primary_trip_url=reverse("web:trip-detail", args=[primary_trip.slug]),
+            traveler_summary=primary_details["traveler_summary"],
+            bookings_detail=bookings_detail,
+            additional_bookings=bookings_detail[1:],
+            bookings_count=len(bookings_detail),
+            multi_booking=len(bookings_detail) > 1,
+            summary_pricing=summary_pricing,
+            primary_reference=primary_reference,
+            additional_reference_codes=additional_reference_codes,
+            reference_copy=reference_copy,
+            contact_details=contact_details,
+            contact_actions=contact_actions(),
+            additional_destinations=primary_details["additional_destinations"],
+            booking_status=status,
+            booking_created_at=primary_booking.created_at,
+            primary_details=primary_details,
+            primary_travel_date_display=primary_details["travel_date_display"],
         )
         return context
+
+
+class CartCheckoutSuccessView(BookingSuccessView):
+    """Legacy endpoint retained for backwards compatibility."""
+
+    template_name = "booking_success.html"
 
 
 class BookingStatusView(View):

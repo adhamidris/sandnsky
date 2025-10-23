@@ -13,6 +13,7 @@ from .models import (
     Trip,
     TripExtra,
 )
+from .views import CartCheckoutView, BOOKING_CART_REFERENCE_SALT
 
 
 class BookingSubmissionTests(TestCase):
@@ -122,3 +123,71 @@ class BookingSubmissionTests(TestCase):
         response = self.client.get(f"{url}?ref={token}")
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, booking.reference_code)
+
+    def test_cart_checkout_uses_single_reference_for_multiple_bookings(self):
+        travel_date_one = date.today() + timedelta(days=45)
+        travel_date_two = date.today() + timedelta(days=60)
+
+        entries = [
+            {
+                "trip_id": self.trip.pk,
+                "travel_date": travel_date_one.isoformat(),
+                "adults": 2,
+                "children": 0,
+                "infants": 0,
+                "pricing": {
+                    "base_total_cents": "30000",
+                    "extras_total_cents": "0",
+                    "grand_total_cents": "30000",
+                },
+                "extras": [],
+                "message": "First adventure",
+            },
+            {
+                "trip_id": self.trip.pk,
+                "travel_date": travel_date_two.isoformat(),
+                "adults": 2,
+                "children": 1,
+                "infants": 0,
+                "pricing": {
+                    "base_total_cents": "45000",
+                    "extras_total_cents": "0",
+                    "grand_total_cents": "45000",
+                },
+                "extras": [],
+                "message": "Second adventure",
+            },
+        ]
+
+        contact = {
+            "name": "Alex Traveler",
+            "email": "alex@example.com",
+            "phone": "+20123456789",
+            "notes": "Looking forward to the journeys.",
+        }
+
+        view = CartCheckoutView()
+        bookings = view._create_bookings(entries, contact)
+
+        self.assertEqual(len(bookings), 2)
+
+        group_references = {booking.group_reference for booking in bookings}
+        self.assertEqual(len(group_references), 1)
+        shared_reference = group_references.pop()
+        self.assertTrue(shared_reference)
+
+        reference_codes = {booking.reference_code for booking in bookings}
+        self.assertEqual(reference_codes, {shared_reference})
+
+        token = signing.dumps(
+            {
+                "bookings": [booking.pk for booking in bookings],
+                "contact": contact,
+            },
+            salt=BOOKING_CART_REFERENCE_SALT,
+        )
+
+        response = self.client.get(f"{reverse('web:booking-success')}?ref={token}")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, shared_reference)
+        self.assertNotContains(response, "+1 more")

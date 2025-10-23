@@ -58,7 +58,7 @@
             <div class="space-y-2">
               <h2 class="font-serif text-xl text-foreground">{{ entry.trip_title }}</h2>
               <ul class="text-sm text-muted-foreground">
-                {% if entry.travel_date_display %}<li><span class="font-medium text-foreground">Travel date:</span> {{ entry.travel_date_display }}</li>{% endif %}
+                {% if entry.travel_date_display %}<li><span class="font-medium text-foreground">Trip date:</span> {{ entry.travel_date_display }}</li>{% endif %}
                 <li><span class="font-medium text-foreground">Travelers:</span> {{ entry.traveler_label }}</li>
               </ul>
               <div class="flex flex-wrap gap-3 text-sm">
@@ -92,6 +92,34 @@
           </article>
           {% endfor %}
         </div>
+
+        <div class="rounded-3xl bg-card p-6 shadow-[var(--shadow-subtle)]">
+          <h2 class="text-lg font-semibold text-foreground">Summary</h2>
+          <dl class="mt-4 space-y-3 text-sm text-muted-foreground">
+            <div class="flex justify-between">
+              <dt>Trips in list</dt>
+              <dd class="font-semibold text-foreground">{{ cart_summary.count }}</dd>
+            </div>
+            <div class="flex justify-between">
+              <dt>Estimated total</dt>
+              <dd class="font-semibold text-foreground">{{ cart_currency }} {{ cart_total_display }}</dd>
+            </div>
+          </dl>
+          <div class="mt-4">
+            <a href="{% url 'web:trips' %}" class="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80">
+              Add another trip
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+            </a>
+          </div>
+          <button type="submit" form="cart-checkout-form" class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-primary to-primary/80 px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:from-primary/90 hover:to-primary/80" >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4 10-10" />
+            </svg>
+            Confirm booking list
+          </button>
+        </div>
         {% else %}
         <div class="rounded-3xl bg-card p-10 text-center shadow-[var(--shadow-subtle)]">
           <p class="text-lg font-semibold text-foreground">Your booking list is empty.</p>
@@ -101,35 +129,6 @@
         {% endif %}
       </div>
     </div>
-
-    <div class="order-3 rounded-3xl bg-card p-6 shadow-[var(--shadow-subtle)] lg:order-2 lg:col-start-2 lg:row-start-2">
-      <h2 class="text-lg font-semibold text-foreground">Summary</h2>
-      <dl class="mt-4 space-y-3 text-sm text-muted-foreground">
-        <div class="flex justify-between">
-          <dt>Trips in list</dt>
-          <dd class="font-semibold text-foreground">{{ cart_summary.count }}</dd>
-        </div>
-        <div class="flex justify-between">
-          <dt>Estimated total</dt>
-          <dd class="font-semibold text-foreground">{{ cart_currency }} {{ cart_total_display }}</dd>
-        </div>
-      </dl>
-      <div class="mt-4">
-        <a href="{% url 'web:trips' %}" class="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80">
-          Add another trip
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-        </a>
-      </div>
-      <button type="submit" form="cart-checkout-form" class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-primary to-primary/80 px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:from-primary/90 hover:to-primary/80 {% if not cart_has_entries %}opacity-60 cursor-not-allowed{% endif %}" {% if not cart_has_entries %}disabled{% endif %}>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4">
-          <path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4 10-10" />
-        </svg>
-        Confirm booking list
-      </button>
-    </div>
-
   </div>
 </section>
 {% endblock %}

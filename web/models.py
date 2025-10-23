@@ -470,6 +470,8 @@ class Booking(models.Model):
 
     special_requests = models.TextField(blank=True)
 
+    group_reference = models.CharField(max_length=20, blank=True, db_index=True)
+
     # Snapshots at the time of booking
     base_subtotal = models.DecimalField(max_digits=10, decimal_places=2)
     extras_subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -497,12 +499,16 @@ class Booking(models.Model):
 
     @property
     def reference_code(self) -> str:
+        if self.group_reference:
+            return self.group_reference
         if self.pk is None:
             return "PENDING"
         timestamp = self.created_at or timezone.now()
         return f"SKY{timestamp:%y%m%d}-{self.pk:06d}"
 
     def save(self, *args, **kwargs):
+        is_new = self.pk is None
+
         if self.pk:
             previous_status = (
                 Booking.objects.filter(pk=self.pk)
@@ -518,6 +524,11 @@ class Booking(models.Model):
                 self.status_updated_at = timezone.now()
 
         super().save(*args, **kwargs)
+
+        if is_new and not self.group_reference and self.pk:
+            reference = self.reference_code
+            Booking.objects.filter(pk=self.pk).update(group_reference=reference)
+            self.group_reference = reference
 
 
 class BookingExtra(models.Model):
