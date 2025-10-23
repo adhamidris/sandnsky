@@ -4,9 +4,9 @@
 {% block title %}Booking Confirmation — {{ trip.title }}{% endblock %}
 
 {% block content %}
-<section class="bg-background px-4 py-16 sm:px-6 lg:px-8">
+<section class="booking-page bg-background px-4 py-16 sm:px-6 lg:px-8">
   <div class="mx-auto max-w-5xl space-y-10">
-    <div class="rounded-3xl border border-border bg-card px-6 py-8 shadow-subtle sm:px-10 sm:py-12">
+    <div class="booking-success rounded-3xl border border-border bg-card px-6 py-8 shadow-subtle sm:px-10 sm:py-12">
       <div class="flex flex-col gap-10">
         <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div class="flex-1 space-y-8 lg:pr-10">
@@ -90,7 +90,7 @@
 
               <div class="space-y-4">
                 <h3 class="text-sm font-semibold uppercase tracking-[0.25em] text-muted-foreground">Pricing summary (USD)</h3>
-                <div class="space-y-2 rounded-2xl border border-border bg-background/80 p-4 text-sm text-foreground">
+                <div class="price-summary space-y-2 rounded-2xl border border-border bg-background/80 p-4 text-sm text-foreground">
                   <div class="flex items-center justify-between">
                     <span>Base for travelers</span>
                     <span>{{ pricing.base_display }}</span>
@@ -136,14 +136,14 @@
             <p class="mt-2 text-muted-foreground">Share your reference <span class="font-mono text-xs text-foreground">{{ booking.reference_code }}</span> when you call, email, or WhatsApp our team.</p>
             <div class="mt-4 space-y-2">
               {% for action in contact_actions %}
-              <a href="{{ action.href }}" class="block rounded-full border border-border/60 px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" target="_blank" rel="noopener">
+              <a href="{{ action.href }}" class="contact-button block rounded-full border border-border/60 px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" target="_blank" rel="noopener">
                 {{ action.label }}
               </a>
               {% endfor %}
             </div>
           </div>
-          <div class="w-full rounded-2xl border border-dashed border-border px-5 py-5 text-xs text-muted-foreground">
-            <p class="font-semibold uppercase tracking-[0.25em] text-muted-foreground">Next steps</p>
+          <div class="next-steps w-full rounded-2xl border border-dashed border-border px-5 py-5 text-xs text-muted-foreground">
+            <p class="font-semibold uppercase tracking-[0.25em]">Next steps</p>
             <ol class="mt-3 space-y-2 text-sm">
               <li>1. Our team reviews your request and confirms availability.</li>
               <li>2. We fine-tune the itinerary with you.</li>
@@ -159,10 +159,39 @@
 
 {% block scripts %}
 <style>
-  .booking-updates {
-    background-image: url('/media/testio.png');
-    border: 0 !important;
-  }
+.booking-success {
+  background-image: url('/media/testio.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+  border: 0 !important;
+  background-color: transparent;
+  box-shadow: none !important;
+}
+
+.booking-updates {
+  background-color: transparent;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  
+}
+
+.booking-page {
+  background-color: #EBE2D3;
+}
+
+.contact-button {
+  background-color: #4e8ea2;
+  color: #EBE2D3;
+}
+
+.next-steps {
+  background-color: #4e8ea2 !important;
+  border: 0 !important;
+  color: #EBE2D3;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+
+}
+
 </style>
   {{ block.super }}
   <script>

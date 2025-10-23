@@ -1874,6 +1874,11 @@ body {
   border-color: rgb(255 255 255 / 0.2);
 }
 
+.border-sky-200 {
+  --tw-border-opacity: 1;
+  border-color: rgb(186 230 253 / var(--tw-border-opacity, 1));
+}
+
 .bg-background {
   background-color: hsl(var(--background));
 }
@@ -2029,6 +2034,19 @@ body {
 .bg-red-500 {
   --tw-bg-opacity: 1;
   background-color: rgb(239 68 68 / var(--tw-bg-opacity, 1));
+}
+
+.bg-sky-100\/80 {
+  background-color: rgb(224 242 254 / 0.8);
+}
+
+.bg-sky-50\/70 {
+  background-color: rgb(240 249 255 / 0.7);
+}
+
+.bg-sky-50 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(240 249 255 / var(--tw-bg-opacity, 1));
 }
 
 .bg-gradient-to-b {
@@ -2683,6 +2701,11 @@ body {
   color: rgb(4 120 87 / var(--tw-text-opacity, 1));
 }
 
+.text-sky-800 {
+  --tw-text-opacity: 1;
+  color: rgb(7 89 133 / var(--tw-text-opacity, 1));
+}
+
 .underline-offset-4 {
   text-underline-offset: 4px;
 }
@@ -2851,6 +2874,11 @@ body.gallery-lightbox--open {
   border-color: hsl(var(--primary) / 0.6);
 }
 
+.hover\:border-sky-300:hover {
+  --tw-border-opacity: 1;
+  border-color: rgb(125 211 252 / var(--tw-border-opacity, 1));
+}
+
 .hover\:bg-black\/80:hover {
   background-color: rgb(0 0 0 / 0.8);
 }
@@ -2861,6 +2889,16 @@ body.gallery-lightbox--open {
 
 .hover\:bg-primary\/90:hover {
   background-color: hsl(var(--primary) / 0.9);
+}
+
+.hover\:bg-sky-200:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(186 230 253 / var(--tw-bg-opacity, 1));
+}
+
+.hover\:bg-sky-100:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(224 242 254 / var(--tw-bg-opacity, 1));
 }
 
 .hover\:text-accent:hover {
@@ -2890,6 +2928,11 @@ body.gallery-lightbox--open {
 .hover\:text-white:hover {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity, 1));
+}
+
+.hover\:text-sky-900:hover {
+  --tw-text-opacity: 1;
+  color: rgb(12 74 110 / var(--tw-text-opacity, 1));
 }
 
 .hover\:shadow-medium:hover {
@@ -2937,6 +2980,10 @@ body.gallery-lightbox--open {
 
 .focus-visible\:outline-white:focus-visible {
   outline-color: #fff;
+}
+
+.focus-visible\:outline-sky-400:focus-visible {
+  outline-color: #38bdf8;
 }
 
 .group[open] .group-open\:rotate-180 {
