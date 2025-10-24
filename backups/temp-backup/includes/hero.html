@@ -1,0 +1,37 @@
+{% load static %}
+<section id="hero" class="relative flex h-screen items-center justify-center overflow-hidden">
+  <div class="absolute inset-0 overflow-hidden">
+    {% if hero.video %}
+    <video
+      class="absolute inset-0 h-full w-full object-cover md:block"
+      autoplay
+      loop
+      muted
+      playsinline
+      preload="auto"
+      {% if hero.image %}poster="{% if hero.image_is_media %}{{ hero.image }}{% else %}{% static hero.image %}{% endif %}"{% endif %}
+      data-hero-video
+      aria-hidden="true"
+    >
+      <source src="{% if hero.video_is_media %}{{ hero.video }}{% else %}{% static hero.video %}{% endif %}" type="{{ hero.video_type }}" />
+      Your browser does not support the background video.
+    </video>
+    {% endif %}
+    {% if hero.image %}
+    <div
+      class="absolute inset-0 bg-cover bg-center bg-no-repeat {% if hero.video %}md:hidden{% endif %}"
+      style="background-image: url('{% if hero.image_is_media %}{{ hero.image }}{% else %}{% static hero.image %}{% endif %}');"
+    ></div>
+    {% else %}
+    <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/50 md:hidden"></div>
+    {% endif %}
+    <div class="absolute inset-0 bg-gradient-to-b from-black/25 via-black/10 to-black/45"></div>
+  </div>
+  <div class="relative z-10 mx-auto max-w-4xl px-4 text-center animate-fade-in">
+    <h1 class="font-serif text-5xl font-bold text-white sm:text-6xl lg:text-7xl">{{ hero.title }}</h1>
+    <p class="mx-auto mt-6 max-w-2xl text-xl text-white/90 sm:text-2xl">{{ hero.subtitle }}</p>
+    <div class="mt-10 flex flex-col items-center justify-center sm:flex-row">
+      <a href="{{ hero.primary_cta.href }}" class="inline-flex items-center justify-center rounded-md bg-primary px-8 py-3 text-lg font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90">{{ hero.primary_cta.label }}</a>
+    </div>
+  </div>
+</section>

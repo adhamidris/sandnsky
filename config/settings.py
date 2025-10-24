@@ -164,6 +164,6 @@ STATIC_ROOT = "/home/adhamidris/static"
 MEDIA_URL = '/media/'
 
 # Default primary key field type
-MEDIA_ROOT = "/home/adhamidris/media"
+MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

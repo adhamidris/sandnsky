@@ -1,28 +1,49 @@
-<nav class="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex justify-between items-center h-16">
-      <div class="flex items-center">
-        <a href="/" class="text-2xl font-serif font-semibold text-primary">Sand & Sky</a>
-      </div>
-      <div class="hidden md:flex items-center space-x-8">
-        <a href="/" class="transition-colors {% if request.path == '/' %}text-primary{% else %}text-foreground hover:text-primary{% endif %}">Home</a>
-        <a href="/trips" class="transition-colors {% if request.path|slice:":6" == '/trips' %}text-primary{% else %}text-foreground hover:text-primary{% endif %}">Our Trips</a>
-        {% if request.path == '/' %}
-        <a href="#about" class="text-foreground hover:text-primary transition-colors">About</a>
-        <a href="#contact" class="text-foreground hover:text-primary transition-colors">Contact</a>
-        {% endif %}
-      </div>
-      {% with request.resolver_match as match %}
+{# templates/includes/navigation.html (example path) #}
+<header class="nav" role="banner">
+  <div class="container row" role="navigation" aria-label="Primary">
+    <!-- Mobile: menu toggle -->
+    <button class="burger" type="button" aria-label="Open menu" aria-controls="mobile-nav" aria-expanded="false" data-nav-toggle>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <!-- Brand -->
+    <a href="/" class="brand">Sand &amp; Sky</a>
+
+    <!-- Desktop links -->
+    <nav class="links desktop-links" aria-label="Primary">
+      <a href="/"
+         class="link"
+         {% if request.path == '/' %}aria-current="page"{% endif %}>
+        Home
+      </a>
+
+      <a href="/trips"
+         class="link"
+         {% if request.path|slice:":6" == '/trips' %}aria-current="page"{% endif %}>
+        Our Trips
+      </a>
+
+      {% if request.path == '/' %}
+      <a href="#about" class="link">About</a>
+      <a href="#contact" class="link">Contact</a>
+      {% endif %}
+    </nav>
+
+    <!-- CTAs (Book/Tours + Cart) -->
+    {% with request.resolver_match as match %}
+    <div class="cta">
       {% if match and match.url_name == 'trip-detail' %}
-      <div class="flex items-center gap-3">
-        <a href="#booking-form" class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90" data-mobile-sheet-open aria-controls="booking-drawer" aria-expanded="false">
+        <a href="#booking-form"
+           class="btn dark cta-btn"
+           data-mobile-sheet-open
+           aria-controls="booking-drawer"
+           aria-expanded="false">
           Book Now
         </a>
-        {% include 'includes/navigation_cart.html' %}
-      </div>
       {% else %}
-      <div class="flex items-center gap-3">
-        <a href="/trips" class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90">
+        <a href="/trips" class="btn dark cta-btn">
           {% if match %}
             {% if match.url_name == 'home' or match.url_name == 'blog-list' or match.url_name == 'blog-detail' %}
               Tours
@@ -33,10 +54,79 @@
             Book Now
           {% endif %}
         </a>
+      {% endif %}
+
+      {# cart dropdown / icon #}
+      {% include 'includes/navigation_cart.html' %}
+    </div>
+    {% endwith %}
+  </div>
+
+  <!-- Mobile panel -->
+  <div id="mobile-nav" class="mobile-panel" hidden>
+    <div class="container">
+      <nav class="mobile-links" aria-label="Mobile primary">
+        <a href="/"
+           class="mobile-link"
+           {% if request.path == '/' %}aria-current="page"{% endif %}>
+          Home
+        </a>
+
+        <a href="/trips"
+           class="mobile-link"
+           {% if request.path|slice:":6" == '/trips' %}aria-current="page"{% endif %}>
+          Our Trips
+        </a>
+
+        {% if request.path == '/' %}
+        <a href="#about" class="mobile-link" data-close-nav>About</a>
+        <a href="#contact" class="mobile-link" data-close-nav>Contact</a>
+        {% endif %}
+      </nav>
+
+      {% with request.resolver_match as match %}
+      <div class="mobile-cta">
+        {% if match and match.url_name == 'trip-detail' %}
+          <a href="#booking-form" class="btn dark cta-btn" data-close-nav data-mobile-sheet-open aria-controls="booking-drawer" aria-expanded="false">
+            Book Now
+          </a>
+        {% else %}
+          <a href="/trips" class="btn dark cta-btn" data-close-nav>
+            {% if match %}
+              {% if match.url_name == 'home' or match.url_name == 'blog-list' or match.url_name == 'blog-detail' %}
+                Tours
+              {% else %}
+                Book Now
+              {% endif %}
+            {% else %}
+              Book Now
+            {% endif %}
+          </a>
+        {% endif %}
         {% include 'includes/navigation_cart.html' %}
       </div>
-      {% endif %}
       {% endwith %}
     </div>
   </div>
-</nav>
+</header>
+
+{% block script %}
+<script>
+    (() => {
+      const btn = document.querySelector('[data-nav-toggle]');
+      const panel = document.getElementById('mobile-nav');
+      if (!btn || !panel) return;
+  
+      const setOpen = (open) => {
+        panel.hidden = !open;
+        btn.setAttribute('aria-expanded', String(open));
+        document.documentElement.classList.toggle('nav-open', open);
+      };
+  
+      btn.addEventListener('click', () => setOpen(panel.hidden));
+      panel.addEventListener('click', (e) => {
+        if (e.target.closest('[data-close-nav]')) setOpen(false);
+      });
+    })();
+  </script>
+  {% endblock %}

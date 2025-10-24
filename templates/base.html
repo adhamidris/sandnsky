@@ -5,6 +5,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{% block title %}Sand & Sky Tours{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/main.css' %}" />
     {% block head_extra %}{% endblock %}
   </head>
@@ -15,6 +18,7 @@
     </main>
     {% include 'includes/footer.html' %}
     <script src="{% static 'js/booking-form.js' %}"></script>
+    <script src="{% static 'js/main.js' %}"></script>
     {% block scripts %}{% endblock %}
   </body>
 </html>

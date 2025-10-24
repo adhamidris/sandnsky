@@ -1,0 +1,29 @@
+<div class="relative flex items-center gap-3">
+  <div class="relative group/cart">
+    <button type="button" class="group inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/80 px-3 py-2 text-sm font-medium text-foreground/85 shadow-sm backdrop-blur transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" aria-haspopup="menu">
+      <span class="sr-only">Open saved trips</span>
+      <span class="relative flex h-8 w-8 items-center justify-center rounded-full bg-primary/5 text-primary transition-colors group-hover:bg-primary/10">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" class="h-4.5 w-4.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6.5 6.25h11a1.25 1.25 0 0 1 1.22 1.5l-1.2 6a1.75 1.75 0 0 1-1.7 1.37H8.54l-.44 2.12a.75.75 0 0 1-.74.61H5.5" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4.5h2.2a1 1 0 0 1 .98.8l.2 1" />
+        </svg>
+        <span data-cart-count-badge class="absolute -top-1 -right-1 flex h-4 min-w-[0.95rem] items-center justify-center rounded-full bg-primary px-1 text-[0.6rem] font-semibold leading-none text-primary-foreground shadow-sm {% if not booking_cart_count %}hidden{% endif %}">
+          {{ booking_cart_count }}
+        </span>
+      </span>
+      <span class="hidden text-left md:flex md:flex-col md:leading-tight">
+        <span class="text-xs uppercase tracking-[0.18em] text-muted-foreground">Saved trips</span>
+        <span data-cart-label-text class="text-sm {% if booking_cart_count %}font-semibold text-foreground{% else %}text-muted-foreground{% endif %}">
+          {% if booking_cart_count %}{{ booking_cart_count }} curated{% else %}No selections{% endif %}
+        </span>
+      </span>
+    </button>
+    <div data-cart-panel class="pointer-events-none absolute right-0 z-40 mt-3 w-[min(22rem,85vw)] origin-top-right translate-y-2 rounded-2xl border border-border/80 bg-card/95 p-5 opacity-0 shadow-xl ring-1 ring-border/60 transition-all duration-200 ease-out group-hover/cart:pointer-events-auto group-hover/cart:-translate-y-0.5 group-hover/cart:opacity-100 group-focus-within/cart:pointer-events-auto group-focus-within/cart:-translate-y-0.5 group-focus-within/cart:opacity-100">
+      {% include 'includes/navigation_cart_panel.html' %}
+    </div>
+  </div>
+  <div aria-live="polite" aria-atomic="true" data-cart-toast class="pointer-events-none absolute right-0 top-full mt-2 w-max max-w-xs translate-y-1 opacity-0 transition duration-150 ease-out">
+    <span data-cart-toast-message class="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-background/95 px-3 py-1.5 text-xs font-medium text-foreground shadow-sm backdrop-blur">
+    </span>
+  </div>
+</div>

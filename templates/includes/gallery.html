@@ -1,0 +1,160 @@
+{% load static %}
+{% if gallery_section.items or gallery_section.rows %}
+<section id="gallery" class="explore" aria-labelledby="explore-title">
+  <div class="wrap">
+    <span class="eyebrow">Gallery</span>
+    <h2 id="explore-title">{{ gallery_section.title }}</h2>
+
+    <div class="ways-grid">
+
+      <article class="way-card span-2" data-gallery-card>
+        <img class="switch-img is-active" data-front alt="" />
+        <img class="switch-img" data-back alt="" />
+        <h3 class="way-title" data-gallery-title></h3>
+        <p class="way-desc" data-gallery-desc></p>
+      </article>
+
+      <article class="way-card" data-gallery-card>
+        <img class="switch-img is-active" data-front alt="" />
+        <img class="switch-img" data-back alt="" />
+        <h3 class="way-title" data-gallery-title></h3>
+        <p class="way-desc" data-gallery-desc></p>
+      </article>
+
+      <article class="way-card" data-gallery-card>
+        <img class="switch-img is-active" data-front alt="" />
+        <img class="switch-img" data-back alt="" />
+        <h3 class="way-title" data-gallery-title></h3>
+        <p class="way-desc" data-gallery-desc></p>
+      </article>
+
+      <article class="way-card" data-gallery-card>
+        <img class="switch-img is-active" data-front alt="" />
+        <img class="switch-img" data-back alt="" />
+        <h3 class="way-title" data-gallery-title></h3>
+        <p class="way-desc" data-gallery-desc></p>
+      </article>
+
+<!-- was: <aside class="way-card gallery-cta" aria-label="Gallery CTA"> -->
+  <aside class="gallery-cta" aria-label="Gallery CTA">
+    <div class="gallery-cta-inner">
+      <span class="cta-eyebrow">Gallery</span>
+      <h3 class="cta-title">Explore the beauty of Egypt</h3>
+      <p class="cta-desc">From timeless temples to silent seas of sand — see our favourite moments.</p>
+      <a class="cta-link" href="/gallery">View all gallery</a>
+    </div>
+  </aside>
+
+    </div>
+  </div>
+
+  {# Hidden data source (no visuals, fed to JS). We prefer rows; fallback to items. #}
+  <template id="gallery-data">
+    {% if gallery_section.rows %}
+      {% for row in gallery_section.rows %}
+        {% for item in row %}
+          <span data-src="{{ item.image_url }}"
+                data-alt="{{ item.alt }}"
+                data-caption="{{ item.caption|default:item.destination }}"></span>
+        {% endfor %}
+      {% endfor %}
+    {% else %}
+      {% for item in gallery_section.items %}
+        {% if item.image_url %}
+          <span data-src="{{ item.image_url }}"
+                data-alt="{{ item.alt }}"
+                data-caption="{{ item.caption|default:item.destination }}"></span>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  </template>
+</section>
+{% endif %}
+
+{% block script %}
+<script>
+(() => {
+  const section = document.getElementById('gallery');
+  if (!section) return;
+
+  const tpl = document.getElementById('gallery-data');
+  if (!tpl) return;
+
+  // Extract images array from template
+  const nodes = tpl.content.querySelectorAll('[data-src]');
+  const imgs = Array.from(nodes).map(n => ({
+    src: n.dataset.src,
+    alt: n.dataset.alt || "",
+    caption: n.dataset.caption || ""
+  })).filter(x => !!x.src);
+
+  if (!imgs.length) return;
+
+  const cards = Array.from(section.querySelectorAll('[data-gallery-card]'));
+
+  const DURATION_MS = 650;     // must match CSS transition
+  const INTERVAL_MS = 4500;    // time each image is shown
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Space out starting indices so cards don't duplicate the same image at once
+  const step = Math.max(1, Math.floor(imgs.length / Math.max(1, cards.length)));
+
+  cards.forEach((card, idx) => {
+    const front = card.querySelector('[data-front]');
+    const back  = card.querySelector('[data-back]');
+    const title = card.querySelector('[data-gallery-title]');
+    const desc  = card.querySelector('[data-gallery-desc]');
+
+    let i = (idx * step) % imgs.length;
+    let showFront = false; // we'll start by showing "back" for even preload
+
+    function setContent(el, item){
+      el.src = item.src;
+      el.alt = item.alt;
+      title.textContent = item.caption || '';
+      desc.textContent  = item.alt || '';
+    }
+
+    // Initial content
+    setContent(front, imgs[i]); i = (i + 1) % imgs.length;
+    setContent(back,  imgs[i]);
+
+    // Make "back" visible first so both are preloaded
+    back.classList.add('is-active');
+
+    const tick = () => {
+      i = (i + 1) % imgs.length;
+
+      const entering = showFront ? front : back;
+      const exiting  = showFront ? back  : front;
+
+      // Prepare next image on the hidden layer
+      setContent(entering, imgs[i]);
+
+      // Trigger swipe: exiting slides left, entering slides from right
+      entering.classList.add('is-active');       // opacity:1, translateX(0)
+      exiting.classList.add('is-exit');          // opacity:0, translateX(-8%)
+      exiting.classList.remove('is-active');
+
+      // Clean up exit class after transition ends
+      const clear = () => exiting.classList.remove('is-exit');
+      if (prefersReduced) {
+        // minimal animations: shorter cleanup
+        setTimeout(clear, 300);
+      } else {
+        exiting.addEventListener('transitionend', clear, { once: true });
+      }
+
+      showFront = !showFront;
+    };
+
+    // Start loop with a small desync jitter so all cards aren’t in lockstep
+    const jitter = Math.random() * 800;
+    setTimeout(() => {
+      tick();
+      setInterval(tick, INTERVAL_MS + Math.random() * 700);
+    }, jitter);
+  });
+})();
+</script>
+{% endblock %}

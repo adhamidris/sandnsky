@@ -1,96 +1,62 @@
-<section id="journal" class="blogo bg-secondary/30 py-24 sm:px-6 lg:px-8">
-  <div class="mx-auto max-w-7xl">
-    <div class="desti2 px-0">
-      <div class="desti mb-16 space-y-3 text-center">
-        <div class="blog-mob">
-          <p class="animated-section-label text-xs font-semibold uppercase tracking-[0.3em] text-primary">
-            Journal
-          </p>
-          <h2 class="font-serif text-3xl text-foreground sm:text-4xl">
-            {{ blog_section.title }}
-          </h2>
-        </div>
-  
-        <p class="px-4 max-w-2xl mx-auto text-sm leading-relaxed text-muted-foreground sm:text-base">
-          {{ blog_section.subtitle }}
-        </p>
-      </div>
-    </div>
-
-    
+{% load static %}
+<section id="journal" class="blogs" aria-labelledby="blogs-title">
+  <div class="wrap">
+    <h2 id="blogs-title">{{ blog_section.title }}</h2>
+    <p class="sub">{{ blog_section.subtitle }}</p>
 
     {% if blog_section.items %}
-    <div class="px-4 grid gap-10 md:grid-cols-2 xl:grid-cols-3">
-      {% for post in blog_section.items %}
-      <article class="blogi group flex h-full flex-col overflow-hidden rounded-3xl border border-border/60 bg-card/95 shadow-subtle transition-transform duration-300 hover:-translate-y-1 hover:shadow-medium">
-        {% if post.image_url %}
-        <div class="relative h-48 overflow-hidden">
-          <img src="{{ post.image_url }}" alt="{{ post.title }}" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-          <div class="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent"></div>
-          {% if post.category %}
-          <span class="absolute left-4 top-4 inline-flex items-center rounded-full bg-black/50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/85">{{ post.category }}</span>
-          {% endif %}
-        </div>
-        {% endif %}
-        <div class="flex flex-1 flex-col gap-4 p-6">
-          {% if not post.image_url and post.category %}
-          <span class="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary/90">{{ post.category }}</span>
-          {% endif %}
-          <h3 class="font-serif text-2xl text-foreground transition-colors group-hover:text-primary">{{ post.title }}</h3>
-          {% if post.subtitle %}
-          <p class="text-xs uppercase tracking-[0.2em] text-muted-foreground/80">{{ post.subtitle }}</p>
-          {% endif %}
-          {% if post.excerpt %}
-          <p class="text-sm leading-relaxed text-muted-foreground">{{ post.excerpt }}</p>
-          {% endif %}
-          <div class="mt-auto">
-            <a href="{{ post.url }}" class="inline-flex items-center gap-2 text-sm font-semibold text-primary transition-colors hover:text-primary/80">
-              {{ post.cta_label }}
-              <span aria-hidden="true">→</span>
-            </a>
-          </div>
-        </div>
-      </article>
-      {% endfor %}
-    </div>
-    <div class="mt-12 text-center">
-      <a href="{% url 'web:blog-list' %}" class="inline-flex items-center gap-2 rounded-full border border-primary/50 bg-primary/10 px-6 py-3 text-xs font-semibold uppercase tracking-[0.24em] text-primary transition-colors hover:bg-primary/20">
-        Explore all stories
-        <span aria-hidden="true">→</span>
-      </a>
-    </div>
+      <div class="blog-grid">
+        {% for post in blog_section.items %}
+          <article class="blog-card">
+            {% if post.image_url %}
+              <div class="blog-media">
+                <img
+                  src="{{ post.image_url }}"
+                  alt="{{ post.title }}"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+            {% endif %}
+
+            <div class="blog-body">
+              {% if post.category %}
+                <span class="blog-eyebrow">{{ post.category }}</span>
+              {% endif %}
+
+              <h3 class="blog-title">{{ post.title }}</h3>
+
+              {% if post.subtitle %}
+                <p class="blog-excerpt">{{ post.subtitle }}</p>
+              {% elif post.excerpt %}
+                <p class="blog-excerpt">{{ post.excerpt }}</p>
+              {% endif %}
+
+              {% if post.read_time or post.published_at %}
+                <div class="blog-meta">
+                  {% if post.read_time %}<span>{{ post.read_time }}</span>{% endif %}
+                  {% if post.read_time and post.published_at %} • {% endif %}
+                  {% if post.published_at %}<span>{{ post.published_at|date:"M Y" }}</span>{% endif %}
+                </div>
+              {% endif %}
+
+              <div class="blog-actions">
+                <a class="btn read" href="{{ post.url|default:'#' }}">
+                  {{ post.cta_label|default:"Read Article" }}
+                </a>
+              </div>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+
+      <div class="center-cta">
+        <a class="btn outline" href="{% url 'web:blog-list' %}">View All Blogs</a>
+      </div>
     {% else %}
-    <div class="rounded-3xl border border-dashed border-border/60 bg-card px-10 py-16 text-center">
-      <h3 class="font-serif text-3xl text-foreground">Our journal is growing</h3>
-      <p class="mt-4 text-base text-muted-foreground">Fresh perspectives from the desert will be arriving shortly.</p>
-    </div>
+      <div class="center-cta" style="margin-top:28px;">
+        <p class="sub">Our journal is growing — fresh perspectives from the desert will be arriving shortly.</p>
+      </div>
     {% endif %}
   </div>
 </section>
-
-<style>
-
-  .blogo {
-    background-color: #EBE2D3 !important;
-    }
-
-  .blogi {
-    background-image: url('media/testio.png');
-    background-repeat: no-repeat;
-    background-position: bottom;
-    background-size: cover;
-    background-color: #EBE2D3;
-    border: 0 !important;
-    box-shadow: none !important;
-
-  }
-
-  @media (max-width: 768px) {
-    .blog-mob {
-      background-image: url('media/blogheadfinal1.svg');
-      background-repeat: no-repeat;
-      background-position: center;
-      background-size: fill;
-    }
-  }
-</style>

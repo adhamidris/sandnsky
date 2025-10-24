@@ -1,0 +1,42 @@
+<nav class="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16">
+      <div class="flex items-center">
+        <a href="/" class="text-2xl font-serif font-semibold text-primary">Sand & Sky</a>
+      </div>
+      <div class="hidden md:flex items-center space-x-8">
+        <a href="/" class="transition-colors {% if request.path == '/' %}text-primary{% else %}text-foreground hover:text-primary{% endif %}">Home</a>
+        <a href="/trips" class="transition-colors {% if request.path|slice:":6" == '/trips' %}text-primary{% else %}text-foreground hover:text-primary{% endif %}">Our Trips</a>
+        {% if request.path == '/' %}
+        <a href="#about" class="text-foreground hover:text-primary transition-colors">About</a>
+        <a href="#contact" class="text-foreground hover:text-primary transition-colors">Contact</a>
+        {% endif %}
+      </div>
+      {% with request.resolver_match as match %}
+      {% if match and match.url_name == 'trip-detail' %}
+      <div class="flex items-center gap-3">
+        <a href="#booking-form" class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90" data-mobile-sheet-open aria-controls="booking-drawer" aria-expanded="false">
+          Book Now
+        </a>
+        {% include 'includes/navigation_cart.html' %}
+      </div>
+      {% else %}
+      <div class="flex items-center gap-3">
+        <a href="/trips" class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90">
+          {% if match %}
+            {% if match.url_name == 'home' or match.url_name == 'blog-list' or match.url_name == 'blog-detail' %}
+              Tours
+            {% else %}
+              Book Now
+            {% endif %}
+          {% else %}
+            Book Now
+          {% endif %}
+        </a>
+        {% include 'includes/navigation_cart.html' %}
+      </div>
+      {% endif %}
+      {% endwith %}
+    </div>
+  </div>
+</nav>
