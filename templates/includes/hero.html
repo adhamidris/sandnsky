@@ -1,72 +1,96 @@
 {% load static %}
 <section id="hero" class="hero relative min-h-[calc(100vh-4rem)]" aria-label="Promo">
   <!-- Media layer -->
-  <div class="hero-media" aria-hidden="true">
-    {% if hero.image %}
-      <img
-        src="{% if hero.image_is_media %}{{ hero.image }}{% else %}{% static hero.image %}{% endif %}"
-        alt=""
-        class="w-full h-full object-cover"
-        loading="eager"
-        decoding="async"
-      />
-    {% endif %}
-
-    {% if hero.video %}
-      <video
-        class="absolute inset-0 hidden h-full w-full object-cover md:block"
-        autoplay
-        loop
-        muted
-        playsinline
-        preload="auto"
-        {% if hero.image %}poster="{% if hero.image_is_media %}{{ hero.image }}{% else %}{% static hero.image %}{% endif %}"{% endif %}
-        data-hero-video
-        aria-hidden="true"
-      >
-        <source src="{% if hero.video_is_media %}{{ hero.video }}{% else %}{% static hero.video %}{% endif %}" type="{{ hero.video_type }}" />
-        Your browser does not support the background video.
-      </video>
-    {% endif %}
+  <div class="hero-media" aria-hidden="true" data-hero-slides>
+    {% for pair in hero.pairs %}
+      <div class="hero-slide{% if forloop.counter0 == hero.active_index %} is-active{% endif %}" data-hero-slide="{{ forloop.counter0 }}">
+        {% if pair.image %}
+          <img
+            src="{% if pair.image_is_media %}{{ pair.image }}{% else %}{% static pair.image %}{% endif %}"
+            alt=""
+            class="w-full h-full object-cover"
+            loading="{% if forloop.counter0 == hero.active_index %}eager{% else %}lazy{% endif %}"
+            decoding="async"
+          />
+        {% endif %}
+        {% if pair.video %}
+          <video
+            class="absolute inset-0 hidden h-full w-full object-cover md:block"
+            autoplay loop muted playsinline
+            preload="{% if forloop.counter0 == hero.active_index %}auto{% else %}metadata{% endif %}"
+            {% if pair.image %}poster="{% if pair.image_is_media %}{{ pair.image }}{% else %}{% static pair.image %}{% endif %}"{% endif %}
+            data-hero-video
+            aria-hidden="true">
+            <source src="{% if pair.video_is_media %}{{ pair.video }}{% else %}{% static pair.video %}{% endif %}" type="{{ pair.video_type }}" />
+            Your browser does not support the background video.
+          </video>
+        {% endif %}
+      </div>
+    {% endfor %}
   </div>
 
-  <!-- Overlays (theme overlay + your extra depth) -->
+  <!-- Overlays (theme overlay + depth layers) -->
   <div class="hero-overlay" aria-hidden="true"></div>
   <div class="absolute inset-0 bg-gradient-to-b from-rosesand via-clay/80 to-[hsl(var(--background))]" aria-hidden="true"></div>
   <div class="absolute inset-0 bg-gradient-to-t from-black/30 via-black/10 to-transparent mix-blend-multiply" aria-hidden="true"></div>
 
-  <!-- Content -->
+  <!-- Content (left-aligned, aligned to mini-frame top) -->
   <div class="hero-content relative z-10">
-    <div class="container mx-auto px-4 text-center">
-      <h1 class="font-serif text-4xl font-bold text-white drop-shadow-lg sm:text-6xl lg:text-7xl">
-        {{ hero.title }}
-      </h1>
-      <p class="subcopy mt-6 max-w-2xl mx-auto text-white/90 sm:text-xl">
-        {{ hero.subtitle }}
-      </p>
-
-      <div class="actions mt-8 flex items-center justify-center gap-3">
-        {# Primary CTA (required) #}
-        <a href="{{ hero.primary_cta.href }}" class="btn btn-primary">
-          {{ hero.primary_cta.label }}
-        </a>
-
-        {# Secondary CTA (optional) #}
-        {% if hero.secondary_cta and hero.secondary_cta.label and hero.secondary_cta.href %}
-          <a href="{{ hero.secondary_cta.href }}" class="btn ghost">
-            {{ hero.secondary_cta.label }}
+    <div class="container hero-inner">
+      <div class="hero-copy">
+        <h1 class="font-serif text-white drop-shadow-lg">
+          {{ hero.title }}
+        </h1>
+        <p class="subcopy">
+          {{ hero.subtitle }}
+        </p>
+        <div class="actions hero-desktop-cta">
+          <a href="{{ hero.primary_cta.href }}" class="btn btn-primary">
+            {{ hero.primary_cta.label }}
           </a>
-        {% endif %}
+        </div>
+
       </div>
     </div>
+    
 
-    <aside class="mini-frame" aria-label="Featured image">
-      <img
-        src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="
-        alt=""
-        loading="lazy"
-        decoding="async"
-      />
-    </aside>
+    {% if hero.has_overlay %}
+      <!-- Sub image: now vertical rectangle & top-aligned to content -->
+      <aside class="mini-frame portrait" aria-label="Featured image" data-hero-overlays>
+        {% for pair in hero.pairs %}
+          <div
+            class="mini-frame-media{% if forloop.counter0 == hero.first_overlay_index %} is-active{% endif %}{% if not pair.overlay %} is-empty{% endif %}"
+            data-hero-overlay="{{ forloop.counter0 }}">
+            {% if pair.overlay %}
+              <img
+                src="{% if pair.overlay_is_media %}{{ pair.overlay }}{% else %}{% static pair.overlay %}{% endif %}"
+                alt="{{ pair.overlay_alt|default:'' }}"
+                loading="{% if forloop.counter0 == hero.first_overlay_index %}eager{% else %}lazy{% endif %}"
+                decoding="async" />
+            {% endif %}
+          </div>
+        {% endfor %}
+      </aside>
+    {% endif %}
+
+    {% if hero.pairs|length > 1 %}
+    <!-- Carousel arrows (auto-hidden if only 1 pair; wired in JS) -->
+    <div class="arrows" data-hero-arrows>
+      <button class="circle-btn" aria-label="Previous slide" data-hero-prev>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="circle-btn" aria-label="Next slide" data-hero-next>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    {% endif %}
+
+    <div class="actions mobile-hero-cta">
+      <a href="{{ hero.primary_cta.href }}" class="btn btn-primary">
+        {{ hero.primary_cta.label }}
+      </a>
+    </div>
   </div>
+
+
 </section>

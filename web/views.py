@@ -282,26 +282,86 @@ class HomePageView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         site_config = SiteConfiguration.get_solo()
-        hero_video = site_config.hero_video.url if site_config.hero_video else ""
-        hero_video_is_media = bool(site_config.hero_video)
-        hero_image = ""
-        hero_image_is_media = False
+        fallback_image = ""
+        fallback_image_is_media = False
         if site_config.hero_image:
-            hero_image = site_config.hero_image.url
-            hero_image_is_media = True
-        elif not hero_video:
-            hero_image = "img/hero-pyramids.jpg"
-        hero_video_type = ""
+            fallback_image = site_config.hero_image.url
+            fallback_image_is_media = True
+        else:
+            fallback_image = "img/hero-pyramids.jpg"
+
+        fallback_video = site_config.hero_video.url if site_config.hero_video else ""
+        fallback_video_is_media = bool(site_config.hero_video)
+        fallback_video_type = ""
         if site_config.hero_video:
-            hero_video_type, _ = mimetypes.guess_type(site_config.hero_video.name)
+            fallback_video_type, _ = mimetypes.guess_type(site_config.hero_video.name)
+
+        hero_pairs = []
+        for pair in site_config.hero_pairs.all():
+            if not pair.has_media:
+                continue
+
+            pair_video = pair.hero_video.url if pair.hero_video else ""
+            pair_video_is_media = bool(pair.hero_video)
+            pair_video_type = ""
+            if pair.hero_video:
+                pair_video_type, _ = mimetypes.guess_type(pair.hero_video.name)
+
+            pair_image = ""
+            pair_image_is_media = False
+            if pair.hero_image:
+                pair_image = pair.hero_image.url
+                pair_image_is_media = True
+            elif fallback_image:
+                pair_image = fallback_image
+                pair_image_is_media = fallback_image_is_media
+
+            overlay = ""
+            overlay_is_media = False
+            if pair.overlay_image:
+                overlay = pair.overlay_image.url
+                overlay_is_media = True
+
+            hero_pairs.append(
+                {
+                    "id": pair.pk,
+                    "label": pair.label,
+                    "image": pair_image,
+                    "image_is_media": pair_image_is_media,
+                    "video": pair_video,
+                    "video_is_media": pair_video_is_media,
+                    "video_type": pair_video_type or "video/mp4",
+                    "overlay": overlay,
+                    "overlay_is_media": overlay_is_media,
+                    "overlay_alt": pair.overlay_alt,
+                }
+            )
+
+        if not hero_pairs:
+            hero_pairs.append(
+                {
+                    "id": None,
+                    "label": "",
+                    "image": fallback_image,
+                    "image_is_media": fallback_image_is_media,
+                    "video": fallback_video,
+                    "video_is_media": fallback_video_is_media,
+                    "video_type": fallback_video_type or "video/mp4",
+                    "overlay": "",
+                    "overlay_is_media": False,
+                    "overlay_alt": "",
+                }
+            )
+
+        first_overlay_index = None
+        for idx, pair in enumerate(hero_pairs):
+            if pair["overlay"]:
+                first_overlay_index = idx
+                break
+
         context["hero"] = {
             "title": site_config.hero_title,
             "subtitle": site_config.hero_subtitle,
-            "image": hero_image,
-            "image_is_media": hero_image_is_media,
-            "video": hero_video,
-            "video_is_media": hero_video_is_media,
-            "video_type": hero_video_type or "video/mp4",
             "primary_cta": {
                 "label": site_config.hero_primary_cta_label,
                 "href": site_config.hero_primary_cta_href,
@@ -310,6 +370,11 @@ class HomePageView(TemplateView):
                 "label": site_config.hero_secondary_cta_label,
                 "href": site_config.hero_secondary_cta_href,
             },
+            "pairs": hero_pairs,
+            "has_multiple_pairs": len(hero_pairs) > 1,
+            "has_overlay": first_overlay_index is not None,
+            "active_index": 0,
+            "first_overlay_index": first_overlay_index,
         }
 
         context["destinations_section"] = {

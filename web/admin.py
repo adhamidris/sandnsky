@@ -10,6 +10,7 @@ from .models import (
     Destination,
     DestinationGalleryImage,
     SiteConfiguration,
+    SiteHeroPair,
     TripCategory,
     Language,
     Trip,
@@ -36,6 +37,20 @@ class DestinationGalleryImageInline(admin.TabularInline):
     model = DestinationGalleryImage
     extra = 0
     fields = ("image", "caption", "position")
+    ordering = ("position", "id")
+
+
+class SiteHeroPairInline(admin.StackedInline):
+    model = SiteHeroPair
+    extra = 0
+    fields = (
+        "label",
+        "position",
+        "hero_image",
+        "hero_video",
+        "overlay_image",
+        "overlay_alt",
+    )
     ordering = ("position", "id")
 
 
@@ -280,6 +295,7 @@ class DestinationGalleryImageAdmin(admin.ModelAdmin):
 
 @admin.register(SiteConfiguration)
 class SiteConfigurationAdmin(admin.ModelAdmin):
+    inlines = [SiteHeroPairInline]
     fieldsets = (
         (
             "Landing Hero",
@@ -287,13 +303,23 @@ class SiteConfigurationAdmin(admin.ModelAdmin):
                 "fields": (
                     "hero_title",
                     "hero_subtitle",
-                    "hero_image",
-                    "hero_video",
                     "hero_primary_cta_label",
                     "hero_primary_cta_href",
                     "hero_secondary_cta_label",
                     "hero_secondary_cta_href",
-                )
+                ),
+                "description": "Hero pairs (see inline section) handle imagery; configure copy and links here.",
+            },
+        ),
+        (
+            "Hero Media Fallback",
+            {
+                "fields": (
+                    "hero_image",
+                    "hero_video",
+                ),
+                "description": "Optional default media used only if no hero pairs exist.",
+                "classes": ("collapse",),
             },
         ),
         (

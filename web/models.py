@@ -250,6 +250,68 @@ class SiteConfiguration(models.Model):
         return obj
 
 
+class SiteHeroPair(models.Model):
+    configuration = models.ForeignKey(
+        SiteConfiguration,
+        on_delete=models.CASCADE,
+        related_name="hero_pairs",
+    )
+    label = models.CharField(
+        max_length=150,
+        blank=True,
+        help_text="Optional internal name to help identify this pair.",
+    )
+    position = models.PositiveSmallIntegerField(
+        default=0,
+        help_text="Lower numbers appear first on the homepage hero.",
+    )
+    hero_image = models.ImageField(
+        upload_to="site/hero/pairs/",
+        blank=True,
+        help_text="Desktop/mobile hero image, or poster fallback when a video is provided.",
+    )
+    hero_video = models.FileField(
+        upload_to="site/hero/pairs/videos/",
+        blank=True,
+        validators=[FileExtensionValidator(["mp4", "webm", "mov"])],
+        help_text="Optional background video. Keep under 10 MB for best performance.",
+    )
+    overlay_image = models.ImageField(
+        upload_to="site/hero/pairs/overlay/",
+        blank=True,
+        help_text="Smaller layered image displayed on top of the hero banner.",
+    )
+    overlay_alt = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Describe the overlay image for accessibility (leave empty if decorative).",
+    )
+
+    class Meta:
+        ordering = ["position", "id"]
+        verbose_name = "Hero pair"
+        verbose_name_plural = "Hero pairs"
+
+    def __str__(self) -> str:
+        base = self.label or ""
+        if not base:
+            if self.hero_video:
+                base = self.hero_video.name
+            elif self.hero_image:
+                base = self.hero_image.name
+            elif self.overlay_image:
+                base = self.overlay_image.name
+        return base or f"Hero pair #{self.pk or 0}"
+
+    @property
+    def has_media(self) -> bool:
+        return bool(self.hero_image or self.hero_video)
+
+    @property
+    def has_overlay(self) -> bool:
+        return bool(self.overlay_image)
+
+
 # -----------------------------
 # Trips
 # -----------------------------
