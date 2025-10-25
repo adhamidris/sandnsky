@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Booking List · Sand & Sky Tours{% endblock %}
+
+{% block content %}
+<section class="bg-muted/20 py-16">
+  <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+    <h1 class="mb-6 text-center font-serif text-3xl text-foreground sm:text-4xl lg:hidden">Review &amp; confirm your booking list</h1>
+  </div>
+  <div class="mx-auto grid max-w-6xl gap-8 px-4 sm:px-6 lg:grid-cols-[2fr,1fr] lg:gap-12 lg:px-8">
+    {% if messages %}
+    <div class="lg:col-span-2">
+      <div class="rounded-3xl border border-border bg-card p-4 shadow-[var(--shadow-subtle)]">
+        <ul class="space-y-2 text-sm">
+          {% for message in messages %}
+          <li class="font-medium {% if message.tags == 'success' %}text-primary{% elif message.tags == 'error' %}text-destructive{% else %}text-muted-foreground{% endif %}">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    {% endif %}
+    <aside class="order-1 lg:order-2 lg:col-start-2 lg:row-start-1">
+      <div class="rounded-3xl bg-card p-6 shadow-[var(--shadow-medium)]">
+        <h2 class="text-lg font-semibold text-foreground">Guest details</h2>
+        <p class="mt-1 text-sm text-muted-foreground">We use this information to tailor your quote and follow up with availability.</p>
+        <form id="cart-checkout-form" method="post" action="{% url 'web:booking-cart-checkout' %}" class="mt-6 space-y-5">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="confirm" />
+          {% for field in form %}
+          <div>
+            <label class="flex justify-between text-sm font-medium text-foreground" for="{{ field.id_for_label }}">
+              <span>{{ field.label }}</span>
+              {% if field.field.required %}<span class="text-primary">*</span>{% endif %}
+            </label>
+            {{ field }}
+            {% if field.errors %}
+            <p class="mt-1 text-sm text-destructive">{{ field.errors|striptags }}</p>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </form>
+      </div>
+    </aside>
+
+    <div class="order-2 lg:order-1 lg:col-start-1 lg:row-start-1 lg:row-span-2">
+      <div class="space-y-6">
+        <header class="hidden space-y-2 lg:block">
+          <p class="text-sm uppercase tracking-wide text-muted-foreground">Your curated adventures</p>
+          <h1 class="font-serif text-4xl text-foreground">Review &amp; confirm your booking list</h1>
+          <p class="text-sm text-muted-foreground">Fine-tune your selection, update traveler details, and submit everything in one go. You can still book individual trips directly from each trip page.</p>
+        </header>
+
+        {% if cart_has_entries %}
+        <div class="divide-y divide-border overflow-hidden rounded-3xl bg-card shadow-[var(--shadow-subtle)]">
+          {% for entry in cart_entries %}
+          <article class="flex flex-col gap-4 p-6 sm:flex-row sm:items-start sm:justify-between sm:gap-6" id="cart-entry-{{ entry.id }}">
+            <div class="space-y-2">
+              <h2 class="font-serif text-xl text-foreground">{{ entry.trip_title }}</h2>
+              <ul class="text-sm text-muted-foreground">
+                {% if entry.travel_date_display %}<li><span class="font-medium text-foreground">Trip date:</span> {{ entry.travel_date_display }}</li>{% endif %}
+                <li><span class="font-medium text-foreground">Travelers:</span> {{ entry.traveler_label }}</li>
+              </ul>
+              <div class="flex flex-wrap gap-3 text-sm">
+                {% if entry.trip_slug %}
+                <a href="{% url 'web:trip-detail' entry.trip_slug %}#booking-form" class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 font-semibold text-primary transition hover:bg-primary/20">
+                  Edit trip
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 19.5 10.5M16.5 7.5 8.25 15.75 6 18l2.25-.75L16.5 9" />
+                  </svg>
+                </a>
+                {% endif %}
+                <form method="post" action="{% url 'web:booking-cart-checkout' %}" class="inline-flex">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="remove" />
+                  <input type="hidden" name="entry_id" value="{{ entry.id }}" />
+                  <button type="submit" class="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 font-semibold text-muted-foreground transition hover:bg-muted/70">
+                    Remove
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </form>
+              </div>
+            </div>
+            <div class="flex flex-col items-end gap-3">
+              <span class="rounded-full bg-primary/10 px-4 py-1 text-sm font-semibold text-primary">{{ entry.currency }} {{ entry.grand_total_display }}</span>
+              {% if entry.trip_slug %}
+              <a href="{% url 'web:trip-detail' entry.trip_slug %}" class="text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-primary">View trip details</a>
+              {% endif %}
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+
+        <div class="rounded-3xl bg-card p-6 shadow-[var(--shadow-subtle)]">
+          <h2 class="text-lg font-semibold text-foreground">Summary</h2>
+          <dl class="mt-4 space-y-3 text-sm text-muted-foreground">
+            <div class="flex justify-between">
+              <dt>Trips in list</dt>
+              <dd class="font-semibold text-foreground">{{ cart_summary.count }}</dd>
+            </div>
+            <div class="flex justify-between">
+              <dt>Estimated total</dt>
+              <dd class="font-semibold text-foreground">{{ cart_currency }} {{ cart_total_display }}</dd>
+            </div>
+          </dl>
+          <div class="mt-4">
+            <a href="{% url 'web:trips' %}" class="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80">
+              Add another trip
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+            </a>
+          </div>
+          <button type="submit" form="cart-checkout-form" class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-primary to-primary/80 px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:from-primary/90 hover:to-primary/80" >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4 10-10" />
+            </svg>
+            Confirm booking list
+          </button>
+        </div>
+        {% else %}
+        <div class="rounded-3xl bg-card p-10 text-center shadow-[var(--shadow-subtle)]">
+          <p class="text-lg font-semibold text-foreground">Your booking list is empty.</p>
+          <p class="mt-2 text-sm text-muted-foreground">Explore our curated journeys and add the ones you love. You can return here whenever you're ready.</p>
+          <a href="{% url 'web:trips' %}" class="mt-6 inline-flex items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90">Browse trips</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Booking Confirmation — {{ trip.title }}{% endblock %}
+
+{% block content %}
+<section class="booking-page bg-background px-4 py-16 sm:px-6 lg:px-8">
+  <div class="mx-auto max-w-5xl space-y-10">
+    <div class="booking-success rounded-3xl border border-border bg-card px-6 py-8 shadow-subtle sm:px-10 sm:py-12">
+      <div class="flex flex-col gap-10">
+        <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+          <div class="flex-1 space-y-8 lg:pr-10">
+            <div class="space-y-4">
+            <div>
+              <span class="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.28em] ring-1 ring-inset {% if booking_status.code == 'confirmed' %}bg-emerald-50 text-emerald-700 ring-emerald-200{% elif booking_status.code == 'cancelled' %}bg-red-50 text-red-700 ring-red-200{% else %}bg-amber-50 text-amber-700 ring-amber-200{% endif %}">
+                <span class="inline-block h-2 w-2 rounded-full {% if booking_status.code == 'confirmed' %}bg-emerald-500{% elif booking_status.code == 'cancelled' %}bg-red-500{% else %}bg-amber-500{% endif %}"></span>
+                <span>{{ booking_status.label }}</span>
+              </span>
+            </div>
+            <h1 class="font-serif text-3xl text-foreground sm:text-4xl">Thanks for choosing Sand &amp; Sky Tours</h1>
+            <p class="max-w-xl text-sm text-muted-foreground">Your travel specialist is reviewing the details and will reach out within 24 hours to confirm availability, customise the itinerary, and finalise payment arrangements.</p>
+            <dl class="mt-4 grid grid-cols-1 gap-3 text-sm text-muted-foreground sm:grid-cols-3">
+              <div>
+              <dt class="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Booking reference</dt>
+              <dd class="flex items-center gap-3 font-mono text-base text-foreground whitespace-nowrap">
+                <span data-reference-code>{{ primary_reference }}</span>
+                {% if additional_reference_codes %}
+                <span class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">(+{{ additional_reference_codes|length }} more)</span>
+                {% endif %}
+                <button type="button" class="inline-flex h-7 w-7 shrink-0 items-center justify-center text-muted-foreground transition-colors hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-copy-to-clipboard="{{ reference_copy }}" aria-label="Copy booking reference">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-3.5 w-3.5">
+                    <rect x="9" y="9" width="11" height="11" rx="2" ry="2"></rect>
+                    <path d="M5 15V5a2 2 0 0 1 2-2h10" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </button>
+                <span class="text-xs text-primary opacity-0 transition-opacity" data-copy-feedback>Copied</span>
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Status updated</dt>
+              <dd>
+                {{ booking_status.updated_at|date:"j M Y, H:i" }}
+                {% if booking_status.updated_at %}
+                ({{ booking_status.updated_at|date:"T" }})
+                {% endif %}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Submitted</dt>
+              <dd>{{ booking_created_at|date:"j M Y, H:i" }} ({{ booking_created_at|date:"T" }})</dd>
+            </div>
+          </dl>
+          {% if booking_status.note %}
+          <p class="text-xs text-muted-foreground">Note from our team: <span class="text-foreground">{{ booking_status.note }}</span></p>
+            {% endif %}
+            <p class="text-xs text-muted-foreground">No payment has been processed yet.</p>
+            <a href="{{ primary_trip_url }}" class="inline-flex items-center gap-2 text-sm font-semibold text-primary transition-colors hover:text-primary/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+              {% if multi_booking %}View primary trip details{% else %}View trip details{% endif %}
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m9 5 7 7-7 7" />
+              </svg>
+            </a>
+            </div>
+
+            <section class="space-y-8">
+              <header class="space-y-2">
+                <p class="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Trip overview</p>
+                {% if multi_booking %}
+                <h2 class="text-2xl font-serif text-foreground">Trips in your booking list</h2>
+                <p class="text-sm text-muted-foreground">You're confirming {{ bookings_count }} trip{{ bookings_count|pluralize }}. Review each itinerary below.</p>
+                {% else %}
+                <h2 class="text-2xl font-serif text-foreground">{{ trip.title }}</h2>
+                <p class="text-sm text-muted-foreground">Trip date {{ primary_travel_date_display }} · {{ traveler_summary }}</p>
+                {% endif %}
+              </header>
+
+              <div class="space-y-6">
+                {% for item in bookings_detail %}
+                <article class="space-y-6 rounded-2xl border border-border bg-background/60 p-5">
+                  <div class="space-y-2">
+                    <p class="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Trip {{ forloop.counter }}</p>
+                    <h3 class="font-serif text-xl text-foreground">{{ item.trip_title }}</h3>
+                    <p class="text-sm text-muted-foreground">Trip date {{ item.travel_date_display }} · {{ item.traveler_summary }}</p>
+                    {% if item.trip_url %}
+                    <a href="{{ item.trip_url }}" class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-primary transition-colors hover:text-primary/80">
+                      View trip details
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-3.5 w-3.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m9 5 7 7-7 7" />
+                      </svg>
+                    </a>
+                    {% endif %}
+                  </div>
+
+                  <div class="grid gap-6 sm:grid-cols-2">
+                    <div class="space-y-2 text-sm">
+                      <p class="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Primary destination</p>
+                      <p class="text-foreground">{{ item.destination_name }}</p>
+                      {% if item.additional_destinations %}
+                      <p class="text-muted-foreground">Also visiting: {{ item.additional_destinations|join:", " }}</p>
+                      {% endif %}
+                    </div>
+                    <div class="space-y-2 text-sm">
+                      <p class="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Lead traveler</p>
+                      {% if contact_details.name %}<p class="text-foreground">{{ contact_details.name }}</p>{% endif %}
+                      {% if contact_details.email or contact_details.phone %}
+                      <p class="text-muted-foreground">
+                        {% if contact_details.email %}{{ contact_details.email }}{% endif %}
+                        {% if contact_details.email and contact_details.phone %} · {% endif %}
+                        {% if contact_details.phone %}{{ contact_details.phone }}{% endif %}
+                      </p>
+                      {% endif %}
+                    </div>
+                  </div>
+
+                  {% if item.special_requests %}
+                  <div class="rounded-2xl border border-dashed border-border bg-background/60 px-4 py-4 text-sm text-muted-foreground">
+                    <p class="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Special requests</p>
+                    <p class="mt-1 whitespace-pre-line text-foreground">{{ item.special_requests }}</p>
+                  </div>
+                  {% endif %}
+
+                  <div class="space-y-4">
+                    <h3 class="text-sm font-semibold uppercase tracking-[0.25em] text-muted-foreground">Pricing summary ({{ item.pricing.currency }})</h3>
+                    <div class="price-summary space-y-2 rounded-2xl border border-border bg-background/80 p-4 text-sm text-foreground">
+                      <div class="flex items-center justify-between">
+                        <span>Base for travelers</span>
+                        <span>{{ item.pricing.base_display }}</span>
+                      </div>
+                      <div class="flex items-center justify-between">
+                        <span>Optional extras</span>
+                        <span>{{ item.pricing.extras_display }}</span>
+                      </div>
+                      <div class="border-t border-border pt-3 text-base font-semibold">
+                        <div class="flex items-center justify-between">
+                          <span>Total estimate</span>
+                          <span>{{ item.pricing.total_display }}</span>
+                        </div>
+                        <p class="mt-1 text-xs text-muted-foreground">Payable once your travel specialist confirms availability.</p>
+                      </div>
+                    </div>
+                    {% if item.extras %}
+                    <div class="rounded-2xl border border-border/70 bg-background/60 p-4 text-sm text-muted-foreground">
+                      <p class="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Included extras</p>
+                      <ul class="mt-3 space-y-2 text-foreground">
+                        {% for extra in item.extras %}
+                        <li class="flex items-center justify-between">
+                          <span>{{ extra.name }}</span>
+                          <span class="text-sm text-muted-foreground">{{ extra.price_display }}</span>
+                        </li>
+                        {% endfor %}
+                      </ul>
+                    </div>
+                    {% endif %}
+                  </div>
+                </article>
+                {% endfor %}
+              </div>
+            </section>
+          </div>
+
+          <aside class="mt-4 flex flex-col items-stretch gap-4 lg:mt-0 lg:w-72 lg:items-end">
+            <button type="button" class="inline-flex items-center gap-2 self-end rounded-full border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" onclick="window.print()">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 9V4h12v5M6 19h12v-6H6v6Zm12 0V9H6v10" />
+            </svg>
+            <span>Print or save PDF</span>
+          </button>
+          <div class="booking-updates w-full rounded-2xl border border-border/60 bg-background/80 px-5 py-5 text-sm">
+            <p class="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Need updates?</p>
+            <p class="mt-2 text-muted-foreground">Share your reference <span class="font-mono text-xs text-foreground">{{ primary_reference }}</span>{% if additional_reference_codes %} (plus {% for code in additional_reference_codes %}<span class="font-mono text-xs text-foreground">{{ code }}</span>{% if not forloop.last %}, {% endif %}{% endfor %}){% endif %} when you call, email, or WhatsApp our team.</p>
+            <div class="mt-4 space-y-2">
+              {% for action in contact_actions %}
+              <a href="{{ action.href }}" class="contact-button block rounded-full border border-border/60 px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" target="_blank" rel="noopener">
+                {{ action.label }}
+              </a>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="w-full space-y-4 rounded-2xl border border-border bg-background/80 px-5 py-5 text-sm text-muted-foreground">
+            <p class="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Booking totals ({{ summary_pricing.currency }})</p>
+            <div class="space-y-2 text-foreground">
+              <div class="flex items-center justify-between">
+                <span>Base for all travelers</span>
+                <span>{{ summary_pricing.base_display }}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span>Optional extras</span>
+                <span>{{ summary_pricing.extras_display }}</span>
+              </div>
+              <div class="border-t border-border pt-3 text-base font-semibold">
+                <div class="flex items-center justify-between">
+                  <span>Total estimate</span>
+                  <span>{{ summary_pricing.total_display }}</span>
+                </div>
+              </div>
+            </div>
+            <p class="text-xs">We'll confirm final pricing once we secure availability. Nothing is charged until you approve.</p>
+          </div>
+
+          {% if contact_details.notes %}
+          <div class="w-full rounded-2xl border border-border/60 bg-background/80 px-5 py-5 text-sm text-muted-foreground">
+            <p class="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Notes you shared</p>
+            <p class="mt-2 whitespace-pre-line text-foreground">{{ contact_details.notes }}</p>
+          </div>
+          {% endif %}
+          <div class="next-steps w-full rounded-2xl border border-dashed border-border px-5 py-5 text-xs text-muted-foreground">
+            <p class="font-semibold uppercase tracking-[0.25em]">Next steps</p>
+            <ol class="mt-3 space-y-2 text-sm">
+              <li>1. Our team reviews your request and confirms availability.</li>
+              <li>2. We fine-tune the itinerary with you.</li>
+              <li>3. You receive a secure payment link to confirm your booking.</li>
+            </ol>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.booking-success {
+  background-image: url('/media/testio.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+  border: 0 !important;
+  background-color: transparent;
+  box-shadow: none !important;
+}
+
+.booking-updates {
+  background-color: transparent;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  
+}
+
+.booking-page {
+  background-color: #EBE2D3;
+}
+
+.contact-button {
+  background-color: #4e8ea2;
+  color: #EBE2D3;
+}
+
+.next-steps {
+  background-color: #4e8ea2 !important;
+  border: 0 !important;
+  color: #EBE2D3;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+
+}
+
+</style>
+  {{ block.super }}
+  <script>
+    (function () {
+      const buttons = document.querySelectorAll('[data-copy-to-clipboard]');
+      if (!buttons.length) return;
+
+      buttons.forEach((button) => {
+        const value = button.getAttribute('data-copy-to-clipboard') || '';
+        const feedback = button.closest('dd, span, div')?.querySelector('[data-copy-feedback]');
+
+        button.addEventListener('click', async () => {
+          if (!value) return;
+          try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              await navigator.clipboard.writeText(value);
+            } else {
+              const textarea = document.createElement('textarea');
+              textarea.value = value;
+              textarea.setAttribute('readonly', 'readonly');
+              textarea.style.position = 'fixed';
+              textarea.style.opacity = '0';
+              document.body.appendChild(textarea);
+              textarea.select();
+              document.execCommand('copy');
+              document.body.removeChild(textarea);
+            }
+
+            if (feedback) {
+              feedback.style.opacity = '1';
+              window.setTimeout(() => {
+                feedback.style.opacity = '0';
+              }, 1600);
+            }
+          } catch (error) {
+            console.error('Copy failed', error);
+          }
+        });
+      });
+    })();
+  </script>
+{% endblock %}

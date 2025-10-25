@@ -464,8 +464,18 @@
   .dest-grid{display:grid; grid-template-columns:1fr; gap:26px}
   @media (min-width:820px){ .dest-grid{grid-template-columns:repeat(3,1fr)} }
   
-  .dest-card{position:relative; border-radius:16px; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,.12); border:1px solid rgba(0,0,0,.06); background:#000}
-  .dest-card img{width:100%; height:420px; object-fit:cover; display:block; filter:saturate(105%)}
+  .dest-card{position:relative; border-radius:16px; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,.12); border:1px solid rgba(0,0,0,.06); background:#000; transform:translateZ(0);}
+  .dest-card::before{content:""; position:absolute; inset:0; background:radial-gradient(circle at 20% 20%, rgba(255,255,255,.14), transparent 55%), radial-gradient(circle at 80% 30%, rgba(255,255,255,.1), transparent 50%); mix-blend-mode:screen; opacity:0; transition:opacity .45s ease; pointer-events:none;}
+  .dest-card:hover::before,
+  .dest-card:focus-visible::before{opacity:.9;}
+  .dest-card img{width:100%; height:420px; object-fit:cover; display:block; transform:scale(1); transition:transform .7s cubic-bezier(.22,.72,.18,1), filter .6s ease; filter:saturate(104%); will-change:transform;}
+  .dest-card:hover img,
+  .dest-card:focus-visible img{transform:scale(1.06) translateY(-6px); filter:saturate(116%) brightness(1.04);}
+
+@media (prefers-reduced-motion: reduce){
+  .dest-card::before{opacity:0 !important; transition:none;}
+  .dest-card img{transition:none; transform:none !important;}
+}
 @media (max-width:767px){
   .dest-card img{ height:auto; aspect-ratio:16/9; }
   .dest-card .fallback{ height:auto !important; aspect-ratio:16/9; }
@@ -482,7 +492,7 @@
   .dest-card img{ height:auto; aspect-ratio:4/3; }
 }
 
-  .dest-caption{position:absolute; left:0; right:0; bottom:0; padding:22px; text-align:center; z-index:2; color:#fff; display:flex; flex-direction:column; gap:8px}
+ .dest-caption{position:absolute; left:0; right:0; bottom:0; padding:22px; text-align:center; z-index:2; color:#fff; display:flex; flex-direction:column; gap:8px}
   .destinations .fallback-title{ display:none !important; }
   .dest-caption h3{font-family:"Papyrus", fantasy; margin:0 0 6px; font-size:21px; text-shadow:0 10px 30px rgba(0,0,0,.4)}
   .dest-caption p{margin:0; margin-top:auto; font-size:12px; color:rgba(255,255,255,.85)}
@@ -707,20 +717,23 @@
   .blogs .wrap{max-width:1200px; margin:0 auto; padding:72px 24px}
   .blogs h2{font-family:"Libre Baskerville",serif; text-align:center; font-size:clamp(26px,3.2vw,34px); margin:0 0 10px}
   .blogs p.sub{max-width:70ch; margin:0 auto 32px; text-align:center; color:#6b6b6b}
-  .blog-grid{display:grid; grid-template-columns:1fr; gap:26px}
-  @media (min-width:900px){ .blog-grid{grid-template-columns:repeat(3,1fr)} }
-  .blog-card{display:flex; flex-direction:column; background:#fff; border:1px solid rgba(0,0,0,.06); border-radius:18px; overflow:hidden; box-shadow:0 18px 45px rgba(17,24,39,.12); height: 100%;}
-  .blog-media{position:relative;}
-  .blog-media img{width:100%; height:220px; object-fit:cover; display:block}
-  @media (min-width:900px){ .blog-media img{height:240px} }
-  .blog-body{padding:18px 18px 20px; display:flex; flex-direction:column; height:100%;}
+  .blog-grid{display:grid; grid-template-columns:1fr; gap:28px; align-items:start}
+  @media (min-width:640px){ .blog-grid{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  @media (min-width:1120px){ .blog-grid{grid-template-columns:repeat(3,minmax(0,1fr));} }
+  .blog-card{display:flex; flex-direction:column; background:#fff; border:1px solid rgba(0,0,0,.06); border-radius:18px; overflow:hidden; box-shadow:0 18px 45px rgba(17,24,39,.12); position:relative;}
+  .blog-media{position:relative; aspect-ratio:4/3; overflow:hidden;}
+  .blog-media img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block}
+  .blog-body{padding:20px 22px 22px; display:flex; flex-direction:column; gap:14px; height:100%;}
   .blog-eyebrow{display:inline-block; font:700 11px/1 Inter,system-ui; letter-spacing:.18em; text-transform:uppercase; color:#8a3d28; margin-bottom:8px}
-  .blog-title{font-family:"Libre Baskerville",serif; font-size:20px; margin:0 0 8px; color:#111; overflow-wrap:anywhere;}
-  .blog-excerpt{margin:0 0 14px; color:#4a4a4a; font-size:14px; line-height:1.5}
-  .blog-meta{display:flex; gap:10px; align-items:center; color:#6b6b6b; font-size:12px}
-  .blog-actions{margin-top:auto}
-  .btn.read{background:#111; color:#fff; border-color:rgba(0,0,0,.85)}
-  .blogs .center-cta{margin-top:34px}
+  .blog-title{font-family:"Libre Baskerville",serif; font-size:20px; margin:0; color:#111; overflow-wrap:anywhere;}
+  .blog-subtitle{margin:0; font:600 11px/1.4 Inter,system-ui; letter-spacing:.2em; text-transform:uppercase; color:#8a3d28; opacity:.9;}
+  .blog-excerpt{margin:0; color:#4a4a4a; font-size:14px; line-height:1.55; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;}
+  .blog-meta{display:flex; gap:10px; align-items:center; color:#6b6b6b; font-size:12px; flex-wrap:wrap;}
+  .blog-actions{margin-top:12px; padding-top:0; display:flex; justify-content:flex-end;}
+  .blog-link{position:relative; display:inline-flex; align-items:center; gap:6px; font:600 13px/1.1 Inter,system-ui; letter-spacing:.12em; text-transform:uppercase; color:#8a3d28; text-decoration:none;}
+  .blog-link::after{content:""; position:absolute; left:0; right:0; bottom:-4px; height:1.5px; background:currentColor; opacity:.45; transition:opacity .2s ease;}
+  .blog-link:hover::after{opacity:1;}
+  .blogs .center-cta{margin-top:34px; text-align:center}
   
   /* ==============================
      12) Component: Navigation Cart (theme-styled)

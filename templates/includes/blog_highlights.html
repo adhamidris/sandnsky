@@ -27,8 +27,10 @@
               <h3 class="blog-title">{{ post.title }}</h3>
 
               {% if post.subtitle %}
-                <p class="blog-excerpt">{{ post.subtitle }}</p>
-              {% elif post.excerpt %}
+                <p class="blog-subtitle">{{ post.subtitle }}</p>
+              {% endif %}
+
+              {% if post.excerpt %}
                 <p class="blog-excerpt">{{ post.excerpt }}</p>
               {% endif %}
 
@@ -41,8 +43,8 @@
               {% endif %}
 
               <div class="blog-actions">
-                <a class="btn read" href="{{ post.url|default:'#' }}">
-                  {{ post.cta_label|default:"Read Article" }}
+                <a class="blog-link" href="{{ post.url|default:'#' }}">
+                  {{ post.cta_label|default:"Read Article" }} &rsaquo;
                 </a>
               </div>
             </div>

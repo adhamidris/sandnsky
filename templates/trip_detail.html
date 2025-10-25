@@ -1,0 +1,578 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ trip.title }} — Nile Dreams{% endblock %}
+
+{% block content %}
+<header class="relative isolate overflow-hidden bg-black text-white">
+{% if trip.hero_image_url %}
+<img src="{{ trip.hero_image_url }}" alt="{{ trip.title }}" class="absolute inset-0 h-full w-full object-cover" />
+{% else %}
+<div class="absolute inset-0 h-full w-full bg-gradient-to-br from-primary/60 to-primary-dark/80"></div>
+{% endif %}
+<div class="absolute inset-0 bg-gradient-to-b from-black/25 via-black/10 to-black/50"></div>
+
+  <div class="relative z-10 mx-auto max-w-7xl px-4 pb-16 pt-28 sm:px-6 lg:px-8">
+    <nav class="flex items-center gap-2 text-sm text-white/70" aria-label="Breadcrumb">
+      {% for crumb in trip.breadcrumbs %}
+      {% if crumb.url %}
+      <a href="{{ crumb.url }}" class="hover:text-white">{{ crumb.label }}</a>
+      <span aria-hidden="true">›</span>
+      {% else %}
+      <span aria-current="page" class="text-white">{{ crumb.label }}</span>
+      {% endif %}
+      {% endfor %}
+    </nav>
+
+    <div class="mt-10 grid gap-12 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
+      <div class="space-y-8">
+        <div class="space-y-4">
+          <h1 class="font-serif text-4xl leading-tight sm:text-5xl">{{ trip.title }}</h1>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 text-sm text-white/75">
+          <div class="flex flex-wrap items-center gap-2">
+            {% for fact in trip.key_facts|slice:":3" %}
+            <span class="inline-flex items-center gap-3 rounded-full bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white/80">
+              <span aria-hidden="true" class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/15 text-white">
+                {% if fact.sr == "Duration" %}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-3.5 w-3.5">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 7.5V12l2.5 2.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                {% elif fact.sr == "Tour type" %}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-3.5 w-3.5">
+                  <path d="M5 7h14M5 12h14M5 17h7" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                {% elif fact.sr == "Group size" %}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-3.5 w-3.5">
+                  <path d="M7.5 20a4.5 4.5 0 0 1 9 0M9 9.5a3 3 0 1 1 6 0M4 19v-1a4 4 0 0 1 3-3.873M20 19v-1a4 4 0 0 0-3-3.873M6.5 9a2.5 2.5 0 1 1 1 0M17.5 9a2.5 2.5 0 1 1 1 0" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                {% elif fact.sr == "Languages" %}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-3.5 w-3.5">
+                  <path d="M4 5h16M4 19h9M11 5c-.5 3-2.5 6-5 7.5M13 5c.5 3 2.5 6 5 7.5M12 12.5c1.333 1 2 2 2 3.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                {% else %}
+                <span class="text-xs font-semibold">•</span>
+                {% endif %}
+              </span>
+              <span>{{ fact.label }}</span>
+              <span class="sr-only">{{ fact.sr }}</span>
+            </span>
+            {% endfor %}
+          </div>
+          <span class="h-5 w-px bg-white/25"></span>
+          <div class="flex items-center gap-3 text-xs font-semibold uppercase tracking-wide">
+            <button type="button" class="inline-flex items-center gap-2 rounded-full border border-white/20 px-3 py-1.5 text-white/80 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white" data-share-trigger>
+              <span aria-hidden="true" class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/15 text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-3.5 w-3.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25 12 4.5l4.5 3.75M12 5v13.5" />
+                </svg>
+              </span>
+              <span>Share</span>
+            </button>
+            <button type="button" class="inline-flex items-center gap-2 rounded-full border border-white/20 px-3 py-1.5 text-white/80 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white" data-save-trigger>
+              <span aria-hidden="true" class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/15 text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-3.5 w-3.5">
+                  <path d="M12 19.5s-6.75-3.9-6.75-9A4.25 4.25 0 0 1 12 7.25 4.25 4.25 0 0 1 18.75 10.5c0 5.1-6.75 9-6.75 9Z" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </span>
+              <span>Save</span>
+            </button>
+          </div>
+        </div>
+
+        {% if trip.lead %}
+        <p class="max-w-2xl text-lg text-white/85">{{ trip.lead }}</p>
+        {% endif %}
+        {% if trip.overview_paragraphs %}
+        <a href="#about" class="inline-flex items-center gap-2 text-sm font-medium text-primary transition-colors hover:text-primary/80">
+          <span>Full trip overview</span>
+          <span aria-hidden="true">↘</span>
+        </a>
+        {% endif %}
+      </div>
+
+      <aside class="hidden lg:block lg:shrink-0 lg:basis-80">
+        <div class="sticky top-24">
+          <div class="rounded-2xl border border-border/60 bg-background/95 p-6 text-sm shadow-2xl backdrop-blur" data-trip-summary>
+            <div class="space-y-5">
+              <div class="space-y-1">
+                <p class="text-xs uppercase tracking-wide text-muted-foreground">From</p>
+                <p class="text-3xl font-serif text-primary">{{ pricing.base_price_display }}</p>
+                <p class="text-xs text-muted-foreground">Per traveler · Taxes included</p>
+              </div>
+
+              <dl class="space-y-3">
+                {% if trip.tour_length %}
+                <div class="flex items-start justify-between gap-6 text-sm text-foreground">
+                  <dt class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Duration</dt>
+                  <dd class="text-right">{{ trip.tour_length }}</dd>
+                </div>
+                {% endif %}
+                {% if trip.destinations %}
+                <div class="flex items-start justify-between gap-6 text-sm text-foreground">
+                  <dt class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Destinations</dt>
+                  <dd class="text-right">{{ trip.destinations }}</dd>
+                </div>
+                {% endif %}
+                <div class="flex items-start justify-between gap-6 text-sm text-foreground">
+                  <dt class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Availability</dt>
+                  <dd class="text-right">Flexible start dates</dd>
+                </div>
+              </dl>
+
+              <div class="space-y-3">
+                {% if trip_in_cart %}
+                <p class="text-center text-xs font-medium text-primary">This trip is already in your booking list.</p>
+                {% endif %}
+                <button type="button" class="inline-flex w-full items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-mobile-sheet-open aria-controls="booking-drawer" aria-expanded="false">
+                  {% if trip_in_cart %}Review &amp; confirm{% else %}Start booking{% endif %}
+                </button>
+                <p class="text-center text-xs text-muted-foreground">No payment required at this stage.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <div class="booking-floater hidden lg:flex justify-end" data-booking-floater aria-hidden="true">
+    <div class="flex w-auto max-w-[34rem] items-center justify-between gap-6 rounded-full bg-white/95 px-10 py-4 text-sm text-foreground shadow-2xl ring-1 ring-black/5 backdrop-blur">
+      <div class="flex flex-col text-left">
+        <span class="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">From</span>
+        <span class="text-lg font-semibold text-foreground">{{ pricing.base_price_display }}</span>
+        <span class="text-xs text-muted-foreground">{{ trip.tour_length }}</span>
+      </div>
+      <button type="button" class="inline-flex items-center gap-3 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-mobile-sheet-open aria-controls="booking-drawer" aria-expanded="false">
+        <span>{% if trip_in_cart %}Review &amp; confirm{% else %}Book this trip{% endif %}</span>
+        <span aria-hidden="true" class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary/15 text-primary-foreground">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m9 6 6 6-6 6" />
+          </svg>
+        </span>
+      </button>
+      {% if trip_in_cart %}
+      <span class="text-xs font-medium text-primary/80">This trip is already in your booking list.</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <noscript>
+    <div class="mt-10 rounded-2xl border border-border bg-white p-6 text-sm text-foreground shadow-2xl">
+      <div class="space-y-1">
+        <p class="text-xs uppercase tracking-wide text-muted-foreground">Estimated total</p>
+        <p class="text-3xl font-serif text-primary">{{ pricing.total_display }}</p>
+        <p class="text-xs text-muted-foreground">Estimate · {{ pricing.traveler_summary_display }}</p>
+      </div>
+
+      <details class="group mt-6 rounded-lg border border-border bg-card p-4" open>
+        <summary class="flex cursor-pointer items-center justify-between text-sm font-semibold text-foreground">
+          <span>Price breakdown</span>
+          <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />
+            </svg>
+          </span>
+        </summary>
+        <div class="mt-3 space-y-2 text-sm text-muted-foreground">
+          <div class="flex items-center justify-between">
+            <span>Base</span>
+            <span>{{ pricing.base_total_display }}</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span>Extras</span>
+            <span>{{ pricing.extras_total_display }}</span>
+          </div>
+          <div class="border-t border-border pt-3 text-foreground">
+            <div class="flex items-center justify-between text-base font-semibold">
+              <span>Total</span>
+              <span>{{ pricing.total_display }}</span>
+            </div>
+            <p class="mt-1 text-xs text-muted-foreground">Charged in {{ pricing.currency|upper }}.</p>
+          </div>
+        </div>
+      </details>
+
+      <div class="mt-6">
+        {% include "includes/booking_form.html" %}
+      </div>
+    </div>
+  </noscript>
+
+  <div class="lg:hidden">
+    <div class="fixed inset-x-4 bottom-4 z-40 flex items-center justify-between rounded-full bg-white px-5 py-3 shadow-xl">
+      <div class="text-sm">
+        <p class="font-semibold text-foreground">{{ pricing.base_price_display }}</p>
+        <p class="text-xs text-muted-foreground">{{ trip.tour_length }}</p>
+      </div>
+      <button type="button" class="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-mobile-sheet-open aria-expanded="false" aria-controls="booking-drawer">
+        Book
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="booking-drawer" data-mobile-sheet-container aria-hidden="true">
+  <div class="booking-card__overlay booking-drawer__overlay" data-mobile-sheet-overlay aria-hidden="true"></div>
+  <div class="booking-card booking-drawer__panel border border-border bg-white text-sm text-foreground shadow-2xl" data-mobile-sheet data-booking-root role="dialog" aria-modal="true" aria-hidden="true" id="booking-drawer">
+    <div class="flex w-full flex-1 flex-col gap-6 overflow-hidden p-6" data-mobile-sheet-content>
+      <div class="booking-card__mobile-header flex items-start justify-between lg:hidden">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Booking details</p>
+          <p class="text-sm text-muted-foreground">Complete the steps to secure your spot.</p>
+        </div>
+        <button type="button" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-mobile-sheet-close aria-label="Close booking form">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M7 7l10 10M17 7 7 17" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto pr-2 scrollbar-none lg:pr-0" data-booking-scroll>
+        <div class="space-y-6 pb-6">
+          <div class="sticky top-0 z-10 space-y-1 bg-white pb-4">
+            <p class="text-xs uppercase tracking-wide text-muted-foreground">Estimated total</p>
+            <p class="text-3xl font-serif text-primary" data-booking-total>{{ pricing.total_display }}</p>
+            <p class="text-xs text-muted-foreground" data-traveler-summary>
+              Estimate · {{ pricing.traveler_summary_display }}
+            </p>
+          </div>
+
+          <details class="group rounded-lg border border-border bg-card p-4" data-module="price-breakdown">
+            <summary class="flex cursor-pointer items-center justify-between text-sm font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+              <span>Price breakdown</span>
+              <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground transition-transform group-open:rotate-180" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />
+                </svg>
+              </span>
+            </summary>
+            <div class="mt-3 space-y-2 text-sm text-muted-foreground">
+              <div class="flex items-center justify-between">
+                <span>Base</span>
+                <span data-booking-base>{{ pricing.base_total_display }}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span>Extras</span>
+                <span data-booking-extras>{{ pricing.extras_total_display }}</span>
+              </div>
+              <div class="border-t border-border pt-3 text-foreground">
+                <div class="flex items-center justify-between text-base font-semibold">
+                  <span>Total</span>
+                  <span data-booking-total>{{ pricing.total_display }}</span>
+                </div>
+                <p class="mt-1 text-xs text-muted-foreground">Charged in {{ pricing.currency|upper }}.</p>
+                <p class="mt-2 text-xs text-muted-foreground" data-traveler-summary>
+                  Estimate · {{ pricing.traveler_summary_display }}
+                </p>
+              </div>
+            </div>
+          </details>
+
+          {% include "includes/booking_form.html" %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if trip.anchor_nav %}
+<nav class="sticky top-16 z-20 hidden bg-background border-b border-border/60 shadow-sm backdrop-blur lg:block" aria-label="Section navigation">
+  <div class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 py-3 text-sm text-muted-foreground">
+    <div class="flex flex-1 items-center gap-3 overflow-x-auto">
+      {% for anchor in trip.anchor_nav %}
+      <a href="#{{ anchor.target }}" class="whitespace-nowrap rounded-full px-3 py-1 text-muted-foreground transition-colors hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">{{ anchor.label }}</a>
+      {% endfor %}
+    </div>
+    {% if trip.contact_actions %}
+    <div class="flex shrink-0 items-center gap-4 whitespace-nowrap text-foreground">
+      <div class="text-right">
+          <p class="text-[11px] tracking-[0.3em] text-muted-foreground">Speak with our travel team</p>
+        </div>
+        <div class="flex items-center gap-2">
+          {% for action in trip.contact_actions %}
+          {% if action.icon == "whatsapp" %}
+          {% with whatsapp_message="Hello Sand & Sky Tours, I would like to know more about "|add:trip.title|add:" "|add:request.build_absolute_uri|add:"." %}
+          <a href="https://wa.me/201108741159?text={{ whatsapp_message|urlencode }}" class="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" aria-label="{{ action.aria }}" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-3.5 w-3.5 text-primary">
+              <path d="M12.04 2a9.84 9.84 0 0 0-8.8 14.48L2 22l5.66-1.22A9.83 9.83 0 1 0 12.04 2Zm0 17.73c-1.57 0-3.11-.41-4.46-1.17l-.32-.18-3.36.72.72-3.26-.2-.33A7.86 7.86 0 1 1 12.04 19.73Zm4.38-5.83c-.24-.12-1.43-.7-1.65-.78-.22-.08-.38-.12-.54.12-.16.24-.62.78-.76.94-.14.16-.28.18-.52.06-.24-.12-1-.37-1.9-1.2-.7-.63-1.18-1.4-1.32-1.64-.14-.24-.02-.37.1-.49.1-.09.24-.24.36-.36.12-.12.16-.2.24-.34.08-.14.04-.27-.02-.39-.06-.12-.54-1.31-.74-1.79-.2-.48-.4-.41-.54-.42h-.46c-.16 0-.4.06-.62.3-.22.24-.84.82-.84 2s.86 2.36.98 2.52c.12.16 1.7 2.6 4.12 3.65.58.25 1.03.4 1.38.52.58.18 1.12.16 1.54.1.47-.07 1.43-.58 1.63-1.14.2-.56.2-1.04.14-1.14-.06-.1-.22-.16-.46-.28Z" />
+            </svg>
+            <span>{{ action.label }}</span>
+          </a>
+          {% endwith %}
+          {% else %}
+          <a href="{{ action.href }}" class="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" aria-label="{{ action.aria }}">
+            {% if action.icon == "phone" %}
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-3.5 w-3.5 text-primary">
+              <path d="M6.5 3h2l1.5 4-2 1c1 2.5 2.9 4.4 5.4 5.4l1-2 4 1.5v2c0 1-1 2-2 2A14 14 0 0 1 4.5 5c0-1 1-2 2-2Z" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            {% elif action.icon == "mail" %}
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-3.5 w-3.5 text-primary">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 5h15a1.5 1.5 0 0 1 1.5 1.5v11a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5v-11A1.5 1.5 0 0 1 4.5 5Zm0 0 7.5 6 7.5-6" />
+            </svg>
+            {% else %}
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-3.5 w-3.5 text-primary">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14" />
+            </svg>
+            {% endif %}
+            <span>{{ action.label }}</span>
+          </a>
+          {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</nav>
+{% endif %}
+
+<section id="highlights" class="bg-background px-4 py-16 sm:px-6 lg:px-8 scroll-mt-32">
+  <div class="mx-auto max-w-7xl">
+    <h2 class="font-serif text-3xl text-foreground">Trip highlights</h2>
+    <p class="mt-4 max-w-3xl text-sm text-muted-foreground">See the signature moments that make this journey unforgettable before diving into the details.</p>
+    <div class="mt-8 grid gap-6 md:grid-cols-2">
+      {% for highlight in trip.highlights %}
+      <div class="flex items-start gap-3 rounded-xl border border-border bg-card p-4">
+        <span class="mt-1 inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m6 12 3.5 3.5L18 6.5" />
+          </svg>
+        </span>
+        <p class="text-sm text-muted-foreground">{{ highlight }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% if trip.overview_paragraphs %}
+<section id="about" class="bg-muted px-4 py-16 sm:px-6 lg:px-8 scroll-mt-32">
+  <div class="mx-auto max-w-7xl space-y-6">
+    <h2 class="font-serif text-3xl text-foreground">About this experience</h2>
+    <p class="text-sm text-muted-foreground">Understand the rhythm of the day, how we host, and what makes this itinerary different.</p>
+    <div class="mt-6 space-y-4 text-base text-muted-foreground">
+      {% for paragraph in trip.overview_paragraphs %}
+      <p>{{ paragraph }}</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section id="itinerary" class="bg-background px-4 py-16 sm:px-6 lg:px-8 scroll-mt-32">
+  <div class="mx-auto max-w-7xl">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-baseline sm:justify-between">
+      <h2 class="font-serif text-3xl text-foreground">Day-by-day itinerary</h2>
+      <button type="button" class="inline-flex items-center gap-2 self-start rounded-full border border-transparent px-4 py-2 text-sm font-semibold text-primary transition-colors hover:text-primary/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-expand-itinerary data-expanded-label="Collapse all" aria-pressed="false">
+        <span>Expand all</span>
+      </button>
+    </div>
+    <p class="mt-4 max-w-3xl text-sm text-muted-foreground">Preview each day’s pacing, headline experiences, and optional moments so you can see how the trip unfolds.</p>
+    <div class="mt-8 space-y-4">
+      {% for day in trip.itinerary_days %}
+      <details class="group overflow-hidden rounded-2xl border border-border bg-card" {% if forloop.first %}open{% endif %}>
+        <summary class="flex cursor-pointer items-center justify-between gap-4 px-6 py-4 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+          <div>
+            <p class="text-xs uppercase tracking-wide text-muted-foreground">{{ day.title }}</p>
+            <p class="text-lg font-semibold text-foreground">{{ day.summary }}</p>
+          </div>
+          <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground transition-transform group-open:rotate-180" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />
+            </svg>
+          </span>
+        </summary>
+        <div class="border-t border-border bg-background px-6 py-6">
+          <div class="space-y-4 text-left text-sm text-muted-foreground">
+            {% for activity in day.activities %}
+            <div class="flex items-start gap-3">
+              <span class="mt-1 inline-flex h-2.5 w-2.5 flex-shrink-0 rounded-full bg-primary" aria-hidden="true"></span>
+              <div class="space-y-1">
+                <div class="font-semibold text-foreground">
+                  {% if activity.time %}
+                  <span class="mr-2 text-primary">{{ activity.time }}</span>
+                  {% endif %}
+                  {{ activity.title }}
+                </div>
+                {% if activity.description %}
+                <p class="text-sm text-muted-foreground">{{ activity.description }}</p>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </details>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section id="included" class="bg-muted px-4 py-16 sm:px-6 lg:px-8 scroll-mt-32">
+  <div class="mx-auto max-w-7xl">
+    <h2 class="font-serif text-3xl text-foreground">What's included</h2>
+    <p class="mt-4 max-w-3xl text-sm text-muted-foreground">Know exactly what’s covered and where you may want to budget for personal touches or upgrades.</p>
+    <div class="mt-8 grid gap-8 lg:grid-cols-2">
+      <div class="space-y-3">
+        <h3 class="text-lg font-semibold text-foreground">Included</h3>
+        <ul class="space-y-3 text-sm text-muted-foreground">
+          {% for item in trip.included %}
+          <li class="flex items-start gap-3">
+            <span class="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m6 12 3.5 3.5L18 6.5" />
+              </svg>
+            </span>
+            <span>{{ item }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="space-y-3">
+        <h3 class="text-lg font-semibold text-foreground">Not included</h3>
+        <ul class="space-y-3 text-sm text-muted-foreground">
+          {% for item in trip.not_included %}
+          <li class="flex items-start gap-3">
+            <span class="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-red-50 text-red-600">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7 7l10 10M17 7 7 17" />
+              </svg>
+            </span>
+            <span>{{ item }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faqs" class="bg-background px-4 py-16 sm:px-6 lg:px-8 scroll-mt-32">
+  <div class="mx-auto max-w-7xl">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <h2 class="font-serif text-3xl text-foreground">Frequently asked questions</h2>
+      <button type="button" class="inline-flex items-center gap-2 self-start rounded-full border border-transparent px-4 py-2 text-sm font-semibold text-primary transition-colors hover:text-primary/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-expand-faq data-expanded-label="Collapse all" aria-pressed="false">
+        <span>Expand all</span>
+      </button>
+    </div>
+    <p class="mt-4 max-w-3xl text-sm text-muted-foreground">Find quick answers to the most common booking and travel questions from fellow guests.</p>
+    <div class="mt-8 space-y-4">
+      {% for faq in trip.faqs %}
+      <details class="group rounded-2xl border border-border bg-card px-6 py-4" {% if forloop.first %}open{% endif %}>
+        <summary class="flex cursor-pointer items-center justify-between gap-4 text-left text-base font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+          <span>{{ faq.question }}</span>
+          <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-muted text-muted-foreground transition-transform group-open:rotate-180" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />
+            </svg>
+          </span>
+        </summary>
+        <p class="mt-3 text-sm text-muted-foreground">{{ faq.answer }}</p>
+      </details>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section id="reviews" class="bg-background px-4 py-16 sm:px-6 lg:px-8 scroll-mt-32">
+  <div class="mx-auto max-w-7xl">
+    <div class="space-y-6">
+      <h2 class="font-serif text-3xl text-foreground">Guest reviews</h2>
+      <p class="text-sm text-muted-foreground">See how other travelers rated their experience and what stood out most to them.</p>
+      {% if trip.has_reviews %}
+      <p class="text-sm text-muted-foreground">Reviews placeholder</p>
+      {% else %}
+      <div class="flex flex-col items-start gap-4 rounded-2xl border border-dashed border-border bg-muted/40 px-6 py-8 text-muted-foreground">
+        <p class="text-lg font-semibold text-foreground">No reviews yet — be the first!</p>
+        <p class="text-sm">We're still collecting stories from travelers. Share yours to help others choose the perfect experience.</p>
+        <button type="button" class="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary/60">Write a review</button>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<section class="bg-background px-4 pb-16 sm:px-6 lg:px-8 lg:hidden">
+  <div class="mx-auto max-w-7xl">
+    <h2 class="font-serif text-3xl text-foreground">Need help?</h2>
+    <p class="mt-4 text-sm text-muted-foreground">Our travel specialists are on hand seven days a week.</p>
+    <div class="mt-6 flex flex-wrap items-center gap-3">
+      {% for action in trip.contact_actions %}
+      {% if action.icon == "whatsapp" %}
+      {% with whatsapp_message="Hello Sand & Sky Tours, I would like to know more about "|add:trip.title|add:" "|add:request.build_absolute_uri|add:"." %}
+      <a href="https://wa.me/201108741159?text={{ whatsapp_message|urlencode }}" class="inline-flex items-center gap-3 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" aria-label="{{ action.aria }}" target="_blank" rel="noopener">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4 text-primary">
+          <path d="M12.04 2a9.84 9.84 0 0 0-8.8 14.48L2 22l5.66-1.22A9.83 9.83 0 1 0 12.04 2Zm0 17.73c-1.57 0-3.11-.41-4.46-1.17l-.32-.18-3.36.72.72-3.26-.2-.33A7.86 7.86 0 1 1 12.04 19.73Zm4.38-5.83c-.24-.12-1.43-.7-1.65-.78-.22-.08-.38-.12-.54.12-.16.24-.62.78-.76.94-.14.16-.28.18-.52.06-.24-.12-1-.37-1.9-1.2-.7-.63-1.18-1.4-1.32-1.64-.14-.24-.02-.37.1-.49.1-.09.24-.24.36-.36.12-.12.16-.2.24-.34.08-.14.04-.27-.02-.39-.06-.12-.54-1.31-.74-1.79-.2-.48-.4-.41-.54-.42h-.46c-.16 0-.4.06-.62.3-.22.24-.84.82-.84 2s.86 2.36.98 2.52c.12.16 1.7 2.6 4.12 3.65.58.25 1.03.4 1.38.52.58.18 1.12.16 1.54.1.47-.07 1.43-.58 1.63-1.14.2-.56.2-1.04.14-1.14-.06-.1-.22-.16-.46-.28Z" />
+        </svg>
+        <span>{{ action.label }}</span>
+      </a>
+      {% endwith %}
+      {% else %}
+      <a href="{{ action.href }}" class="inline-flex items-center gap-3 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" aria-label="{{ action.aria }}">
+        {% if action.icon == "phone" %}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4 text-primary">
+          <path d="M6.5 3h2l1.5 4-2 1c1 2.5 2.9 4.4 5.4 5.4l1-2 4 1.5v2c0 1-1 2-2 2A14 14 0 0 1 4.5 5c0-1 1-2 2-2Z" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        {% elif action.icon == "mail" %}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4 text-primary">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 5h15a1.5 1.5 0 0 1 1.5 1.5v11a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5v-11A1.5 1.5 0 0 1 4.5 5Zm0 0 7.5 6 7.5-6" />
+        </svg>
+        {% else %}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4 text-primary">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14" />
+        </svg>
+        {% endif %}
+        <span>{{ action.label }}</span>
+      </a>
+      {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% if other_trips %}
+<section id="related" class="bg-muted px-4 py-16 sm:px-6 lg:px-8 scroll-mt-32">
+  <div class="mx-auto max-w-7xl space-y-6">
+    <div class="flex flex-col gap-4 text-left sm:flex-row sm:items-center sm:justify-between">
+      <div class="space-y-2">
+        <h2 class="font-serif text-3xl text-foreground">You may also like</h2>
+        <p class="text-sm text-muted-foreground">Explore more handpicked trips that pair well with what you’ve just viewed.</p>
+      </div>
+      <a href="{% url 'web:trips' %}" class="inline-flex items-center gap-2 self-start rounded-full border border-transparent px-4 py-2 text-sm font-semibold text-primary transition-colors hover:text-primary/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+        <span>View all tours</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m9 5 7 7-7 7" />
+        </svg>
+      </a>
+    </div>
+    <div class="grid gap-6 md:grid-cols-3">
+      {% for other in other_trips %}
+      <article class="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+        <a href="{% url 'web:trip-detail' other.slug %}" class="flex h-full flex-col">
+          {% if other.image_url %}
+          <img src="{{ other.image_url }}" alt="{{ other.title }}" class="h-48 w-full object-cover" />
+          {% else %}
+          <div class="flex h-48 w-full items-center justify-center bg-muted text-muted-foreground">
+            <span class="text-xs font-semibold uppercase tracking-wide">Image coming soon</span>
+          </div>
+          {% endif %}
+          <div class="flex flex-1 flex-col gap-3 p-4 text-sm">
+            <span class="text-xs uppercase tracking-wide text-muted-foreground">{{ other.category }}</span>
+            <h3 class="font-semibold text-foreground">{{ other.title }}</h3>
+            <p class="text-muted-foreground">{{ other.description }}</p>
+            <div class="mt-auto flex items-center justify-between text-muted-foreground">
+              <span>{{ other.duration }}</span>
+              <span class="font-semibold text-primary">{{ other.price }}</span>
+            </div>
+          </div>
+        </a>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+{% endblock %}
