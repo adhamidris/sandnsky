@@ -58,15 +58,25 @@
   
   /* --- 2.1 Nav: Core Bar --- */
   .nav{
-    position: sticky;
+    position: fixed; left: 0; right: 0;
     top: 0;
-    z-index: 30;
-    background: var(--nav-bg);
-    -webkit-backdrop-filter: saturate(120%) blur(var(--nav-blur));
-    backdrop-filter: saturate(120%) blur(var(--nav-blur));
+    z-index: 1000;
+    background: #0e0e0e;
     border-bottom: 1px solid var(--border);
+    transition: background .2s ease, backdrop-filter .2s ease;
     box-shadow: 0 1px 0 rgba(255,255,255,.04), 0 8px 24px rgba(0,0,0,.08);
   }
+.nav.is-scrolled{
+  background: var(--nav-bg);
+  -webkit-backdrop-filter: saturate(120%) blur(var(--nav-blur));
+  backdrop-filter: saturate(120%) blur(var(--nav-blur));
+}
+
+.nav + main{ padding-top: var(--nav-h); }
+@media (min-width:768px){
+  .nav + main{ padding-top: var(--nav-h-lg); }
+}
+
   
   /* Layout row */
   .nav .row{
@@ -141,11 +151,13 @@
   }
   
   /* Cart trigger(s) (no HTML change needed) */
+@media (max-width:767px){
   .nav .cta :where(a,button).cart-button,
   .nav .cta :where(a,button)[data-cart-trigger],
   .nav .cta :where(a,button)[aria-controls*="cart"]{
     display:inline-grid; place-items:center;
     width:40px; height:40px;
+    padding:0; line-height:1;
     border:1px solid var(--border);
     border-radius:999px;
     background:rgba(16,16,16,.40);
@@ -158,6 +170,7 @@
   .nav .cta :where(a,button)[aria-controls*="cart"]:hover{
     background:rgba(255,255,255,.06);
     border-color:color-mix(in srgb, var(--text) 22%, var(--border));
+}
   }
   
   /* Cart count badge (if include outputs data-count) */
@@ -441,7 +454,7 @@
   .destinations{background:#f8f6f2; color:#0d0d0d; border-top:1px solid rgba(0,0,0,.06)}
   .destinations .wrap{max-width:1200px; margin:0 auto; padding:64px 24px 84px}
   
-  .destinations h2{font-family:"Libre Baskerville",serif; text-align:center; font-size:clamp(24px,3vw,30px); margin:6px 0 24px; color:#1a1a1a}
+  .destinations h2{font-family:"Papyrus", fantasy; text-align:center; font-size:clamp(24px,3vw,30px); margin:6px 0 24px; color:#1a1a1a}
   
   .tabs{display:flex; justify-content:center; gap:28px; border-bottom:1px solid rgba(0,0,0,.08); margin-bottom:36px; overflow:auto}
   .tabs button{position:relative; background:transparent; border:0; padding:14px 4px; font:600 14px/1 Inter,system-ui; letter-spacing:.02em; color:#6b6b6b; cursor:pointer; white-space:nowrap}
@@ -453,14 +466,55 @@
   
   .dest-card{position:relative; border-radius:16px; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,.12); border:1px solid rgba(0,0,0,.06); background:#000}
   .dest-card img{width:100%; height:420px; object-fit:cover; display:block; filter:saturate(105%)}
+@media (max-width:767px){
+  .dest-card img{ height:auto; aspect-ratio:16/9; }
+  .dest-card .fallback{ height:auto !important; aspect-ratio:16/9; }
+}
+
   .dest-card::after{content:""; position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,.0) 40%, rgba(0,0,0,.65) 100%)}
-  .dest-caption{position:absolute; left:0; right:0; bottom:0; padding:22px; text-align:center; z-index:2; color:#fff}
-  .dest-caption h3{font-family:"Libre Baskerville",serif; margin:0 0 6px; font-size:22px; text-shadow:0 10px 30px rgba(0,0,0,.4)}
-  .dest-caption p{margin:0; font-size:12.5px; color:rgba(255,255,255,.85)}
+
+@media (max-width:359px){
+  .dest-grid{ grid-template-columns:1fr; gap:16px; }
+}
+@media (min-width:360px) and (max-width:819px){
+  .dest-grid{ grid-template-columns:repeat(2,1fr); gap:18px; }
+  .dest-card .fallback{ height:auto !important; aspect-ratio:4/3; }
+  .dest-card img{ height:auto; aspect-ratio:4/3; }
+}
+
+  .dest-caption{position:absolute; left:0; right:0; bottom:0; padding:22px; text-align:center; z-index:2; color:#fff; display:flex; flex-direction:column; gap:8px}
+  .destinations .fallback-title{ display:none !important; }
+  .dest-caption h3{font-family:"Papyrus", fantasy; margin:0 0 6px; font-size:21px; text-shadow:0 10px 30px rgba(0,0,0,.4)}
+  .dest-caption p{margin:0; margin-top:auto; font-size:12px; color:rgba(255,255,255,.85)}
+  /* Destinations: CTA as simple text underline (override inline styles) */
+  .destinations .inline-cta{
+    font-size:9px !important;
+    display:inline !important;
+    background:transparent !important;
+    border:0 !important;
+    border-radius:0 !important;
+    padding:0 !important;
+    gap:0 !important;
+    text-decoration: underline !important;
+    text-decoration-color: rgba(255,255,255,.55) !important;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
   .center-cta{display:flex; justify-content:center; margin-top:34px}
   .btn.outline{background:#111; color:#fff; border-color:rgba(255,255,255,.16)}
   .btn.outline:hover{opacity:.92}
   
+@media (max-width:359px){
+  .destinations .dest-caption{ padding:14px 12px; }
+  .destinations .dest-caption h3{ font-size:15px; }
+  .destinations .dest-caption p{ font-size:12px; }
+  .destinations .inline-cta{ font-size:9px !important; padding:4px 10px !important; letter-spacing:.16em !important; gap:6px !important; }
+}
+@media (min-width:360px) and (max-width:819px){
+  .destinations .dest-caption h3{ font-size:18px; }
+  .destinations .inline-cta{ font-size:10px !important; padding:6px 10px !important; letter-spacing:.18em !important; gap:6px !important; }
+}
+
   /* ==============================
      6) Section: Trip Types (Finder)
      ============================== */
@@ -687,7 +741,7 @@
   
   /* Panel */
   .navcart-panel{
-    position:absolute; right:0; z-index:40; margin-top:10px;
+    position:absolute; right:0; top:100%; z-index:40; margin-top:10px;
     width:min(22rem,85vw);
     border:1px solid var(--border); background:rgba(16,16,16,.95); color:#fff;
     border-radius:16px; padding:18px; box-shadow:0 30px 70px rgba(0,0,0,.45);
@@ -710,6 +764,14 @@
   .navcart-secondary a{flex:1; display:inline-flex; align-items:center; justify-content:center; border:1px solid var(--border); border-radius:10px; padding:9px 10px; font:700 12px/1 Inter,system-ui; color:#fff; text-decoration:none}
   .navcart-secondary a:hover{border-color:rgba(234,220,194,.45); color:var(--accent)}
   
+  @media (max-width:767px){
+    .navcart-panel{
+      position:fixed; left:50%; right:auto; top:64px; margin-top:0; 
+      width:min(22rem,92vw); z-index:40; 
+      transform:translate(-50%,8px); 
+    }
+    .navcart[data-open="true"] .navcart-panel{ transform:translate(-50%,0); }
+  }
   /* Toast */
   .navcart-toast{position:absolute; right:0; top:100%; margin-top:8px; transform:translateY(6px); opacity:0; pointer-events:none; transition:opacity .15s ease, transform .15s ease}
   .navcart[data-toast="show"] .navcart-toast{opacity:1; transform:translateY(0)}
@@ -725,7 +787,7 @@
   #gallery .switch-img {
     position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
     opacity: 0; transform: translateX(8%);
-    transition: transform 650ms cubic-bezier(.2,.7,.2,1), opacity 650ms ease;
+    transition: transform 900ms cubic-bezier(.2,.7,.2,1), opacity 900ms ease;
     will-change: transform, opacity;
   }
   #gallery .switch-img.is-active { opacity: 1; transform: translateX(0); z-index: 1; }

@@ -7,12 +7,14 @@
 
     <div class="ways-grid">
 
-      <article class="way-card span-2" data-gallery-card>
-        <img class="switch-img is-active" data-front alt="" />
-        <img class="switch-img" data-back alt="" />
-        <h3 class="way-title" data-gallery-title></h3>
-        <p class="way-desc" data-gallery-desc></p>
-      </article>
+      <div class="gallery-card-shell span-2">
+        <article class="way-card" data-gallery-card data-gallery-primary>
+          <img class="switch-img is-active" data-front alt="" />
+          <img class="switch-img" data-back alt="" />
+          <h3 class="way-title" data-gallery-title></h3>
+          <p class="way-desc" data-gallery-desc></p>
+        </article>
+      </div>
 
       <article class="way-card" data-gallery-card>
         <img class="switch-img is-active" data-front alt="" />
@@ -44,6 +46,14 @@
       <a class="cta-link" href="/gallery">View all gallery</a>
     </div>
   </aside>
+
+    </div>
+
+    <div class="gallery-arrows" data-gallery-arrows>
+
+      <button class="gallery-arrow" type="button" aria-label="Previous" data-gallery-prev>&lsaquo;</button>
+
+      <button class="gallery-arrow" type="button" aria-label="Next" data-gallery-next>&rsaquo;</button>
 
     </div>
   </div>
@@ -80,6 +90,129 @@
   const tpl = document.getElementById('gallery-data');
   if (!tpl) return;
 
+  // Ensure mobile only shows a single gallery row and expose swipe arrows
+  const STYLE_ID = "gallery-mobile-style";
+  if (!document.getElementById(STYLE_ID)) {
+    const s = document.createElement("style");
+    s.id = STYLE_ID;
+    s.textContent = `
+      #gallery .wrap {
+        position: relative;
+      }
+      #gallery .ways-grid {
+        position: relative;
+      }
+      #gallery [data-gallery-arrows] {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        transform: translateY(-50%);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        pointer-events: none;
+        z-index: 3;
+      }
+      #gallery [data-gallery-arrows] .gallery-arrow {
+        --arrow-size: 44px;
+        pointer-events: auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: var(--arrow-size);
+        height: var(--arrow-size);
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, .6);
+        background: rgba(0, 0, 0, .35);
+        color: #fff;
+        font-size: 1.75rem;
+        line-height: 1;
+        transition: background-color .2s ease, border-color .2s ease;
+      }
+      #gallery [data-gallery-arrows] .gallery-arrow:focus-visible {
+        outline: 2px solid rgba(255, 255, 255, .9);
+        outline-offset: 3px;
+      }
+      #gallery [data-gallery-arrows] .gallery-arrow:hover {
+        background: rgba(0, 0, 0, .55);
+        border-color: rgba(255, 255, 255, .8);
+      }
+      @media (max-width:899px) {
+        #gallery [data-gallery-card]:not([data-gallery-primary]) {
+          display: none !important;
+        }
+        #gallery .gallery-card-shell {
+          position: relative;
+          overflow: visible;
+        }
+        #gallery [data-gallery-arrows] {
+          display: block;
+          padding: 0;
+        }
+        #gallery [data-gallery-arrows] .gallery-arrow {
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+        }
+        #gallery [data-gallery-prev] {
+          left: calc(var(--arrow-size) * -0.5);
+        }
+        #gallery [data-gallery-next] {
+          right: calc(var(--arrow-size) * -0.5);
+        }
+      }
+
+      @media (min-width:900px) {
+        #gallery [data-gallery-prev],
+        #gallery [data-gallery-next] {
+          position: static;
+          transform: none;
+        }
+      }
+    `;
+    document.head.appendChild(s);
+  }
+  const arrows = section.querySelector('[data-gallery-arrows]');
+  const wrap = section.querySelector('.wrap');
+  const primaryShell = section.querySelector('.gallery-card-shell');
+  const mobileQuery = window.matchMedia('(max-width: 899px)');
+  let arrowPlaceholder = null;
+
+  if (arrows && wrap) {
+    arrows.style.removeProperty('top');
+    arrows.style.removeProperty('transform');
+    arrowPlaceholder = document.createElement('span');
+    arrowPlaceholder.hidden = true;
+    arrowPlaceholder.setAttribute('data-gallery-arrows-slot', 'true');
+    wrap.insertBefore(arrowPlaceholder, arrows);
+  }
+
+  const syncArrowPlacement = () => {
+    if (!arrows) return;
+
+    if (mobileQuery.matches) {
+      if (primaryShell && arrows.parentElement !== primaryShell) {
+        primaryShell.appendChild(arrows);
+      }
+    } else if (arrowPlaceholder && arrowPlaceholder.parentNode) {
+      const parent = arrowPlaceholder.parentNode;
+      if (arrows.parentElement !== parent) {
+        parent.insertBefore(arrows, arrowPlaceholder.nextSibling);
+      }
+    }
+  };
+
+  syncArrowPlacement();
+  window.addEventListener('resize', syncArrowPlacement, { passive: true });
+  window.addEventListener('load', syncArrowPlacement, { once: true });
+  if (mobileQuery.addEventListener) {
+    mobileQuery.addEventListener('change', syncArrowPlacement);
+  } else if (mobileQuery.addListener) {
+    mobileQuery.addListener(syncArrowPlacement);
+  }
+
   // Extract images array from template
   const nodes = tpl.content.querySelectorAll('[data-src]');
   const imgs = Array.from(nodes).map(n => ({
@@ -92,8 +225,9 @@
 
   const cards = Array.from(section.querySelectorAll('[data-gallery-card]'));
 
-  const DURATION_MS = 650;     // must match CSS transition
-  const INTERVAL_MS = 4500;    // time each image is shown
+    const controllers = [];
+  const DURATION_MS = 900;     // must match CSS transition
+  const INTERVAL_MS = 6500;    // time each image is shown
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Space out starting indices so cards don't duplicate the same image at once
@@ -140,21 +274,28 @@
       const clear = () => exiting.classList.remove('is-exit');
       if (prefersReduced) {
         // minimal animations: shorter cleanup
-        setTimeout(clear, 300);
+        setTimeout(clear, Math.min(350, DURATION_MS));
       } else {
         exiting.addEventListener('transitionend', clear, { once: true });
       }
 
       showFront = !showFront;
     };
+        const prev = () => { i = (i - 2 + imgs.length) % imgs.length; tick(); };
+        controllers.push({ next: tick, prev });
 
     // Start loop with a small desync jitter so all cards aren’t in lockstep
     const jitter = Math.random() * 800;
     setTimeout(() => {
       tick();
-      setInterval(tick, INTERVAL_MS + Math.random() * 700);
+      setInterval(tick, INTERVAL_MS + Math.random() * 900);
     }, jitter);
   });
+    const prevBtn = section.querySelector("[data-gallery-prev]");
+    const nextBtn = section.querySelector("[data-gallery-next]");
+    const adv = (d) => controllers.forEach(c => d === "prev" ? c.prev() : c.next());
+    if (prevBtn) prevBtn.addEventListener("click", () => adv("prev"));
+    if (nextBtn) nextBtn.addEventListener("click", () => adv("next"));
 })();
 </script>
 {% endblock %}
