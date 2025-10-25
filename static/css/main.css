@@ -229,7 +229,7 @@
   @media (min-width:768px){
     .nav .row{ min-height:var(--nav-h-lg); padding-block:14px; gap:18px; }
     .burger{ display:none; }
-    .desktop-links{ display:flex; }
+    .nav .links.desktop-links{ display:flex; }
     .nav .cta{ display:flex; gap:12px; }
   
     /* Show main CTA on desktop */
