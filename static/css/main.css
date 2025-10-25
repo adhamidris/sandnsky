@@ -285,6 +285,18 @@
   .hero-overlay{position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.35));}
   
   /* Content container */
+
+  /* Hero video: render on all viewports and stay behind content */
+  .hero-slide [data-hero-video]{
+    display:block;
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    pointer-events:none;
+  }
+
   .hero-content{position:relative; z-index:10;}
   .hero-inner{
     display:flex; flex-direction:column; align-items:flex-start; gap:24px;
