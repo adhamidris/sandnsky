@@ -103,6 +103,7 @@
         position: relative;
       }
       #gallery [data-gallery-arrows] {
+        --arrow-size: 44px;
         position: absolute;
         top: 50%;
         left: 0;
@@ -165,6 +166,10 @@
       }
 
       @media (min-width:900px) {
+        #gallery [data-gallery-arrows] {
+          left: calc(-1 * ((var(--arrow-size) * 0.5) + clamp(1.5rem, 3vw, 3.5rem)));
+          right: calc(-1 * ((var(--arrow-size) * 0.5) + clamp(1.5rem, 3vw, 3.5rem)));
+        }
         #gallery [data-gallery-prev],
         #gallery [data-gallery-next] {
           position: static;
