@@ -498,7 +498,7 @@
   /* ==============================
      5) Section: Destinations We Love
      ============================== */
-  .intro-band{background:#efe7db; color:#2b2317; padding:40px 0; border-top:1px solid rgba(0,0,0,.06); border-bottom:1px solid rgba(0,0,0,.06)}
+  .intro-band{background:#efe7db !important; color:#2b2317; padding:40px 0; border-top:1px solid rgba(0,0,0,.06); border-bottom:1px solid rgba(0,0,0,.06);}
   .intro-band p{max-width:80ch; margin:0 auto; font-family:"Libre Baskerville",serif; font-size:clamp(16px,1.7vw,22px); line-height:1.6; text-align:center}
 
   .section-label {
@@ -565,7 +565,7 @@
     text-underline-offset: 3px;
   }
   .center-cta{display:flex; justify-content:center; margin-top:34px}
-  .btn.outline{background:#111; color:#fff; border-color:rgba(255,255,255,.16)}
+  .btn.outline{background:#C9A961; color:#fff; border-color:rgba(255,255,255,.16)}
   .btn.outline:hover{opacity:.92}
   
 @media (max-width:359px){
@@ -633,7 +633,23 @@
   /* ==============================
      8) Section: Footer – Newsletter + Links
      ============================== */
-  .footer-dark{background:#000; color:#fff; border-top:1px solid rgba(255,255,255,.08)}
+.links .footer-links a {
+    color: #F5F1E8 !important;
+  }
+
+.links .footer-links a:hover {
+  color: #C9A961 !important;
+}
+
+.links .footer-socials a {
+  color: #F5F1E8 !important;
+}
+
+.links .footer-socials a:hover {
+  color: #C9A961 !important;
+}
+
+  .footer-dark{background:#2A2A2A; color:#fff; border-top:1px solid rgba(255,255,255,.08)}
   .footer-dark .wrap{max-width:1200px; margin:0 auto; padding:72px 24px}
   .footer-grid{display:grid; grid-template-columns:1fr; gap:36px; align-items:start}
   @media (min-width:1000px){ .footer-grid{grid-template-columns:1.6fr 1fr 1fr 1fr} }
@@ -766,7 +782,7 @@
   /* ==============================
      11) Section: Blogs (3-up)
      ============================== */
-  .blogs{background:#f8f6f2; color:#1a1a1a; border-top:1px solid rgba(0,0,0,.06)}
+  .blogs{background:white; color:#1a1a1a; border-top:1px solid rgba(0,0,0,.06)}
   .blogs .wrap{max-width:1200px; margin:0 auto; padding:72px 24px}
   .blogs h2{font-family:"Libre Baskerville",serif; text-align:center; font-size:clamp(26px,3.2vw,34px); margin:0 0 10px}
   .blogs p.sub{max-width:70ch; margin:0 auto 32px; text-align:center; color:#6b6b6b}
@@ -778,8 +794,8 @@
   .blog-media img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block;}
   .blog-body{padding:20px 22px 22px; display:flex; flex-direction:column; gap:14px; height:100%;}
   .blog-eyebrow{display:inline-block; font:700 11px/1 Inter,system-ui; letter-spacing:.18em; text-transform:uppercase; color:#8a3d28; margin-bottom:8px}
-  .blog-title{font-family:"Libre Baskerville",serif; font-size:20px; margin:0; color:#111; overflow-wrap:anywhere;}
-  .blog-subtitle{margin:0; font:600 11px/1.4 Inter,system-ui; letter-spacing:.2em; text-transform:uppercase; color:#8a3d28; opacity:.9;}
+  .blog-title{font-family:"Libre Baskerville",serif; font-size:20px; margin:0; color:#2A2A2A; overflow-wrap:anywhere;}
+  .blog-subtitle{margin:0; font:600 11px/1.4 Inter,system-ui; letter-spacing:.2em; text-transform:uppercase; color:#1A2B4A; opacity:.9;}
   .blog-excerpt{margin:0; color:#4a4a4a; font-size:14px; line-height:1.55; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;}
   .blog-meta{display:flex; gap:10px; align-items:center; color:#6b6b6b; font-size:12px; flex-wrap:wrap;}
   .blog-actions{margin-top:12px; padding-top:0; display:flex; justify-content:flex-end;}
@@ -800,11 +816,11 @@
      12) Component: Navigation Cart (theme-styled)
      Files: navigation_cart.html, navigation_cart_panel.html
      ============================== */
-  .navcart{position:relative; display:flex; align-items:center; gap:12px}
-  .navcart-trigger{display:inline-flex; align-items:center; gap:10px; border:1px solid var(--border); background:rgba(16,16,16,.55); color:var(--muted); padding:8px 12px; border-radius:999px; backdrop-filter:blur(6px); box-shadow:0 6px 20px rgba(0,0,0,.25); cursor:pointer}
-  .navcart-trigger:hover{border-color:rgba(234,220,194,.45); color:var(--accent)}
-  .navcart-icon{position:relative; display:inline-flex; width:32px; height:32px; border-radius:999px; align-items:center; justify-content:center; background:rgba(234,220,194,.08); color:var(--accent)}
-  .navcart-badge{position:absolute; top:-6px; right:-6px; min-width:14px; height:16px; padding:0 4px; display:inline-flex; align-items:center; justify-content:center; border-radius:999px; background:var(--accent); color:#111; font:700 10px/1 Inter,system-ui; box-shadow:0 4px 10px rgba(0,0,0,.3)}
+  .navcart{position:relative; display:flex; align-items:center; gap:12px;}
+  .navcart-trigger{display:inline-flex; align-items:center; gap:10px; border:1px solid rgba(201,169,97,0.6); background:transparent; color:var(--muted); padding:8px 12px; border-radius:999px; backdrop-filter:blur(6px); box-shadow:0 6px 20px rgba(0,0,0,.25); cursor:pointer;}
+  .navcart-trigger:hover{border-color:#C9A961; color:var(--accent);}
+  .navcart-icon{position:relative; display:inline-flex; width:32px; height:32px; border-radius:999px; align-items:center; justify-content:center; background:#C9A961; color:white;}
+  .navcart-badge{position:absolute; top:-6px; right:-6px; min-width:14px; height:16px; padding:0 4px; display:inline-flex; align-items:center; justify-content:center; border-radius:999px; background:#2C4A3E; color:white; font:700 10px/1 Inter,system-ui; box-shadow:0 4px 10px rgba(0,0,0,.3)}
   .navcart-copy{display:none}
   @media (min-width:768px){
     .navcart-copy{
@@ -907,7 +923,7 @@
     margin-bottom: 8px;
   }
   #gallery .cta-title {
-    font-family: "Libre Baskerville", serif;
+    font-family: "Papyrus", fantasy;
     font-size: clamp(18px, 2.2vw, 24px);
     line-height: 1.25;
     margin: 0 0 8px;
@@ -930,5 +946,13 @@
   #gallery .cta-link:hover { opacity: .8; }
   
 #gallery {
-  background-color: #F5F1E8;
+  background-color: #F5F1E8 !important;
+}
+
+#gallery .eyebrow {
+  color: #C9A961 !important;
+}
+
+.wrap h2 {
+  font-family: "Papyrus", fantasy !important;
 }
