@@ -42,18 +42,6 @@
            aria-expanded="false">
           Book Now
         </a>
-      {% else %}
-        <a href="/trips" class="btn dark cta-btn">
-          {% if match %}
-            {% if match.url_name == 'home' or match.url_name == 'blog-list' or match.url_name == 'blog-detail' %}
-              Tours
-            {% else %}
-              Book Now
-            {% endif %}
-          {% else %}
-            Book Now
-          {% endif %}
-        </a>
       {% endif %}
 
       {# cart dropdown / icon #}
@@ -89,18 +77,6 @@
         {% if match and match.url_name == 'trip-detail' %}
           <a href="#booking-form" class="btn dark cta-btn" data-close-nav data-mobile-sheet-open aria-controls="booking-drawer" aria-expanded="false">
             Book Now
-          </a>
-        {% else %}
-          <a href="/trips" class="btn dark cta-btn" data-close-nav>
-            {% if match %}
-              {% if match.url_name == 'home' or match.url_name == 'blog-list' or match.url_name == 'blog-detail' %}
-                Tours
-              {% else %}
-                Book Now
-              {% endif %}
-            {% else %}
-              Book Now
-            {% endif %}
           </a>
         {% endif %}
       </div>
