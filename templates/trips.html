@@ -204,9 +204,19 @@
       </div>
 
       {% if trips %}
-      <div class="grid gap-10 sm:grid-cols-2 xl:grid-cols-3">
+      <div class="flex flex-wrap items-center justify-center gap-3 md:justify-end">
+        <span class="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">View</span>
+        <div class="trip-view-toggle" data-trip-view-toggle role="group" aria-label="Choose trips layout">
+          <button type="button" class="trip-view-toggle__btn is-active" data-view="grid" aria-pressed="true">Grid</button>
+          <button type="button" class="trip-view-toggle__btn" data-view="list" aria-pressed="false">List</button>
+        </div>
+      </div>
+      <div class="trip-grid grid gap-10 sm:grid-cols-2 xl:grid-cols-3" data-trip-grid>
         {% for trip in trips %}
-        <article class="trip-cardi  max-h-[520px] group flex h-full flex-col overflow-hidden rounded-md border border-border bg-card shadow-sm transition-colors">
+        <article class="trip-cardi max-h-[520px] group flex h-full flex-col overflow-hidden rounded-md border border-border bg-card shadow-sm transition-colors">
+          {% if trip.category %}
+          <span class="trip-card__badge">{{ trip.category }}</span>
+          {% endif %}
           <div class="relative h-48 overflow-hidden">
             {% if trip.image_url %}
             <img src="{{ trip.image_url }}" alt="{{ trip.title }}" class="h-full w-full object-cover" />
@@ -214,11 +224,6 @@
             <div class="flex h-full items-center justify-center bg-muted text-muted-foreground">
               <span class="text-sm font-semibold uppercase tracking-wide">Image coming soon</span>
             </div>
-            {% endif %}
-            {% if trip.category %}
-            <span class="absolute left-4 top-4 inline-flex items-center rounded-sm bg-primary px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-primary-foreground shadow-sm">
-              {{ trip.category }}
-            </span>
             {% endif %}
           </div>
 
@@ -457,6 +462,7 @@
 (function () {
   var hasPopstateListener = false;
   var BASE_SCROLL_OFFSET = 24;
+  var TRIP_VIEW_STORAGE_KEY = 'trip-view-mode';
 
   function calculateScrollOffset(target) {
     var offset = BASE_SCROLL_OFFSET;
@@ -494,6 +500,72 @@
 
   function smoothScrollToResults() {
     scrollToSection('trip-list');
+  }
+
+  function getStoredTripView() {
+    try {
+      return window.localStorage.getItem(TRIP_VIEW_STORAGE_KEY);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function storeTripView(mode) {
+    try {
+      window.localStorage.setItem(TRIP_VIEW_STORAGE_KEY, mode);
+    } catch (error) {
+      // ignore storage failures (private browsing, etc.)
+    }
+  }
+
+  function applyTripView(mode) {
+    var view = mode === 'list' ? 'list' : 'grid';
+    var grid = document.querySelector('[data-trip-grid]');
+    if (grid) {
+      if (view === 'list') {
+        grid.classList.add('trip-grid--list');
+      } else {
+        grid.classList.remove('trip-grid--list');
+      }
+      grid.setAttribute('data-current-view', view);
+    }
+
+    var buttons = document.querySelectorAll('[data-trip-view-toggle] [data-view]');
+    Array.prototype.forEach.call(buttons, function (button) {
+      var isActive = button.getAttribute('data-view') === view;
+      button.classList.toggle('is-active', isActive);
+      button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+  }
+
+  function initTripViewToggle() {
+    var grid = document.querySelector('[data-trip-grid]');
+    if (!grid) {
+      return;
+    }
+
+    applyTripView(getStoredTripView());
+
+    var toggle = document.querySelector('[data-trip-view-toggle]');
+    if (!toggle || toggle.dataset.viewBound === 'true') {
+      return;
+    }
+
+    toggle.dataset.viewBound = 'true';
+    toggle.addEventListener('click', function (event) {
+      var button = event.target.closest('[data-view]');
+      if (!button) {
+        return;
+      }
+
+      var view = button.getAttribute('data-view');
+      if (view !== 'grid' && view !== 'list') {
+        return;
+      }
+
+      storeTripView(view);
+      applyTripView(view);
+    });
   }
 
   if (!('fetch' in window) || !('URLSearchParams' in window) || !('FormData' in window)) {
@@ -593,6 +665,7 @@
         }
 
         initTripFilters();
+        initTripViewToggle();
         initCartToggleButtons();
       })
       .catch(function (error) {
@@ -717,23 +790,44 @@
       panel.innerHTML = data.panel_html;
     }
 
+    var navcart = document.querySelector('[data-navcart]');
     var toast = document.querySelector('[data-cart-toast]');
     if (toast) {
       var messageEl = toast.querySelector('[data-cart-toast-message]');
+      var iconEl = toast.querySelector('[data-cart-toast-icon]');
       var message = (data.toast_message || '').trim();
       window.clearTimeout(toast._hideTimer);
       if (messageEl) {
         if (message) {
           messageEl.textContent = message;
-          toast.classList.remove('opacity-0', 'translate-y-1');
-          toast.classList.add('opacity-100', 'translate-y-0');
+          if (iconEl) {
+            var state = data.in_cart ? 'added' : 'removed';
+            iconEl.textContent = data.in_cart ? '✓' : '–';
+            toast.dataset.state = state;
+          } else {
+            toast.dataset.state = data.in_cart ? 'added' : 'removed';
+          }
+          if (navcart) {
+            navcart.dataset.toast = 'show';
+          }
           toast._hideTimer = window.setTimeout(function () {
-            toast.classList.remove('opacity-100', 'translate-y-0');
-            toast.classList.add('opacity-0', 'translate-y-1');
+            toast.dataset.state = '';
+            if (iconEl) {
+              iconEl.textContent = '';
+            }
+            if (navcart) {
+              delete navcart.dataset.toast;
+            }
           }, 2400);
         } else {
-          toast.classList.remove('opacity-100', 'translate-y-0');
-          toast.classList.add('opacity-0', 'translate-y-1');
+          toast.dataset.state = '';
+          if (iconEl) {
+            iconEl.textContent = '';
+          }
+          messageEl.textContent = '';
+          if (navcart) {
+            delete navcart.dataset.toast;
+          }
         }
       }
     }
@@ -794,6 +888,7 @@
   function initPageEnhancements() {
     initTripFilters();
     initDestinationNav();
+    initTripViewToggle();
     initCartToggleButtons();
   }
 

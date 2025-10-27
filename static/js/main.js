@@ -20,10 +20,11 @@
     const cart = document.querySelector('[data-navcart]');
     if (!cart) return;
 
-    const trigger = cart.querySelector('[data-cart-trigger]');
-    const panel   = cart.querySelector('[data-cart-panel]');
-    const toast   = cart.querySelector('[data-cart-toast]');
-    const toastMsg= cart.querySelector('[data-cart-toast-message]');
+    const trigger   = cart.querySelector('[data-cart-trigger]');
+    const panel     = cart.querySelector('[data-cart-panel]');
+    const toast     = cart.querySelector('[data-cart-toast]');
+    const toastMsg  = cart.querySelector('[data-cart-toast-message]');
+    const toastIcon = cart.querySelector('[data-cart-toast-icon]');
 
     const open  = () => { cart.dataset.open = 'true';  trigger?.setAttribute('aria-expanded', 'true'); };
     const close = () => { cart.dataset.open = 'false'; trigger?.setAttribute('aria-expanded', 'false'); };
@@ -48,8 +49,18 @@
         e.preventDefault();
         if (toast && toastMsg) {
           toastMsg.textContent = 'Updated your list';
+          toast.dataset.state = 'added';
+          if (toastIcon) {
+            toastIcon.textContent = '✓';
+          }
           cart.dataset.toast = 'show';
-          setTimeout(() => { cart.dataset.toast = ''; }, 1400);
+          setTimeout(() => {
+            cart.dataset.toast = '';
+            toast.dataset.state = '';
+            if (toastIcon) {
+              toastIcon.textContent = '';
+            }
+          }, 1400);
         }
       }
     });
