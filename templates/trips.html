@@ -13,7 +13,7 @@
   {% endif %}
   <div class="absolute inset-0 bg-gradient-to-b from-black/25 via-black/10 to-black/50"></div>
   <div class="relative mx-auto max-w-7xl px-4 pb-28 pt-32 sm:px-6 lg:px-8">
-    <div class="max-w-3xl space-y-6">
+    <div class="destination-hero-texts max-w-3xl space-y-6">
       <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white/70">Destination spotlight</span>
       <h1 class="font-serif text-4xl leading-tight sm:text-5xl md:text-6xl">{{ destination_hero.title }}</h1>
       {% if destination_hero.subtitle %}
@@ -22,7 +22,7 @@
       <p class="text-base leading-relaxed text-white/80 sm:text-lg">{{ selected_destination.tagline }}</p>
       {% endif %}
     </div>
-    <div class="mt-12 flex flex-wrap gap-4">
+    <div class="trips-hero2 mt-12 flex flex-wrap gap-4">
       <span class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
         <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
@@ -105,7 +105,7 @@
 {% if selected_destination %}
 <nav id="destination-nav" class="sticky top-16 z-30 border-b border-border/60 bg-background/95 py-3 shadow-sm backdrop-blur lg:py-4 tailwind-subnav" aria-label="Destination navigation">
   <div class="mx-auto flex max-w-7xl flex-col gap-3 px-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-    <div class="flex flex-wrap items-center gap-3">
+    <div class="subnav flex flex-wrap items-center gap-3">
       <a href="#destination-summary" class="rounded-full px-3 py-1 text-muted-foreground transition-colors hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Overview</a>
       <a href="#trip-list" class="rounded-full px-3 py-1 text-muted-foreground transition-colors hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Trips</a>
       {% if destination_gallery %}
@@ -160,15 +160,15 @@
           <p class="whytext2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Why visit {{ selected_destination.name }}</p>
         </div>
         {% if selected_destination.description %}
-        <p class="text-lg leading-relaxed text-muted-foreground whitespace-pre-line">{{ selected_destination.description }}</p>
+        <p class="whytext3 text-lg leading-relaxed text-muted-foreground whitespace-pre-line">{{ selected_destination.description }}</p>
         {% else %}
         <p class="text-lg leading-relaxed text-muted-foreground">Discover curated journeys designed to reveal the essence of {{ selected_destination.name }} with expert guides and seamless planning.</p>
         {% endif %}
       </div>
       <div class="space-y-5 text-left">
-        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Trip style</p>
+        <p class="whytext4 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Trip style</p>
         {% if destination_hero and destination_hero.subtitle %}
-        <p class="text-lg leading-relaxed text-muted-foreground whitespace-pre-line">{{ destination_hero.subtitle }}</p>
+        <p class="whytext5 text-lg leading-relaxed text-muted-foreground whitespace-pre-line">{{ destination_hero.subtitle }}</p>
         {% elif selected_destination.tagline %}
         <p class="text-lg leading-relaxed text-muted-foreground whitespace-pre-line">{{ selected_destination.tagline }}</p>
         {% else %}
@@ -185,7 +185,7 @@
     <div id="trip-results" class="space-y-10" aria-live="polite">
       <div class="space-y-4 text-center md:text-left">
         <div class="desti">
-          <h2 class="font-serif text-3xl text-foreground sm:text-4xl">
+          <h2 class="tripsin1 font-serif text-3xl text-foreground sm:text-4xl">
             {% if selected_destination %}
             Trips in {{ selected_destination.name }}
             {% else %}
@@ -194,7 +194,7 @@
           </h2>
         </div>
 
-        <p class="text-base leading-relaxed text-muted-foreground">
+        <p class="tripsin2 text-base leading-relaxed text-muted-foreground">
           {% if selected_destination %}
           Explore {{ trips|length }} hand-crafted itineraries designed to reveal the heart of {{ selected_destination.name }}. Each journey balances iconic highlights with quieter moments only locals know.
           {% else %}
@@ -304,7 +304,7 @@
     </div>
 
     <aside class="filter-bar mb-12 space-y-6 rounded-2xl border border-border bg-card p-6 shadow-subtle lg:mb-0 lg:self-start">
-      <form action="{% url 'web:trips' %}" method="get" class="space-y-6" data-live-filter>
+      <form action="{% url 'web:trips' %}" method="get" class="filter-form space-y-6" data-live-filter>
         <div class="space-y-1">
           <h3 class="text-sm font-semibold uppercase tracking-[0.25em] text-muted-foreground">Refine tours</h3>
           <p class="text-xs text-muted-foreground">Use filters to narrow itineraries.</p>
@@ -385,7 +385,7 @@
   <div class="mx-auto max-w-7xl space-y-8">
     <div class="desti space-y-2 text-left">
       <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Gallery</p>
-      <div class=" flex flex-wrap items-end justify-between gap-3">
+      <div class="desti2 flex flex-wrap items-end justify-between gap-3">
         <h2 class="font-serif text-3xl text-foreground">Scenes from {{ selected_destination.name }}</h2>
         <span class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">{{ destination_gallery|length }} image{% if destination_gallery|length != 1 %}s{% endif %}</span>
       </div>
@@ -442,32 +442,11 @@
 <link rel="stylesheet" href="{% static 'css/main2.css' %}">
 <style>
 
-  .trip-cardi {
-
-  }
-
-  .whytext {
-
-  }
-
-
-
-  .dest-gal {
-  }
-
   .why {
     background-color: #EBE2D3;
   }
 
-  .filter-bar {
-    background-image: url('/media/testio.png') !important;
-    background-size: cover;
-    background-repeat: no-repeat;
-    border-radius: 0 !important;
-    border: 0 !important;
-    box-shadow: none !important;
-    background-color: transparent;
-  }
+
 
 </style>
 {{ block.super }}

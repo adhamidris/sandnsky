@@ -147,7 +147,7 @@
     color:var(--muted); text-decoration:none;
     transition:background-color .18s ease, color .18s ease;
   }
-  .link:hover{ color:var(--text); background:rgba(255,255,255,.06); }
+  .link:hover{ color:var(--text);}
   .link[aria-current="page"]{
     color:var(--text);
   }
@@ -649,7 +649,7 @@
   color: #C9A961 !important;
 }
 
-  .footer-dark{background:#2A2A2A; color:#fff; border-top:1px solid rgba(255,255,255,.08)}
+  .footer-dark{background:#2A2A2A !important; color:#fff !important; border-top:1px solid rgba(255,255,255,.08)}
   .footer-dark .wrap{max-width:1200px; margin:0 auto; padding:72px 24px}
   .footer-grid{display:grid; grid-template-columns:1fr; gap:36px; align-items:start}
   @media (min-width:1000px){ .footer-grid{grid-template-columns:1.6fr 1fr 1fr 1fr} }
@@ -717,7 +717,7 @@
     margin:6px 0 14px;
   }
   .about-copy{
-    color:#2A2A2A;
+    color:#2A2A2A !important;
     font-size:clamp(15.5px,1.6vw,17px);
     line-height:1.75;
     max-width:78ch;
@@ -782,10 +782,10 @@
   /* ==============================
      11) Section: Blogs (3-up)
      ============================== */
-  .blogs{background:white; color:#1A2B4A; border-top:1px solid rgba(0,0,0,.06)}
+  .blogs{background:white; color:#1A2B4A !important; border-top:1px solid rgba(0,0,0,.06)}
   .blogs .wrap{max-width:1200px; margin:0 auto; padding:72px 24px}
   .blogs h2{font-family:"Libre Baskerville",serif; text-align:center; font-size:clamp(26px,3.2vw,34px); margin:0 0 10px}
-  .blogs p.sub{max-width:70ch; margin:0 auto 32px; text-align:center; color:#2A2A2A}
+  .blogs p.sub{max-width:70ch; margin:0 auto 32px; text-align:center; color:#2A2A2A !important}
   .blog-grid{display:grid; grid-template-columns:1fr; gap:28px; align-items:start}
   @media (min-width:640px){ .blog-grid{grid-template-columns:repeat(2,minmax(0,1fr));} }
   @media (min-width:1120px){ .blog-grid{grid-template-columns:repeat(3,minmax(0,1fr));} }
@@ -793,13 +793,13 @@
   .blog-media{position:relative; aspect-ratio:4/3; overflow:hidden;}
   .blog-media img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block;}
   .blog-body{padding:20px 22px 22px; display:flex; flex-direction:column; gap:14px; height:100%;}
-  .blog-eyebrow{display:inline-block; font:700 11px/1 Inter,system-ui; letter-spacing:.18em; text-transform:uppercase; color:#1A2B4A; margin-bottom:8px}
+  .blog-eyebrow{display:inline-block; font:700 11px/1 Inter,system-ui; letter-spacing:.18em; text-transform:uppercase; color:#1A2B4A !important; margin-bottom:8px}
   .blog-title{font-family:"Libre Baskerville",serif; font-size:20px; margin:0; color:#1A2B4A; overflow-wrap:anywhere;}
-  .blog-subtitle{margin:0; font:600 11px/1.4 Inter,system-ui; letter-spacing:.2em; text-transform:uppercase; color:#2A2A2A; opacity:.9;}
-  .blog-excerpt{margin:0; color:#4a4a4a; font-size:14px; line-height:1.55; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;}
+  .blog-subtitle{margin:0; font:600 11px/1.4 Inter,system-ui; letter-spacing:.2em; text-transform:uppercase; color:#2A2A2A !important; opacity:.9;}
+  .blog-excerpt{margin:0; color:#2A2A2A !important; font-size:14px; line-height:1.55; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;}
   .blog-meta{display:flex; gap:10px; align-items:center; color:#6b6b6b; font-size:12px; flex-wrap:wrap;}
   .blog-actions{margin-top:12px; padding-top:0; display:flex; justify-content:flex-end;}
-  .blog-link{position:relative; display:inline-flex; align-items:center; gap:6px; font:600 13px/1.1 Inter,system-ui; letter-spacing:.12em; text-transform:uppercase; color:#1A2B4A; text-decoration:none;}
+  .blog-link{position:relative; display:inline-flex; align-items:center; gap:6px; font:600 13px/1.1 Inter,system-ui; letter-spacing:.12em; text-transform:uppercase; color:#1A2B4A !important; text-decoration:none;}
   .blog-link::after{content:""; position:absolute; left:0; right:0; bottom:-4px; height:1.5px; background:currentColor; opacity:.45; transition:opacity .2s ease;}
   .blog-link:hover::after{opacity:1;}
   .blogs .center-cta{margin-top:34px; text-align:center}
@@ -817,10 +817,10 @@
      Files: navigation_cart.html, navigation_cart_panel.html
      ============================== */
   .navcart{position:relative; display:flex; align-items:center; gap:12px;}
-  .navcart-trigger{display:inline-flex; align-items:center; gap:10px; border:1px solid rgba(201,169,97,0.6); background:transparent; color:var(--muted); padding:8px 12px; border-radius:999px; backdrop-filter:blur(6px); box-shadow:0 6px 20px rgba(0,0,0,.25); cursor:pointer;}
-  .navcart-trigger:hover{border-color:#C9A961; color:var(--accent);}
-  .navcart-icon{position:relative; display:inline-flex; width:32px; height:32px; border-radius:999px; align-items:center; justify-content:center; background:#C9A961; color:white;}
-  .navcart-badge{position:absolute; top:-6px; right:-6px; min-width:14px; height:16px; padding:0 4px; display:inline-flex; align-items:center; justify-content:center; border-radius:999px; background:#2C4A3E; color:white; font:700 10px/1 Inter,system-ui; box-shadow:0 4px 10px rgba(0,0,0,.3)}
+  .navcart-trigger{display:inline-flex; align-items:center; gap:10px; border:1px solid rgba(201,169,97,0.6) !important; background:transparent !important; color:var(--muted); padding:8px 12px; border-radius:999px; backdrop-filter:blur(6px); box-shadow:0 6px 20px rgba(0,0,0,.25); cursor:pointer;}
+  .navcart-trigger:hover{border-color:#C9A961 !important; color:var(--accent);}
+  .navcart-icon{position:relative; display:inline-flex; width:32px; height:32px; border-radius:999px; align-items:center; justify-content:center; background:#C9A961 !important; color:white !important;}
+  .navcart-badge{position:absolute; top:-6px; right:-6px; min-width:14px; height:16px; padding:0 4px; display:inline-flex; align-items:center; justify-content:center; border-radius:999px; background:#2C4A3E !important; color:white !important; font:700 10px/1 Inter,system-ui; box-shadow:0 4px 10px rgba(0,0,0,.3)}
   .navcart-copy{display:none}
   @media (min-width:768px){
     .navcart-copy{
@@ -833,7 +833,7 @@
       height:100%;
     }
   }
-  .navcart-copy .eyebrow{font:700 10px/1 Inter,system-ui; letter-spacing:.18em; text-transform:uppercase; color:rgba(255,255,255,.65)}
+  .navcart-copy .eyebrow{font:700 10px/1 Inter,system-ui; letter-spacing:.18em; text-transform:uppercase; color:rgba(255,255,255,.65) !important;}
   .navcart-copy .label{font:600 13px/1.1 Inter,system-ui; color:var(--muted)}
   .navcart-trigger.has-items .label{color:#fff}
   
@@ -919,27 +919,27 @@
     font: 700 11px/1 Inter, system-ui;
     letter-spacing: .18em;
     text-transform: uppercase;
-    color: #1A2B4A;
+    color: #1A2B4A !important;
     margin-bottom: 8px;
   }
   #gallery .cta-title {
-    font-family: "Papyrus", fantasy;
+    font-family: "Papyrus", fantasy !important;
     font-size: clamp(18px, 2.2vw, 24px);
     line-height: 1.25;
     margin: 0 0 8px;
-    color: #1A2B4A;
+    color: #1A2B4A !important;
     text-shadow: none;
   }
   #gallery .cta-desc {
     margin: 0 0 12px;
-    color: #2A2A2A;
+    color: #2A2A2A !important;
     font-size: 14px;
     line-height: 1.5;
   }
   #gallery .cta-link {
     display: inline-block;
     font-weight: 700;
-    color: #1A2B4A;
+    color: #1A2B4A !important;
     text-decoration: underline;
     text-underline-offset: 3px;
   }
@@ -960,4 +960,163 @@
 .gallery-arrow {
   background-color: rgba(201, 169, 97, 0.6) !important;
   border-color: transparent !important;
+}
+
+.navcart-header {
+  justify-content: center !important;
+  text-align: center !important;
+}
+
+.navcart-header p {
+  color: white !important;
+}
+
+.navcart-panel {
+  background-color: #1A2B4A !important;
+}
+
+.navcart-entry {
+  background-color: #F5F1E8 !important;
+  border-color: #C9A961 !important;
+}
+
+.navcart-entry::marker {
+  color: #C9A961 !important;
+}
+
+.navcart-entry-title h5 {
+  color: #1A2B4A !important;
+  font-weight: 800 !important;
+}
+
+.navcart-total {
+  display: none !important;
+  border-color: #C9A961 !important;
+}
+
+.navcart-viewtrip {
+  color: #1A2B4A !important;
+}
+
+.navcart-viewtrip:hover {
+  text-decoration: underline !important;
+}
+
+.navcart-date {
+  color: #C9A961 !important;
+}
+
+.navcart-primary {
+  background-color: #C9A961 !important;
+  color: #F5F1E8 !important;
+}
+
+.navcart-entry-price {
+  color: #1A2B4A !important;
+}
+
+.navcart-label {
+  color: #1A2B4A !important;
+}
+
+.navcart-remove {
+  background-color: transparent !important;
+  border: none !important;
+  color: red !important;
+}
+
+.navcart-end span {
+  color: white !important;
+}
+
+/* FOR THE TRIPS PAGE */ 
+
+.why {
+  background-color: #F5F1E8 !important;
+}
+
+.whytext2 {
+  color: #1A2B4A !important;
+}
+
+.whytext3 {
+  color: #2A2A2A !important;
+}
+
+.whytext4 {
+  color: #1A2B4A !important;
+}
+
+.whytext5 {
+  color: #2A2A2A !important;
+}
+
+.tripsin1 {
+  color: #1A2B4A !important;
+  font-family: "Papyrus", fantasy !important;
+}
+
+.tripsin2 {
+  color: #2A2A2A !important;
+}
+
+.trips-head {
+  background-color: white !important;
+}
+
+.dest-gal {
+  background-color: #F5F1E8 !important;
+}
+
+.subnav a {
+  color: #1A2B4A !important;
+}
+
+.filter-bar {
+  background-color: #F5F1E8 !important;
+}
+
+.desti p {
+  color: #1A2B4A !important;
+}
+
+.desti2 h2 {
+  color: #1A2B4A !important;
+  font-family: "Papyrus", fantasy !important; 
+}
+
+.filter-form h3, p, label, span, legend {
+  color: #1A2B4A !important;
+}
+
+.newsletter p {
+  color: white !important;
+}
+
+.contact-list .contact-item {
+  color: white !important;
+}
+
+.contact-link span {
+  color: white !important;
+}
+
+.contact-link span:hover {
+  color: #C9A961 !important;
+}
+
+.dest-cta {
+  color: white !important;
+}
+
+.way-desc {
+  color: white !important;
+}
+
+.destination-hero-texts span, h1, p {
+  color: white !important;
+}
+
+.trips-hero2 span {
+  color: white !important;
 }
