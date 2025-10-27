@@ -1,9 +1,11 @@
 from decimal import Decimal, ROUND_HALF_UP
 import datetime as dt
 import mimetypes
+from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.core import signing
+from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Prefetch, Q, Min, Max, Count
 from django.http import Http404, JsonResponse
@@ -673,6 +675,19 @@ class TripListView(TemplateView):
         filter_values = self._extract_filter_values()
         trips = self._apply_filters(trips, filter_values)
 
+        paginator = Paginator(trips, 10)
+        page_number = self.request.GET.get("page")
+        page_obj = paginator.get_page(page_number)
+
+        filter_query_params = [
+            (key, value)
+            for key in self.request.GET
+            for value in self.request.GET.getlist(key)
+            if key != "page"
+        ]
+        query_string = urlencode(filter_query_params, doseq=True)
+        page_query_prefix = f"{query_string}&" if query_string else ""
+
         cart_summary = summarize_cart(self.request.session)
         cart_trip_slugs = {
             entry.get("trip_slug")
@@ -685,8 +700,13 @@ class TripListView(TemplateView):
                 **build_trip_card(trip),
                 "in_cart": trip.slug in cart_trip_slugs,
             }
-            for trip in trips
+            for trip in page_obj.object_list
         ]
+        context["page_obj"] = page_obj
+        context["paginator"] = paginator
+        context["is_paginated"] = page_obj.has_other_pages()
+        context["page_query_prefix"] = page_query_prefix
+        context["total_trip_count"] = paginator.count
         context["cart_trip_slugs"] = cart_trip_slugs
         context["selected_destination"] = selected_destination
         context["destination_hero"] = destination_hero

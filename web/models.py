@@ -19,6 +19,13 @@ class DestinationName(models.TextChoices):
     DAKHLA = "Dakhla", "Dakhla"
     KHARGA = "Kharga", "Kharga"
     BAHAREYA = "Bahareya Oasis", "Bahareya Oasis"
+    GIZA = "Giza", "Giza"
+    CAIRO = "Cairo", "Cairo"
+    ALEXANDRIA = "Alexandria", "Alexandria"
+    AIN_EL_SOKHNA = "Ain El Sokhna", "Ain El Sokhna"
+    SINAI = "Sinai", "Sinai"
+    LUXOR = "Luxor", "Luxor"
+    ASWAN = "Aswan", "Aswan"
 
 
 ALLOWED_DESTINATIONS = [choice.value for choice in DestinationName]

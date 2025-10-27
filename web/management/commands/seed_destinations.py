@@ -1,110 +1,124 @@
+# web/management/commands/seed_destinations.py
 from django.core.management.base import BaseCommand
-from django.db import transaction
-from web.models import Destination, DestinationName
+from django.db import transaction, IntegrityError
+from web.models import Destination, DestinationName, ALLOWED_DESTINATIONS
 
-
-DESCRIPTIONS = {
-    DestinationName.SIWA: (
-        "Quiet desert oasis with salt lakes and palm groves. "
-        "Highlights: Shali Fortress, Cleopatra Spring, Great Sand Sea."
-    ),
-    DestinationName.WHITE_BLACK: (
-        "Striking white rock formations and black basalt hills. "
-        "Highlights: Aqabat Valley, Crystal Mountain, Black Desert."
-    ),
-    DestinationName.FARAFRA: (
-        "Relaxed oasis near the White Desert with hot springs and local art. "
-        "Highlights: Badr Museum, Bir Sitta hot spring, White Desert."
-    ),
-    DestinationName.DAKHLA: (
-        "Historic villages, wide dunes, and date farms. "
-        "Highlights: Al-Qasr old town, Deir el-Hagar temple, Mut hot springs."
-    ),
-    DestinationName.KHARGA: (
-        "Open sands with major ancient sites. "
-        "Highlights: Temple of Hibis, Bagawat Necropolis, Qasr Dush."
-    ),
-    # NOTE: Fayoum intentionally omitted per your instruction.
-}
-
-# Order matters for featured positions:
-ORDER = [
-    DestinationName.SIWA,
-    DestinationName.WHITE_BLACK,
-    DestinationName.FARAFRA,
-    DestinationName.DAKHLA,
-    DestinationName.KHARGA,
+# 1) Desired visual order (top-left → bottom-right of your grid)
+GRID_LABELS = [
+    "Giza", "Cairo", "Alexandria", "Ain El Sokhna",
+    "Fayoum", "Bahariya Oasis", "Sinai", "Siwa",
 ]
+
+# 2) Map image labels → canonical enum value
+CANONICAL_MAP = {
+    "Giza": DestinationName.GIZA,
+    "Cairo": DestinationName.CAIRO,
+    "Alexandria": DestinationName.ALEXANDRIA,
+    "Ain El Sokhna": DestinationName.AIN_EL_SOKHNA,
+    "Fayoum": DestinationName.FAYOUM,
+    "Bahariya Oasis": DestinationName.BAHAREYA,  # normalized spelling
+    "Sinai": DestinationName.SINAI,
+    "Siwa": DestinationName.SIWA,
+}
 
 
 class Command(BaseCommand):
-    help = "Seed/update Destination descriptions and featured ordering (starting at 2)."
+    help = (
+        "Seed/Update Destination rows in a specific order, mark them as featured, "
+        "and assign featured_position based on GRID_LABELS order."
+    )
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "--start-pos",
-            type=int,
-            default=2,
-            help="Starting featured position (default: 2)",
+            "--unfeature-rest",
+            action="store_true",
+            help="Unfeature any Destination not in the GRID_LABELS allowed set.",
         )
         parser.add_argument(
             "--dry-run",
             action="store_true",
-            help="Print changes without saving to DB",
+            help="Show what would change without writing to the database.",
         )
 
-    @transaction.atomic
     def handle(self, *args, **opts):
-        start_pos = opts["start_pos"]
         dry_run = opts["dry_run"]
+        unfeature_rest = opts["unfeature_rest"]
 
-        self.stdout.write(self.style.MIGRATE_HEADING(
-            f"Seeding destinations (start_pos={start_pos}, dry_run={dry_run})"
-        ))
+        allowed = set(ALLOWED_DESTINATIONS)
+        ordered_allowed_values = []  # canonical enum values in order
 
-        for idx, dest_name in enumerate(ORDER, start=start_pos):
-            desc = DESCRIPTIONS.get(dest_name, "").strip()
-            if not desc:
-                self.stdout.write(self.style.WARNING(f"Skipping {dest_name}: no description provided"))
+        skipped = []
+        for label in GRID_LABELS:
+            canonical = CANONICAL_MAP.get(label)
+            if not canonical:
+                skipped.append(f"{label} (not in map)")
                 continue
+            if canonical not in allowed:
+                skipped.append(f"{label} (not in ALLOWED_DESTINATIONS)")
+                continue
+            ordered_allowed_values.append(canonical)
 
-            # Use the predefined choice value (no free text).
-            defaults = {
-                "description": desc,
-                "is_featured": True,
-                "featured_position": idx,
-                # Leave 'tagline' and 'card_image' untouched.
-            }
+        created, updated, existed = [], [], []
+        errors = []
 
-            try:
-                obj, created = Destination.objects.get_or_create(name=dest_name)
-                before = {
-                    "description": obj.description,
-                    "is_featured": obj.is_featured,
-                    "featured_position": obj.featured_position,
-                }
+        # Map of name -> (is_featured, featured_position) we want to enforce
+        desired_state = {}
+        for pos, name_value in enumerate(ordered_allowed_values, start=1):
+            desired_state[name_value] = (True, pos)
 
-                # Apply updates
-                obj.description = desc
-                obj.is_featured = True
-                obj.featured_position = idx
+        # Apply updates/creates atomically unless dry-run
+        ctx = transaction.atomic() if not dry_run else _NullContextManager()
+        with ctx:
+            # Upsert featured set in the given order
+            for name_value, (should_feature, pos) in desired_state.items():
+                try:
+                    obj, was_created = Destination.objects.get_or_create(name=name_value)
+                    before = (obj.is_featured, obj.featured_position)
 
+                    obj.is_featured = should_feature
+                    obj.featured_position = pos
+
+                    if dry_run:
+                        (created if was_created else (updated if before != (obj.is_featured, obj.featured_position) else existed)).append(obj.name)
+                    else:
+                        obj.save()
+                        (created if was_created else (updated if before != (obj.is_featured, obj.featured_position) else existed)).append(obj.name)
+
+                except IntegrityError as e:
+                    errors.append((name_value, str(e)))
+
+            # Optionally unfeature everything else
+            if unfeature_rest:
+                qs_rest = Destination.objects.exclude(name__in=ordered_allowed_values).filter(is_featured=True)
                 if dry_run:
-                    action = "CREATE" if created else "UPDATE"
-                    self.stdout.write(f"{action} {dest_name}: {before} -> {defaults}")
+                    updated.extend(list(qs_rest.values_list("name", flat=True)))
                 else:
-                    obj.save()
-                    self.stdout.write(self.style.SUCCESS(
-                        f"{'Created' if created else 'Updated'} {dest_name} "
-                        f"(featured_position={idx})"
-                    ))
+                    for obj in qs_rest:
+                        obj.is_featured = False
+                        # keep their old featured_position or zero it—choose policy:
+                        obj.featured_position = 0
+                        obj.save()
+                        updated.append(obj.name)
 
-            except Exception as e:
-                self.stderr.write(self.style.ERROR(f"Error processing {dest_name}: {e}"))
-                if not dry_run:
-                    raise
+        # Summary
+        self.stdout.write(self.style.SUCCESS("\n--- Destination Seeding (Featured Ordering) ---"))
+        if created:
+            self.stdout.write(f"Created: {', '.join(created)}")
+        if updated:
+            self.stdout.write(f"Updated: {', '.join(updated)}")
+        if existed:
+            self.stdout.write(f"No change: {', '.join(existed)}")
+        if skipped:
+            self.stdout.write(self.style.WARNING(f"Skipped: {', '.join(skipped)}"))
+        if errors:
+            self.stdout.write(self.style.ERROR("Errors:"))
+            for name, err in errors:
+                self.stdout.write(self.style.ERROR(f"  - {name}: {err}"))
+        self.stdout.write(self.style.SUCCESS(f"Mode: {'DRY-RUN' if dry_run else 'APPLY'}  |  Unfeature rest: {unfeature_rest}"))
+        self.stdout.write(self.style.SUCCESS("------------------------------------------------\n"))
 
-        if dry_run:
-            self.stdout.write(self.style.WARNING("Dry-run complete. No changes were saved."))
-        else:
-            self.stdout.write(self.style.SUCCESS("Seeding complete."))
+
+class _NullContextManager:
+    """Used to reuse the same 'with' structure for dry-run."""
+    def __enter__(self): return self
+    def __exit__(self, exc_type, exc, tb): return False

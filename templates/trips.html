@@ -17,7 +17,7 @@
       <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white/70">Destination spotlight</span>
       <h1 class="font-serif text-4xl leading-tight sm:text-5xl md:text-6xl">{{ destination_hero.title }}</h1>
       {% if destination_hero.subtitle %}
-      <p class="text-base leading-relaxed text-white/80 sm:text-lg">{{ destination_hero.subtitle }}</p>
+      <p class="destination-sub text-base leading-relaxed text-white/80 sm:text-lg">{{ destination_hero.subtitle }}</p>
       {% elif selected_destination and selected_destination.tagline %}
       <p class="text-base leading-relaxed text-white/80 sm:text-lg">{{ selected_destination.tagline }}</p>
       {% endif %}
@@ -27,7 +27,7 @@
         <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
         </svg>
-        {{ trips|length }} itineraries
+        {{ total_trip_count }} itineraries
       </span>
       {% if selected_destination and selected_destination.tagline %}
       <span class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
@@ -48,7 +48,7 @@
         <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
         </svg>
-        {{ trips|length }} trips available
+        {{ total_trip_count }} trips available
       </span>
     </div>
   </div>
@@ -68,7 +68,7 @@
         <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
         </svg>
-        {{ trips|length }} itineraries
+        {{ total_trip_count }} itineraries
       </span>
       <span class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
         <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
@@ -80,7 +80,7 @@
         <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
         </svg>
-        {{ trips|length }} trips available
+        {{ total_trip_count }} trips available
       </span>
     </div>
   </div>
@@ -196,9 +196,9 @@
 
         <p class="tripsin2 text-base leading-relaxed text-muted-foreground">
           {% if selected_destination %}
-          Explore {{ trips|length }} hand-crafted itineraries designed to reveal the heart of {{ selected_destination.name }}. Each journey balances iconic highlights with quieter moments only locals know.
+          Explore {{ total_trip_count }} hand-crafted itineraries designed to reveal the heart of {{ selected_destination.name }}. Each journey balances iconic highlights with quieter moments only locals know.
           {% else %}
-          Explore {{ trips|length }} journeys crafted by our Egypt specialists. Every itinerary blends essential sights with authentic experiences and seamless service.
+          Explore {{ total_trip_count }} journeys crafted by our Egypt specialists. Every itinerary blends essential sights with authentic experiences and seamless service.
           {% endif %}
         </p>
       </div>
@@ -294,6 +294,26 @@
         </article>
         {% endfor %}
       </div>
+      {% if total_trip_count %}
+      <div class="trip-pagination mt-12">
+        <p class="trip-pagination__summary">Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ total_trip_count }} tours</p>
+        {% if is_paginated %}
+        <nav class="trip-pagination__nav" aria-label="Trips pagination">
+          {% if page_obj.has_previous %}
+          <a href="?{{ page_query_prefix }}page={{ page_obj.previous_page_number }}" class="trip-pagination__link" rel="prev">Previous</a>
+          {% else %}
+          <span class="trip-pagination__link trip-pagination__link--disabled" aria-disabled="true">Previous</span>
+          {% endif %}
+          <span class="trip-pagination__status">Page {{ page_obj.number }} of {{ paginator.num_pages }}</span>
+          {% if page_obj.has_next %}
+          <a href="?{{ page_query_prefix }}page={{ page_obj.next_page_number }}" class="trip-pagination__link" rel="next">Next</a>
+          {% else %}
+          <span class="trip-pagination__link trip-pagination__link--disabled" aria-disabled="true">Next</span>
+          {% endif %}
+        </nav>
+        {% endif %}
+      </div>
+      {% endif %}
       {% else %}
       <div class="mx-auto max-w-3xl rounded-3xl border border-dashed border-border bg-muted/50 p-12 text-center shadow-subtle">
         <h3 class="font-serif text-2xl text-foreground">No trips yet</h3>
