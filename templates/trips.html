@@ -328,7 +328,7 @@
       {% endif %}
     </div>
 
-    <aside class="filter-bar mb-12 space-y-6 rounded-2xl border border-border bg-card p-6 shadow-subtle lg:mb-0 lg:self-start">
+    <aside class="filter-bar mb-12 space-y-6 rounded-2xl border border-border bg-card p-6 shadow-subtle lg:mb-0 lg:self-start lg:sticky lg:top-32">
       <form action="{% url 'web:trips' %}" method="get" class="filter-form space-y-6" data-live-filter>
         <div class="space-y-1">
           <h3 class="text-sm font-semibold uppercase tracking-[0.25em] text-muted-foreground">Refine tours</h3>
@@ -382,20 +382,6 @@
             {% endfor %}
           </div>
         </fieldset>
-
-        {% if filter_options.categories %}
-        <fieldset class="space-y-3">
-          <legend class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Travel style</legend>
-          <div class="space-y-2">
-            {% for category in filter_options.categories %}
-            <label class="flex items-center gap-3 text-sm text-muted-foreground">
-              <input type="checkbox" name="category" value="{{ category.slug }}" class="h-4 w-4 rounded border-border/70 text-primary focus:ring-primary" {% if category.slug in active_filters.categories %}checked{% endif %} />
-              <span>{{ category.name }}</span>
-            </label>
-            {% endfor %}
-          </div>
-        </fieldset>
-        {% endif %}
 
         <div class="flex flex-wrap items-center gap-3">
           <button type="submit" class="inline-flex items-center justify-center rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-subtle transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Apply filters</button>
@@ -471,6 +457,14 @@
     background-color: #EBE2D3;
   }
 
+  @media (min-width: 1024px) {
+    .filter-bar {
+      position: sticky;
+      top: 7.5rem;
+      max-height: calc(100vh - 8rem);
+      overflow-y: auto;
+    }
+  }
 
 
 </style>

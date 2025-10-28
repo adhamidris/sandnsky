@@ -42,26 +42,90 @@
       if (e.key === 'Escape') close();
     });
 
-    // Optional: demo toast on add/remove without page refresh
+    const updateCartUI = (payload) => {
+      if (!payload) return;
+
+      const count = typeof payload.cart_count === 'number' ? payload.cart_count : 0;
+      const label = payload.cart_label || '';
+      const panelHtml = payload.panel_html || '';
+
+      const countBadge = cart.querySelector('[data-cart-count-badge]');
+      if (countBadge) {
+        if (count > 0) {
+          countBadge.textContent = count;
+          countBadge.classList.remove('hidden');
+        } else {
+          countBadge.textContent = '';
+          countBadge.classList.add('hidden');
+        }
+      }
+
+      const labelText = cart.querySelector('[data-cart-label-text]');
+      if (labelText) {
+        labelText.textContent = label;
+      }
+
+      if (trigger) {
+        trigger.classList.toggle('has-items', count > 0);
+      }
+
+      const panel = cart.querySelector('[data-cart-panel]');
+      if (panel && panelHtml) {
+        panel.innerHTML = panelHtml;
+      }
+    };
+
+    const showToast = (message, icon = '✓') => {
+      if (!toast || !toastMsg) return;
+      toastMsg.textContent = message || 'Updated your list';
+      if (toastIcon) {
+        toastIcon.textContent = icon || '';
+      }
+      cart.dataset.toast = 'show';
+      toast.dataset.state = 'added';
+      window.setTimeout(() => {
+        cart.dataset.toast = '';
+        toast.dataset.state = '';
+        if (toastIcon) {
+          toastIcon.textContent = '';
+        }
+      }, 1600);
+    };
+
+    const sendCartToggleRequest = async (form) => {
+      const formData = new FormData(form);
+      const csrfToken = formData.get('csrfmiddlewaretoken');
+
+      try {
+        const response = await fetch(form.action, {
+          method: 'POST',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            Accept: 'application/json',
+            ...(csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+          },
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Request failed with ${response.status}`);
+        }
+
+        const payload = await response.json();
+        updateCartUI(payload);
+        const message = payload.toast_message || (payload.in_cart ? 'Added to your list' : 'Removed from your list');
+        showToast(message, payload.in_cart ? '✓' : '−');
+      } catch (error) {
+        console.error('Failed to update cart:', error);
+        form.submit();
+      }
+    };
+
     cart.addEventListener('submit', (e) => {
       const form = e.target;
       if (form && form.matches('[data-cart-toggle]')) {
         e.preventDefault();
-        if (toast && toastMsg) {
-          toastMsg.textContent = 'Updated your list';
-          toast.dataset.state = 'added';
-          if (toastIcon) {
-            toastIcon.textContent = '✓';
-          }
-          cart.dataset.toast = 'show';
-          setTimeout(() => {
-            cart.dataset.toast = '';
-            toast.dataset.state = '';
-            if (toastIcon) {
-              toastIcon.textContent = '';
-            }
-          }, 1400);
-        }
+        sendCartToggleRequest(form);
       }
     });
   })();
