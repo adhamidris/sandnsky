@@ -517,6 +517,112 @@ class TripRelation(models.Model):
 
 
 # -----------------------------
+# Rewards configuration
+# -----------------------------
+
+
+class RewardPhase(models.Model):
+    """
+    Configurable discount bracket unlocked by reaching a cart threshold.
+    """
+
+    class Status(models.TextChoices):
+        ACTIVE = "active", "Active"
+        INACTIVE = "inactive", "Inactive"
+
+    name = models.CharField(max_length=150)
+    slug = models.SlugField(max_length=180, unique=True, editable=False)
+    position = models.PositiveSmallIntegerField(default=0)
+
+    status = models.CharField(
+        max_length=15,
+        choices=Status.choices,
+        default=Status.ACTIVE,
+        db_index=True,
+    )
+    threshold_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
+        help_text="Subtotal required to unlock this reward tier.",
+    )
+    discount_percent = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        help_text="Percentage discount applied to eligible trips.",
+    )
+    currency = models.CharField(max_length=3, default="USD")
+
+    headline = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Optional short pitch shown on checkout rewards panel.",
+    )
+    description = models.TextField(
+        blank=True,
+        help_text="Longer copy explaining the reward benefits.",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    trips = models.ManyToManyField(
+        Trip,
+        through="RewardPhaseTrip",
+        related_name="reward_phases",
+        blank=True,
+    )
+
+    class Meta:
+        ordering = ["position", "id"]
+        indexes = [
+            models.Index(fields=["status"]),
+            models.Index(fields=["position"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.name} · {self.discount_percent}% off"
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = _generate_unique_slug(self, self.name)
+        super().save(*args, **kwargs)
+
+    @property
+    def is_active(self) -> bool:
+        return self.status == self.Status.ACTIVE
+
+
+class RewardPhaseTrip(models.Model):
+    """
+    Explicit mapping of trips that participate in a reward phase.
+    """
+
+    phase = models.ForeignKey(
+        RewardPhase,
+        on_delete=models.CASCADE,
+        related_name="phase_trips",
+    )
+    trip = models.ForeignKey(
+        Trip,
+        on_delete=models.CASCADE,
+        related_name="trip_reward_phases",
+    )
+    position = models.PositiveSmallIntegerField(
+        default=0,
+        help_text="Controls the display order for eligible trips within the phase.",
+    )
+
+    class Meta:
+        ordering = ["phase", "position", "id"]
+        unique_together = (("phase", "trip"),)
+
+    def __str__(self) -> str:
+        return f"{self.phase.name} · {self.trip.title}"
+
+
+# -----------------------------
 # Booking (detail page form → submission)
 # -----------------------------
 
@@ -610,6 +716,51 @@ class BookingExtra(models.Model):
 
     def __str__(self) -> str:
         return f"{self.extra.name} for booking #{self.booking_id}"
+
+
+class BookingReward(models.Model):
+    """
+    Snapshot of a reward discount applied to a booking at checkout.
+    """
+
+    booking = models.ForeignKey(
+        Booking,
+        on_delete=models.CASCADE,
+        related_name="rewards",
+    )
+    reward_phase = models.ForeignKey(
+        RewardPhase,
+        on_delete=models.PROTECT,
+        related_name="booking_rewards",
+    )
+    trip = models.ForeignKey(
+        Trip,
+        on_delete=models.PROTECT,
+        related_name="booking_rewards",
+    )
+
+    traveler_count = models.PositiveIntegerField()
+    discount_percent = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    currency = models.CharField(max_length=3, default="USD")
+
+    applied_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-applied_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["booking", "reward_phase", "trip"],
+                name="unique_reward_phase_per_booking_trip",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.reward_phase} · {self.booking}"
 
 
 # -----------------------------

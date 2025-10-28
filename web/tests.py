@@ -1,3 +1,4 @@
+import json
 from datetime import date, timedelta
 from decimal import Decimal
 
@@ -8,12 +9,78 @@ from django.urls import reverse
 from .models import (
     Booking,
     BookingExtra,
+    BookingReward,
     Destination,
     DestinationName,
+    RewardPhase,
+    RewardPhaseTrip,
     Trip,
     TripExtra,
 )
 from .views import CartCheckoutView, BOOKING_CART_REFERENCE_SALT
+from .booking_cart import (
+    add_entry,
+    apply_reward_selection,
+    build_cart_entry,
+    get_cart,
+    summarize_cart,
+)
+from .rewards import (
+    RewardComputationError,
+    build_entry_snapshot,
+    calculate_entry_reward,
+    calculate_unlock_progress,
+    get_reward_phases,
+    invalidate_reward_phase_cache,
+    normalize_reward_selections,
+)
+
+
+class RewardTestSetupMixin:
+    def setUp(self):
+        super().setUp()
+        invalidate_reward_phase_cache()
+        self.destination = Destination.objects.create(
+            name=DestinationName.ALEXANDRIA,
+            tagline="Coastal gem",
+            description="Waves and wonders",
+            featured_position=2,
+        )
+        self.primary_trip = Trip.objects.create(
+            title="Mediterranean Escape",
+            destination=self.destination,
+            teaser="Sail into the sunset",
+            duration_days=4,
+            group_size_max=10,
+            base_price_per_person=Decimal("200.00"),
+            tour_type_label="Guided Tour",
+        )
+        self.secondary_trip = Trip.objects.create(
+            title="Historic Alexandria Walk",
+            destination=self.destination,
+            teaser="Step back in time",
+            duration_days=1,
+            group_size_max=20,
+            base_price_per_person=Decimal("80.00"),
+            tour_type_label="Day Trip",
+        )
+        self.reward_phase = RewardPhase.objects.create(
+            name="Voyager Savings",
+            position=1,
+            threshold_amount=Decimal("500.00"),
+            discount_percent=Decimal("50.00"),
+            currency="USD",
+            headline="Unlock 50% off select adventures",
+        )
+        RewardPhaseTrip.objects.create(
+            phase=self.reward_phase,
+            trip=self.primary_trip,
+            position=1,
+        )
+
+    def tearDown(self):
+        invalidate_reward_phase_cache()
+        super().tearDown()
 
 
 class BookingSubmissionTests(TestCase):
@@ -167,7 +234,12 @@ class BookingSubmissionTests(TestCase):
         }
 
         view = CartCheckoutView()
-        bookings = view._create_bookings(entries, contact)
+        cart = {
+            "entries": entries,
+            "contact": {},
+            "rewards": {},
+        }
+        bookings = view._create_bookings(cart, contact)
 
         self.assertEqual(len(bookings), 2)
 
@@ -191,3 +263,216 @@ class BookingSubmissionTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, shared_reference)
         self.assertNotContains(response, "+1 more")
+
+
+class RewardServiceTests(RewardTestSetupMixin, TestCase):
+
+    def test_get_reward_phases_returns_active_phase_with_trip(self):
+        phases = get_reward_phases(active_only=True, use_cache=False)
+        self.assertEqual(len(phases), 1)
+        phase = phases[0]
+        self.assertTrue(phase.is_active)
+        self.assertEqual(phase.trips[0].trip_id, self.primary_trip.id)
+        self.assertEqual(phase.discount_percent, Decimal("50.00"))
+
+    def test_calculate_unlock_progress_reports_remaining_amount(self):
+        phases = get_reward_phases(active_only=True, use_cache=False)
+        progress = calculate_unlock_progress(
+            total_cents=int(Decimal("350.00") * 100),
+            phases=phases,
+        )
+        self.assertEqual(progress.unlocked_phase_ids, ())
+        self.assertEqual(progress.next_phase_id, self.reward_phase.id)
+        self.assertEqual(progress.remaining_to_next_cents, 15000)
+
+    def test_calculate_entry_reward_applies_discount(self):
+        entry = {
+            "id": "entry-1",
+            "trip_id": self.primary_trip.id,
+            "adults": 2,
+            "children": 1,
+            "pricing": {
+                "currency": "USD",
+                "base_price_cents": 20000,
+                "base_total_cents": 60000,
+                "extras_total_cents": 5000,
+                "grand_total_cents": 65000,
+            },
+        }
+        snapshot = build_entry_snapshot(entry)
+        phase = get_reward_phases(active_only=True, use_cache=False)[0]
+        calculation = calculate_entry_reward(snapshot=snapshot, phase=phase)
+
+        self.assertEqual(calculation.discount_cents, 30000)
+        self.assertEqual(calculation.updated_base_total_cents, 30000)
+        self.assertEqual(calculation.updated_grand_total_cents, 35000)
+
+    def test_calculate_entry_reward_validates_trip_membership(self):
+        entry = {
+            "id": "entry-2",
+            "trip_id": self.secondary_trip.id,
+            "adults": 2,
+            "children": 0,
+            "pricing": {
+                "currency": "USD",
+                "base_price_cents": 8000,
+                "base_total_cents": 16000,
+                "extras_total_cents": 0,
+                "grand_total_cents": 16000,
+            },
+        }
+        snapshot = build_entry_snapshot(entry)
+        phase = get_reward_phases(active_only=True, use_cache=False)[0]
+        with self.assertRaises(RewardComputationError):
+            calculate_entry_reward(snapshot=snapshot, phase=phase)
+
+    def test_normalize_reward_selections_filters_invalid_payloads(self):
+        raw = [
+            {"entry_id": "entry-1", "phase_id": self.reward_phase.id, "trip_id": self.primary_trip.id},
+            {"entry_id": "", "phase_id": 99, "trip_id": 100},
+            {"entry_id": "entry-2", "phase_id": None, "trip_id": "abc"},
+        ]
+        normalized = normalize_reward_selections(raw)
+        self.assertEqual(len(normalized), 1)
+        selection = normalized["entry-1"]
+        self.assertEqual(selection.phase_id, self.reward_phase.id)
+        self.assertEqual(selection.trip_id, self.primary_trip.id)
+
+
+class CartRewardsApiTests(RewardTestSetupMixin, TestCase):
+    def _add_entry_to_session(self, *, adults=3, children=0, infants=0):
+        session = self.client.session
+        entry = build_cart_entry(
+            self.primary_trip,
+            {
+                "date": date.today() + timedelta(days=30),
+                "adults": adults,
+                "children": children,
+                "infants": infants,
+                "extras": [],
+                "message": "",
+            },
+        )
+        add_entry(session, entry)
+        session.save()
+        return entry
+
+    def test_rewards_summary_endpoint_returns_phase_info(self):
+        self._add_entry_to_session(adults=3)
+
+        response = self.client.get(reverse("web:booking-cart-rewards"))
+        self.assertEqual(response.status_code, 200)
+
+        data = response.json()
+        summary = data["cart_summary"]
+        phases = summary["rewards"]["phases"]
+        self.assertTrue(phases)
+        phase_payload = phases[0]
+        self.assertTrue(phase_payload["unlocked"])
+        self.assertEqual(phase_payload["id"], self.reward_phase.id)
+
+    def test_rewards_apply_endpoint_updates_session_and_totals(self):
+        entry = self._add_entry_to_session(adults=3)
+
+        payload = {
+            "entry_id": entry["id"],
+            "phase_id": self.reward_phase.id,
+            "trip_id": self.primary_trip.id,
+        }
+        response = self.client.post(
+            reverse("web:booking-cart-rewards-apply"),
+            data=json.dumps(payload),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+
+        data = response.json()
+        summary = data["cart_summary"]
+        entry_summary = summary["entries"][0]
+        self.assertEqual(entry_summary["discount_total_cents"], 30000)
+        self.assertEqual(summary["discount_total_cents"], 30000)
+
+        cart = get_cart(self.client.session)
+        rewards_map = cart.get("rewards", {})
+        self.assertIn(entry["id"], rewards_map)
+
+    def test_rewards_remove_endpoint_clears_selection(self):
+        entry = self._add_entry_to_session(adults=3)
+        apply_payload = {
+            "entry_id": entry["id"],
+            "phase_id": self.reward_phase.id,
+            "trip_id": self.primary_trip.id,
+        }
+        self.client.post(
+            reverse("web:booking-cart-rewards-apply"),
+            data=json.dumps(apply_payload),
+            content_type="application/json",
+        )
+
+        remove_response = self.client.post(
+            reverse("web:booking-cart-rewards-remove"),
+            data=json.dumps({"entry_id": entry["id"]}),
+            content_type="application/json",
+        )
+        self.assertEqual(remove_response.status_code, 200)
+
+        summary = remove_response.json()["cart_summary"]
+        entry_summary = summary["entries"][0]
+        self.assertEqual(entry_summary["discount_total_cents"], 0)
+        self.assertEqual(summary["discount_total_cents"], 0)
+
+        cart = get_cart(self.client.session)
+        rewards_map = cart.get("rewards", {})
+        self.assertNotIn(entry["id"], rewards_map)
+
+
+class CartRewardsCheckoutTests(RewardTestSetupMixin, TestCase):
+    def _add_discounted_entry(self):
+        session = self.client.session
+        entry = build_cart_entry(
+            self.primary_trip,
+            {
+                "date": date.today() + timedelta(days=10),
+                "adults": 3,
+                "children": 0,
+                "infants": 0,
+                "extras": [],
+                "message": "",
+            },
+        )
+        add_entry(session, entry)
+        apply_reward_selection(
+            session,
+            entry_id=entry["id"],
+            phase_id=self.reward_phase.id,
+            trip_id=self.primary_trip.id,
+        )
+        session.save()
+        return entry
+
+    def test_checkout_persists_booking_reward_records(self):
+        self._add_discounted_entry()
+        cart = get_cart(self.client.session)
+        contact = {
+            "name": "Taylor Traveler",
+            "email": "taylor@example.com",
+            "phone": "+201001234567",
+            "notes": "",
+        }
+
+        view = CartCheckoutView()
+        bookings = view._create_bookings(cart, contact)
+
+        self.assertEqual(len(bookings), 1)
+        booking = bookings[0]
+        booking.refresh_from_db()
+
+        self.assertEqual(booking.base_subtotal, Decimal("300.00"))
+        self.assertEqual(booking.extras_subtotal, Decimal("0.00"))
+        self.assertEqual(booking.grand_total, Decimal("300.00"))
+
+        rewards = BookingReward.objects.filter(booking=booking)
+        self.assertEqual(rewards.count(), 1)
+        reward_record = rewards.get()
+        self.assertEqual(reward_record.discount_amount, Decimal("300.00"))
+        self.assertEqual(reward_record.reward_phase_id, self.reward_phase.id)

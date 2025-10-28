@@ -3,22 +3,39 @@ from __future__ import annotations
 import copy
 import datetime as dt
 import uuid
+from dataclasses import dataclass
 from decimal import Decimal, ROUND_HALF_UP
-from typing import Any, Dict, List
+from typing import Any, Dict, Iterable, List, Mapping, MutableMapping, Optional, Sequence, Tuple
 from urllib.parse import quote_plus
 
 from django.utils import timezone
 
 from .models import Trip, TripExtra
+from .rewards import (
+    CartEntrySnapshot,
+    RewardCalculation,
+    RewardComputationError,
+    RewardPhaseData,
+    RewardSelection,
+    RewardUnlockProgress,
+    apply_reward_calculation_to_entry,
+    build_entry_snapshot,
+    calculate_entry_reward,
+    calculate_unlock_progress,
+    get_reward_phases,
+    map_phases_by_id,
+    normalize_reward_selections,
+)
 
 DEFAULT_CURRENCY = "USD"
 
 SESSION_KEY = "booking_cart"
+REWARDS_SESSION_KEY = "rewards"
 WHATSAPP_BOOKING_HELP_NUMBER = "201108741159"
 
 
 def _default_cart() -> Dict[str, Any]:
-    return {"contact": {}, "entries": []}
+    return {"contact": {}, "entries": [], REWARDS_SESSION_KEY: {}}
 
 
 def _normalize_cart(cart: Any) -> Dict[str, Any]:
@@ -26,6 +43,7 @@ def _normalize_cart(cart: Any) -> Dict[str, Any]:
         return _default_cart()
     contact = cart.get("contact")
     entries = cart.get("entries")
+    rewards_raw = cart.get(REWARDS_SESSION_KEY)
     if not isinstance(contact, dict):
         contact = {}
     normalized_contact = {}
@@ -38,7 +56,26 @@ def _normalize_cart(cart: Any) -> Dict[str, Any]:
     for entry in entries:
         if isinstance(entry, dict):
             normalized_entries.append(copy.deepcopy(entry))
-    return {"contact": normalized_contact, "entries": normalized_entries}
+    normalized_rewards = _normalize_rewards_payload(rewards_raw)
+    return {
+        "contact": normalized_contact,
+        "entries": normalized_entries,
+        REWARDS_SESSION_KEY: normalized_rewards,
+    }
+
+
+def _normalize_rewards_payload(raw: Any) -> Dict[str, Dict[str, int]]:
+    normalized: Dict[str, Dict[str, int]] = {}
+    selections = normalize_reward_selections(raw)
+    for entry_id, selection in selections.items():
+        key = str(entry_id)
+        if not key:
+            continue
+        normalized[key] = {
+            "phase_id": int(selection.phase_id),
+            "trip_id": int(selection.trip_id),
+        }
+    return normalized
 
 
 def get_cart(session) -> Dict[str, Any]:
@@ -90,6 +127,152 @@ def update_contact(
     return cart
 
 
+def _ensure_rewards_mapping(cart: Dict[str, Any]) -> Dict[str, Dict[str, int]]:
+    rewards = cart.get(REWARDS_SESSION_KEY)
+    if not isinstance(rewards, dict):
+        rewards = {}
+        cart[REWARDS_SESSION_KEY] = rewards
+    return rewards
+
+
+def get_reward_selections(session) -> Dict[str, RewardSelection]:
+    cart = get_cart(session)
+    raw = cart.get(REWARDS_SESSION_KEY, {})
+    return normalize_reward_selections(raw)
+
+
+def apply_reward_selection(
+    session,
+    *,
+    entry_id: str,
+    phase_id: int,
+    trip_id: int,
+) -> Dict[str, Any]:
+    cart = get_cart(session)
+    rewards = _ensure_rewards_mapping(cart)
+    rewards[str(entry_id)] = {
+        "phase_id": int(phase_id),
+        "trip_id": int(trip_id),
+    }
+    save_cart(session, cart)
+    return cart
+
+
+def remove_reward_selection(session, entry_id: str | Iterable[str]) -> Dict[str, Any]:
+    cart = get_cart(session)
+    if _remove_reward_selection_from_cart(cart, entry_id):
+        save_cart(session, cart)
+    return cart
+
+
+def _remove_reward_selection_from_cart(
+    cart: Dict[str, Any],
+    entry_ids: str | Iterable[str],
+) -> bool:
+    rewards = cart.get(REWARDS_SESSION_KEY)
+    if not isinstance(rewards, dict) or not rewards:
+        return False
+    if isinstance(entry_ids, (str, bytes)):
+        entry_iterable: Iterable[str] = [entry_ids]
+    else:
+        entry_iterable = [str(entry_id) for entry_id in entry_ids]
+    removed = False
+    for entry_id in entry_iterable:
+        key = str(entry_id)
+        if key and key in rewards:
+            rewards.pop(key, None)
+            removed = True
+    return removed
+
+
+@dataclass(frozen=True)
+class CartRewardsComputation:
+    phases: Tuple[RewardPhaseData, ...]
+    phase_map: Dict[int, RewardPhaseData]
+    selections: Dict[str, RewardSelection]
+    snapshots: Dict[str, CartEntrySnapshot]
+    calculations: Dict[str, RewardCalculation]
+    invalid_entry_ids: Tuple[str, ...]
+    progress: RewardUnlockProgress
+    unlocked_phase_ids: Tuple[int, ...]
+    pre_discount_total_cents: int
+
+
+def compute_cart_rewards(cart: Mapping[str, Any]) -> CartRewardsComputation:
+    entries = cart.get("entries", [])
+    if not isinstance(entries, list):
+        entries = []
+
+    selections = normalize_reward_selections(cart.get(REWARDS_SESSION_KEY, {}))
+    phases = get_reward_phases(active_only=True)
+    phase_map = map_phases_by_id(phases)
+
+    snapshots: Dict[str, CartEntrySnapshot] = {}
+    pre_discount_total_cents = 0
+
+    for raw_entry in entries:
+        if not isinstance(raw_entry, Mapping):
+            continue
+        entry_id = str(raw_entry.get("id", ""))
+        if not entry_id:
+            continue
+        try:
+            snapshot = build_entry_snapshot(raw_entry)
+        except RewardComputationError:
+            continue
+        snapshots[entry_id] = snapshot
+        pre_discount_total_cents += snapshot.grand_total_cents
+
+    progress = calculate_unlock_progress(
+        total_cents=pre_discount_total_cents,
+        phases=phases,
+    )
+    unlocked_phase_ids = tuple(progress.unlocked_phase_ids)
+    unlocked_set = set(unlocked_phase_ids)
+
+    calculations: Dict[str, RewardCalculation] = {}
+    invalid_entry_ids: List[str] = []
+
+    for entry_id, selection in selections.items():
+        snapshot = snapshots.get(entry_id)
+        if snapshot is None:
+            invalid_entry_ids.append(entry_id)
+            continue
+
+        phase = phase_map.get(selection.phase_id)
+        if phase is None:
+            invalid_entry_ids.append(entry_id)
+            continue
+
+        if phase.id not in unlocked_set:
+            invalid_entry_ids.append(entry_id)
+            continue
+
+        if selection.trip_id != snapshot.trip_id:
+            invalid_entry_ids.append(entry_id)
+            continue
+
+        try:
+            calculation = calculate_entry_reward(snapshot=snapshot, phase=phase)
+        except RewardComputationError:
+            invalid_entry_ids.append(entry_id)
+            continue
+
+        calculations[entry_id] = calculation
+
+    return CartRewardsComputation(
+        phases=phases,
+        phase_map=phase_map,
+        selections=selections,
+        snapshots=snapshots,
+        calculations=calculations,
+        invalid_entry_ids=tuple(invalid_entry_ids),
+        progress=progress,
+        unlocked_phase_ids=unlocked_phase_ids,
+        pre_discount_total_cents=pre_discount_total_cents,
+    )
+
+
 def _decimal_to_cents(amount: Decimal | int | float | str) -> int:
     if isinstance(amount, int):
         return amount * 100
@@ -97,6 +280,19 @@ def _decimal_to_cents(amount: Decimal | int | float | str) -> int:
     quantized = decimal_amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
     cents = (quantized * 100).to_integral_value(rounding=ROUND_HALF_UP)
     return int(cents)
+
+
+def _safe_int(value: Any) -> int:
+    try:
+        if isinstance(value, int):
+            return value
+        if isinstance(value, Decimal):
+            return int(value)
+        if value is None:
+            return 0
+        return int(str(value))
+    except (TypeError, ValueError):
+        return 0
 
 
 def _selected_extras(trip: Trip, extras_ids: List[int]) -> List[TripExtra]:
@@ -200,8 +396,16 @@ def _serialize_summary_entry(entry: Dict[str, Any]) -> Dict[str, Any]:
         infant_label = "infant" if infants == 1 else "infants"
         traveler_label = f"{traveler_label} + {infants} {infant_label}"
 
-    return {
+    discount_cents = _safe_int(pricing.get("discount_total_cents"))
+    original_grand_total_cents = _safe_int(
+        pricing.get("original_grand_total_cents") or pricing.get("grand_total_original_cents")
+    )
+    if not original_grand_total_cents:
+        original_grand_total_cents = grand_total_cents
+
+    summary = {
         "id": entry.get("id"),
+        "trip_id": entry.get("trip_id"),
         "trip_title": entry.get("trip_title", ""),
         "travel_date_display": travel_date_display,
         "traveler_label": traveler_label,
@@ -209,32 +413,193 @@ def _serialize_summary_entry(entry: Dict[str, Any]) -> Dict[str, Any]:
         "grand_total_cents": grand_total_cents,
         "grand_total_display": _format_money_cents(grand_total_cents),
         "trip_slug": entry.get("trip_slug"),
+        "original_grand_total_cents": original_grand_total_cents,
+        "original_grand_total_display": _format_money_cents(original_grand_total_cents),
+        "discount_total_cents": discount_cents,
+        "discount_total_display": _format_money_cents(discount_cents) if discount_cents else "0.00",
     }
+
+    applied_reward = entry.get("applied_reward")
+    if applied_reward:
+        summary["applied_reward"] = applied_reward
+    reward_selection = entry.get("reward_selection")
+    if reward_selection:
+        summary["reward_selection"] = reward_selection
+
+    return summary
 
 
 def summarize_cart(session) -> Dict[str, Any]:
     cart = get_cart(session)
-    entries = []
+    rewards_state = compute_cart_rewards(cart)
+
+    if rewards_state.invalid_entry_ids:
+        if _remove_reward_selection_from_cart(cart, rewards_state.invalid_entry_ids):
+            save_cart(session, cart)
+            rewards_state = compute_cart_rewards(cart)
+
+    entries_summary: List[Dict[str, Any]] = []
     total_cents = 0
     currency = DEFAULT_CURRENCY
+    total_discount_cents = 0
+    selections_payload: Dict[str, Dict[str, int]] = {}
 
-    for raw_entry in cart.get("entries", []):
-        serialized = _serialize_summary_entry(raw_entry)
-        entries.append(serialized)
+    raw_entries = cart.get("entries", [])
+    if not isinstance(raw_entries, list):
+        raw_entries = []
+
+    for raw_entry in raw_entries:
+        if not isinstance(raw_entry, Mapping):
+            continue
+
+        entry_id = str(raw_entry.get("id", ""))
+        entry_copy = copy.deepcopy(raw_entry)
+
+        snapshot = rewards_state.snapshots.get(entry_id)
+        calculation = rewards_state.calculations.get(entry_id)
+
+        pricing = entry_copy.setdefault("pricing", {})
+        if not isinstance(pricing, MutableMapping):
+            pricing = {}
+            entry_copy["pricing"] = pricing
+
+        if snapshot:
+            pricing.setdefault("currency", snapshot.currency)
+            pricing.setdefault("base_total_cents", snapshot.base_total_cents)
+            pricing.setdefault("extras_total_cents", snapshot.extras_total_cents)
+            pricing.setdefault("grand_total_cents", snapshot.grand_total_cents)
+            pricing.setdefault("original_base_total_cents", snapshot.base_total_cents)
+            pricing.setdefault("original_grand_total_cents", snapshot.grand_total_cents)
+
+        if calculation:
+            apply_reward_calculation_to_entry(entry_copy, calculation)
+            pricing = entry_copy["pricing"]
+            if isinstance(pricing, MutableMapping):
+                pricing.setdefault("original_base_total_cents", rewards_state.snapshots[entry_id].base_total_cents)
+                pricing.setdefault("original_grand_total_cents", rewards_state.snapshots[entry_id].grand_total_cents)
+            applied_reward_payload = {
+                "phase_id": calculation.phase_id,
+                "phase_name": rewards_state.phase_map[calculation.phase_id].name,
+                "discount_percent": str(calculation.discount_percent),
+                "discount_cents": calculation.discount_cents,
+                "discount_display": _format_money_cents(calculation.discount_cents),
+            }
+            entry_copy["applied_reward"] = applied_reward_payload
+            total_discount_cents += calculation.discount_cents
+
+        selection = rewards_state.selections.get(entry_id)
+        if selection:
+            selection_payload = {
+                "phase_id": selection.phase_id,
+                "trip_id": selection.trip_id,
+            }
+            selections_payload[entry_id] = selection_payload
+            entry_copy["reward_selection"] = selection_payload
+
+        serialized = _serialize_summary_entry(entry_copy)
+        entries_summary.append(serialized)
         total_cents += serialized["grand_total_cents"]
         if serialized.get("currency"):
             currency = serialized["currency"]
 
     total_display = _format_money_cents(total_cents) if total_cents else "0.00"
+    pre_discount_total_cents = rewards_state.pre_discount_total_cents
+    pre_discount_total_display = (
+        _format_money_cents(pre_discount_total_cents) if pre_discount_total_cents else "0.00"
+    )
+
+    rewards_metadata = _build_rewards_metadata(
+        rewards_state=rewards_state,
+        selections_payload=selections_payload,
+        total_discount_cents=total_discount_cents,
+    )
 
     return {
         "contact": cart.get("contact", {}),
-        "entries": entries,
-        "count": len(entries),
+        "entries": entries_summary,
+        "count": len(entries_summary),
         "currency": currency,
         "total_cents": total_cents,
         "total_display": total_display,
+        "pre_discount_total_cents": pre_discount_total_cents,
+        "pre_discount_total_display": pre_discount_total_display,
+        "discount_total_cents": total_discount_cents,
+        "discount_total_display": _format_money_cents(total_discount_cents)
+        if total_discount_cents
+        else "0.00",
+        "rewards": rewards_metadata,
     }
+
+
+def _build_rewards_metadata(
+    *,
+    rewards_state: CartRewardsComputation,
+    selections_payload: Dict[str, Dict[str, int]],
+    total_discount_cents: int,
+) -> Dict[str, Any]:
+    unlocked_set = set(rewards_state.unlocked_phase_ids)
+
+    phases_payload: List[Dict[str, Any]] = []
+    for phase in rewards_state.phases:
+        phase_threshold_cents = _decimal_to_cents(phase.threshold_amount)
+        phase_payload = {
+            "id": phase.id,
+            "name": phase.name,
+            "slug": phase.slug,
+            "position": phase.position,
+            "threshold_amount_cents": phase_threshold_cents,
+            "threshold_amount_display": _format_money_cents(phase_threshold_cents),
+            "discount_percent": str(phase.discount_percent),
+            "currency": phase.currency,
+            "is_active": phase.is_active,
+            "unlocked": phase.id in unlocked_set,
+            "headline": phase.headline,
+            "description": phase.description,
+            "trip_options": [
+                {
+                    "phase_trip_id": trip.id,
+                    "trip_id": trip.trip_id,
+                    "slug": trip.slug,
+                    "title": trip.title,
+                    "position": trip.position,
+                    "card_image_url": trip.card_image_url,
+                }
+                for trip in phase.trips
+            ],
+            "applied_entry_ids": [
+                entry_id
+                for entry_id, calculation in rewards_state.calculations.items()
+                if calculation.phase_id == phase.id
+            ],
+        }
+        phases_payload.append(phase_payload)
+
+    progress = rewards_state.progress
+    remaining_to_next_cents = progress.remaining_to_next_cents
+    rewards_summary = {
+        "phases": phases_payload,
+        "progress": {
+            "total_cents": progress.total_cents,
+            "total_display": _format_money_cents(progress.total_cents)
+            if progress.total_cents
+            else "0.00",
+            "currency": progress.currency,
+            "unlocked_phase_ids": list(rewards_state.unlocked_phase_ids),
+            "next_phase_id": progress.next_phase_id,
+            "remaining_to_next_cents": remaining_to_next_cents,
+            "remaining_to_next_display": (
+                _format_money_cents(remaining_to_next_cents)
+                if remaining_to_next_cents is not None
+                else None
+            ),
+        },
+        "selections": selections_payload,
+        "discount_total_cents": total_discount_cents,
+        "discount_total_display": _format_money_cents(total_discount_cents)
+        if total_discount_cents
+        else "0.00",
+    }
+    return rewards_summary
 
 
 def build_booking_help_link(entries: List[Dict[str, Any]]) -> str:
@@ -292,6 +657,7 @@ def remove_entry(session, entry_id: str) -> Dict[str, Any]:
     updated_entries = [entry for entry in entries if entry.get("id") != entry_id]
     if len(updated_entries) != len(entries):
         cart["entries"] = updated_entries
+        _remove_reward_selection_from_cart(cart, entry_id)
         save_cart(session, cart)
     return cart
 
@@ -299,8 +665,16 @@ def remove_entry(session, entry_id: str) -> Dict[str, Any]:
 def remove_trip_entries(session, trip_id: int) -> Dict[str, Any]:
     cart = get_cart(session)
     entries = cart.get("entries", [])
-    updated_entries = [entry for entry in entries if entry.get("trip_id") != trip_id]
+    removed_entry_ids: List[str] = []
+    updated_entries = []
+    for entry in entries:
+        if entry.get("trip_id") == trip_id:
+            removed_entry_ids.append(str(entry.get("id", "")))
+            continue
+        updated_entries.append(entry)
     if len(updated_entries) != len(entries):
         cart["entries"] = updated_entries
+        if removed_entry_ids:
+            _remove_reward_selection_from_cart(cart, removed_entry_ids)
         save_cart(session, cart)
     return cart

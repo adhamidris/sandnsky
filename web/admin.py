@@ -23,8 +23,11 @@ from .models import (
     TripFAQ,
     TripExtra,
     TripRelation,
+    RewardPhase,
+    RewardPhaseTrip,
     Booking,
     BookingExtra,
+    BookingReward,
     Review,
 )
 
@@ -168,6 +171,32 @@ class BookingExtraInline(admin.TabularInline):
     raw_id_fields = ("extra",)
     # If you want to prevent editing snapshot data, uncomment the next line:
     # readonly_fields = ("extra", "price_at_booking")
+
+
+class BookingRewardInline(admin.TabularInline):
+    model = BookingReward
+    extra = 0
+    can_delete = False
+    fields = (
+        "reward_phase",
+        "trip",
+        "traveler_count",
+        "discount_percent",
+        "discount_amount",
+        "currency",
+        "applied_at",
+    )
+    readonly_fields = fields
+    ordering = ("-applied_at",)
+    verbose_name_plural = "Applied rewards"
+
+
+class RewardPhaseTripInline(admin.TabularInline):
+    model = RewardPhaseTrip
+    extra = 0
+    fields = ("trip", "position")
+    ordering = ("position", "id")
+    autocomplete_fields = ("trip",)
 
 
 class BlogSectionInline(admin.StackedInline):
@@ -419,7 +448,7 @@ class TripRelationAdmin(admin.ModelAdmin):
 
 @admin.register(Booking)
 class BookingAdmin(admin.ModelAdmin):
-    inlines = [BookingExtraInline]
+    inlines = [BookingExtraInline, BookingRewardInline]
 
     list_display = (
         "trip",
@@ -489,3 +518,83 @@ class ReviewAdmin(admin.ModelAdmin):
     search_fields = ("author_name", "body", "trip__title")
     date_hierarchy = "created_at"
     ordering = ("-created_at",)
+
+
+@admin.register(RewardPhase)
+class RewardPhaseAdmin(admin.ModelAdmin):
+    inlines = [RewardPhaseTripInline]
+    list_display = (
+        "name",
+        "status",
+        "threshold_amount",
+        "discount_percent",
+        "currency",
+        "position",
+        "updated_at",
+    )
+    list_filter = ("status", "currency")
+    search_fields = ("name", "headline", "description")
+    ordering = ("position", "id")
+    readonly_fields = ("created_at", "updated_at")
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "name",
+                    "status",
+                    "position",
+                )
+            },
+        ),
+        (
+            "Reward configuration",
+            {
+                "fields": (
+                    ("threshold_amount", "discount_percent", "currency"),
+                    "headline",
+                    "description",
+                )
+            },
+        ),
+        (
+            "Timestamps",
+            {
+                "classes": ("collapse",),
+                "fields": ("created_at", "updated_at"),
+            },
+        ),
+    )
+
+
+@admin.register(RewardPhaseTrip)
+class RewardPhaseTripAdmin(admin.ModelAdmin):
+    list_display = ("phase", "trip", "position")
+    list_filter = ("phase", "trip__destination")
+    search_fields = ("phase__name", "trip__title")
+    ordering = ("phase__position", "position", "id")
+    autocomplete_fields = ("phase", "trip")
+
+
+@admin.register(BookingReward)
+class BookingRewardAdmin(admin.ModelAdmin):
+    list_display = (
+        "booking",
+        "reward_phase",
+        "trip",
+        "traveler_count",
+        "discount_percent",
+        "discount_amount",
+        "currency",
+        "applied_at",
+    )
+    list_filter = ("reward_phase", "currency", "applied_at")
+    search_fields = (
+        "booking__full_name",
+        "booking__email",
+        "booking__trip__title",
+        "reward_phase__name",
+        "trip__title",
+    )
+    date_hierarchy = "applied_at"
+    ordering = ("-applied_at",)

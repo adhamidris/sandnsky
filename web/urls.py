@@ -9,6 +9,9 @@ from .views import (
     CartCheckoutSuccessView,
     BookingSuccessView,
     BookingStatusView,
+    CartRewardsSummaryView,
+    CartRewardsApplyView,
+    CartRewardsRemoveView,
     BlogListView,
     BlogDetailView,
 )
@@ -25,6 +28,21 @@ urlpatterns = [
         "booking/cart/add/<slug:slug>/",
         CartQuickAddView.as_view(),
         name="booking-cart-quick-add",
+    ),
+    path(
+        "booking/cart/rewards/",
+        CartRewardsSummaryView.as_view(),
+        name="booking-cart-rewards",
+    ),
+    path(
+        "booking/cart/rewards/apply/",
+        CartRewardsApplyView.as_view(),
+        name="booking-cart-rewards-apply",
+    ),
+    path(
+        "booking/cart/rewards/remove/",
+        CartRewardsRemoveView.as_view(),
+        name="booking-cart-rewards-remove",
     ),
     path("booking/cart/", CartCheckoutView.as_view(), name="booking-cart-checkout"),
     path(

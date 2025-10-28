@@ -40,6 +40,11 @@ This repository now includes the initial Django skeleton that will serve Nile Dr
 - `static/css/main.css` – Compiled Tailwind output served via Django staticfiles
 - `static/js/booking-form.js` – Light enhancement for the booking form module
 
+## Rewards configuration via admin
+- Use the Django admin (`/admin/`) to manage progressive discounts.
+- **Reward phases** control thresholds, copy, and discount percentages; assign eligible trips from the inline picker.
+- **Reward bookings** surface alongside each booking record as a read-only snapshot of what was applied at checkout.
+
 Subsequent chunks will layer page templates, routing, and progressive enhancements on top of this foundation.
 
 

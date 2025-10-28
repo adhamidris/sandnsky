@@ -1,7 +1,9 @@
+import json
 from decimal import Decimal, ROUND_HALF_UP
 import datetime as dt
 import mimetypes
 from urllib.parse import urlencode
+from typing import Mapping
 
 from django.contrib import messages
 from django.core import signing
@@ -23,11 +25,14 @@ from .booking_cart import (
     build_booking_help_link,
     build_cart_entry,
     clear_cart,
+    compute_cart_rewards,
     get_cart,
     get_contact,
     remove_entry,
     remove_trip_entries,
     summarize_cart,
+    apply_reward_selection,
+    remove_reward_selection,
     update_contact,
 )
 from .models import (
@@ -44,6 +49,12 @@ from .models import (
     TripItineraryDay,
     TripRelation,
     TripExtra,
+)
+from .rewards import (
+    RewardComputationError,
+    calculate_entry_reward,
+    build_entry_snapshot,
+    persist_booking_reward,
 )
 
 
@@ -1379,7 +1390,7 @@ class CartCheckoutView(TemplateView):
 
             cart = get_cart(request.session)
             try:
-                bookings = self._create_bookings(cart.get("entries", []), cleaned)
+                bookings = self._create_bookings(cart, cleaned)
             except Http404 as exc:
                 messages.error(request, str(exc))
                 return redirect(reverse("web:booking-cart-checkout"))
@@ -1406,7 +1417,8 @@ class CartCheckoutView(TemplateView):
             self.get_context_data(form=form, summary=summary)
         )
 
-    def _create_bookings(self, entries, contact):
+    def _create_bookings(self, cart, contact):
+        entries = cart.get("entries", [])
         if not entries:
             return []
 
@@ -1418,16 +1430,24 @@ class CartCheckoutView(TemplateView):
         if not (name and email and phone):
             return []
 
+        rewards_state = compute_cart_rewards(cart)
+
         trip_ids = {
             entry.get("trip_id")
             for entry in entries
-            if entry.get("trip_id") is not None
+            if isinstance(entry, Mapping) and entry.get("trip_id") is not None
         }
         trips = Trip.objects.filter(pk__in=trip_ids)
         trip_map = {trip.pk: trip for trip in trips}
 
         created_bookings = []
         group_reference = None
+
+        def cents_to_decimal(value):
+            try:
+                return (Decimal(str(value)) / Decimal("100")).quantize(Decimal("0.01"))
+            except (TypeError, ValueError, ArithmeticError):
+                return Decimal("0")
 
         with transaction.atomic():
             for entry in entries:
@@ -1453,16 +1473,19 @@ class CartCheckoutView(TemplateView):
                 if adults + children <= 0:
                     adults = 1
 
-                def cents_to_decimal(value):
-                    try:
-                        return (Decimal(str(value)) / Decimal("100")).quantize(Decimal("0.01"))
-                    except (TypeError, ValueError, ArithmeticError):
-                        return Decimal("0")
-
                 pricing = entry.get("pricing") or {}
                 base_total = cents_to_decimal(pricing.get("base_total_cents"))
                 extras_total = cents_to_decimal(pricing.get("extras_total_cents"))
                 grand_total = cents_to_decimal(pricing.get("grand_total_cents"))
+
+                entry_id = str(entry.get("id", ""))
+                calculation = rewards_state.calculations.get(entry_id)
+                snapshot = rewards_state.snapshots.get(entry_id)
+
+                if calculation is not None and snapshot is not None:
+                    base_total = cents_to_decimal(calculation.updated_base_total_cents)
+                    extras_total = cents_to_decimal(snapshot.extras_total_cents)
+                    grand_total = cents_to_decimal(calculation.updated_grand_total_cents)
 
                 if grand_total == Decimal("0"):
                     base_price = getattr(trip, "base_price_per_person", Decimal("0"))
@@ -1504,9 +1527,7 @@ class CartCheckoutView(TemplateView):
                 if group_reference is None:
                     group_reference = booking.reference_code
                 elif booking.group_reference != group_reference:
-                    Booking.objects.filter(pk=booking.pk).update(
-                        group_reference=group_reference
-                    )
+                    Booking.objects.filter(pk=booking.pk).update(group_reference=group_reference)
                     booking.group_reference = group_reference
 
                 extras_data = entry.get("extras") or []
@@ -1540,9 +1561,137 @@ class CartCheckoutView(TemplateView):
                 if booking_extras:
                     BookingExtra.objects.bulk_create(booking_extras)
 
+                if calculation is not None and snapshot is not None:
+                    phase = rewards_state.phase_map.get(calculation.phase_id)
+                    if phase is not None:
+                        persist_booking_reward(
+                            booking=booking,
+                            phase=phase,
+                            calculation=calculation,
+                        )
+
                 created_bookings.append(booking)
 
         return created_bookings
+
+
+class CartRewardsPayloadMixin:
+    @staticmethod
+    def _parse_payload(request):
+        content_type = (request.content_type or "").lower()
+        if "application/json" in content_type:
+            try:
+                raw_body = request.body.decode("utf-8") if request.body else ""
+            except UnicodeDecodeError:
+                return {}
+            try:
+                data = json.loads(raw_body or "{}")
+            except ValueError:
+                return {}
+            if isinstance(data, dict):
+                return data
+            return {}
+        return request.POST
+
+    @staticmethod
+    def _positive_int(value):
+        try:
+            parsed = int(value)
+        except (TypeError, ValueError):
+            return None
+        if parsed <= 0:
+            return None
+        return parsed
+
+    @staticmethod
+    def _json_error(message, status=400):
+        return JsonResponse({"error": message}, status=status)
+
+
+class CartRewardsSummaryView(CartRewardsPayloadMixin, View):
+    http_method_names = ["get"]
+
+    def get(self, request, *args, **kwargs):
+        if not hasattr(request, "session"):
+            return self._json_error("Session support required.", status=400)
+        summary = summarize_cart(request.session)
+        return JsonResponse({"cart_summary": summary})
+
+
+class CartRewardsApplyView(CartRewardsPayloadMixin, View):
+    http_method_names = ["post"]
+
+    def post(self, request, *args, **kwargs):
+        if not hasattr(request, "session"):
+            return self._json_error("Session support required.", status=400)
+
+        payload = self._parse_payload(request)
+        entry_id = str(payload.get("entry_id") or "")
+        phase_id = self._positive_int(payload.get("phase_id"))
+        trip_id = self._positive_int(payload.get("trip_id"))
+
+        if not entry_id or phase_id is None or trip_id is None:
+            return self._json_error("Invalid reward selection payload.")
+
+        cart = get_cart(request.session)
+        entries = cart.get("entries", [])
+        entry_record = None
+        for entry in entries or []:
+            if str(entry.get("id", "")) == entry_id:
+                entry_record = entry
+                break
+        if entry_record is None:
+            return self._json_error("That trip is no longer in your booking list.", status=404)
+
+        rewards_state = compute_cart_rewards(cart)
+        phase = rewards_state.phase_map.get(phase_id)
+        if phase is None:
+            return self._json_error("Reward phase not found.", status=404)
+
+        if phase.id not in set(rewards_state.unlocked_phase_ids):
+            return self._json_error("This reward has not been unlocked yet.", status=400)
+
+        snapshot = rewards_state.snapshots.get(entry_id)
+        if snapshot is None:
+            try:
+                snapshot = build_entry_snapshot(entry_record)
+            except RewardComputationError:
+                return self._json_error("Unable to evaluate this reward for the selected trip.", status=400)
+
+        if snapshot.trip_id != trip_id:
+            return self._json_error("Reward selection does not match the chosen trip.", status=400)
+
+        try:
+            calculate_entry_reward(snapshot=snapshot, phase=phase)
+        except RewardComputationError as exc:
+            message = str(exc) or "Unable to apply that reward."
+            return self._json_error(message, status=400)
+
+        apply_reward_selection(
+            request.session,
+            entry_id=entry_id,
+            phase_id=phase_id,
+            trip_id=trip_id,
+        )
+        summary = summarize_cart(request.session)
+        return JsonResponse({"cart_summary": summary})
+
+
+class CartRewardsRemoveView(CartRewardsPayloadMixin, View):
+    http_method_names = ["post"]
+
+    def post(self, request, *args, **kwargs):
+        if not hasattr(request, "session"):
+            return self._json_error("Session support required.", status=400)
+
+        payload = self._parse_payload(request)
+        entry_id = str(payload.get("entry_id") or "")
+        if not entry_id:
+            return self._json_error("Entry identifier is required.")
+
+        remove_reward_selection(request.session, entry_id)
+        summary = summarize_cart(request.session)
+        return JsonResponse({"cart_summary": summary})
 
 
 class BookingSuccessView(TemplateView):
