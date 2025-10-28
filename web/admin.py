@@ -408,10 +408,11 @@ class TripAdmin(admin.ModelAdmin):
         "duration_days",
         "group_size_max",
         "base_price_per_person",
+        "is_service",
         "get_language_codes",
         "created_at",
     )
-    list_filter = ("destination", "duration_days", "languages")
+    list_filter = ("destination", "duration_days", "languages", "is_service")
     search_fields = ("title", "slug", "teaser", "tour_type_label", "destination__name")
     filter_horizontal = ("languages", "category_tags", "additional_destinations")
     date_hierarchy = "created_at"

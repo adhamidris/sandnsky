@@ -96,7 +96,7 @@ class BookingCartCheckoutForm(forms.Form):
     notes = forms.CharField(
         label="Additional Notes",
         required=False,
-        widget=forms.Textarea(attrs={"rows": 4}),
+        widget=forms.Textarea(attrs={"rows": 2}),
     )
 
     def __init__(self, *args, **kwargs):

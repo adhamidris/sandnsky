@@ -357,6 +357,10 @@ class Trip(models.Model):
     languages = models.ManyToManyField(
         Language, blank=True, related_name="trips"
     )
+    is_service = models.BooleanField(
+        default=False,
+        help_text="Mark this trip as a service-only add-on for quick checkout adds.",
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

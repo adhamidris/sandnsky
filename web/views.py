@@ -238,6 +238,18 @@ def build_trip_card(trip):
     }
 
 
+def build_service_option(trip):
+    image_url = trip.card_image.url if trip.card_image else ""
+    return {
+        "id": trip.pk,
+        "slug": trip.slug,
+        "title": trip.title,
+        "description": trip.teaser,
+        "image_url": image_url,
+        "price": format_currency(trip.base_price_per_person),
+    }
+
+
 def contact_actions():
     return [
         {
@@ -1312,6 +1324,8 @@ class CartQuickAddView(View):
 class CartCheckoutView(TemplateView):
     template_name = "booking_cart_checkout.html"
     form_class = BookingCartCheckoutForm
+    SERVICES_LIMIT = 6
+    RECOMMENDED_LIMIT = 6
 
     def dispatch(self, request, *args, **kwargs):
         if not hasattr(request, "session"):
@@ -1345,6 +1359,7 @@ class CartCheckoutView(TemplateView):
         summary = kwargs.pop("summary", None)
         if summary is None:
             summary = self.get_summary()
+        cart_trip_ids = self._cart_trip_ids(summary)
         form = kwargs.get("form") or self.form_class(initial=self.get_initial(summary))
         context.update(
             form=form,
@@ -1354,6 +1369,8 @@ class CartCheckoutView(TemplateView):
             cart_total_display=summary.get("total_display", "0.00"),
             cart_currency=summary.get("currency", DEFAULT_CURRENCY),
             cart_has_entries=bool(summary.get("entries")),
+            quick_add_services=self._service_options(cart_trip_ids),
+            quick_add_recommendations=self._recommended_trips(cart_trip_ids),
         )
         return context
 
@@ -1416,6 +1433,71 @@ class CartCheckoutView(TemplateView):
         return self.render_to_response(
             self.get_context_data(form=form, summary=summary)
         )
+
+    def _cart_trip_ids(self, summary):
+        trip_ids = set()
+        entries = summary.get("entries", []) if isinstance(summary, Mapping) else []
+        for entry in entries:
+            if not isinstance(entry, Mapping):
+                continue
+            trip_id = entry.get("trip_id")
+            try:
+                if trip_id is not None:
+                    trip_ids.add(int(trip_id))
+            except (TypeError, ValueError):
+                continue
+        return trip_ids
+
+    def _service_options(self, exclude_trip_ids):
+        queryset = (
+            Trip.objects.filter(is_service=True)
+            .exclude(pk__in=exclude_trip_ids)
+            .select_related("destination")
+            .prefetch_related("category_tags", "additional_destinations")
+            .order_by("title")
+        )
+        services = []
+        for trip in queryset[: self.SERVICES_LIMIT]:
+            services.append(build_service_option(trip))
+        return services
+
+    def _recommended_trips(self, cart_trip_ids):
+        limit = self.RECOMMENDED_LIMIT
+        seen_trip_ids = set(cart_trip_ids or [])
+        cards = []
+
+        if cart_trip_ids:
+            relations = (
+                TripRelation.objects.filter(from_trip__in=cart_trip_ids)
+                .select_related("to_trip", "to_trip__destination")
+                .prefetch_related("to_trip__category_tags", "to_trip__additional_destinations")
+                .order_by("position", "id")
+            )
+            for relation in relations:
+                trip = relation.to_trip
+                if not trip or trip.pk in seen_trip_ids or trip.is_service:
+                    continue
+                cards.append(build_trip_card(trip))
+                seen_trip_ids.add(trip.pk)
+                if len(cards) >= limit:
+                    break
+
+        if len(cards) < limit:
+            remaining = limit - len(cards)
+            fallback_queryset = (
+                Trip.objects.filter(is_service=False)
+                .exclude(pk__in=seen_trip_ids)
+                .select_related("destination")
+                .prefetch_related("category_tags", "additional_destinations")
+                .order_by("-created_at")[:remaining]
+            )
+            for trip in fallback_queryset:
+                cards.append(build_trip_card(trip))
+                seen_trip_ids.add(trip.pk)
+                if len(cards) >= limit:
+                    break
+
+        return cards
 
     def _create_bookings(self, cart, contact):
         entries = cart.get("entries", [])

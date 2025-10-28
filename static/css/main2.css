@@ -3548,3 +3548,15 @@ body.gallery-lightbox--open {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+@media (min-width: 1024px) {
+  .checkout-sticky-panel {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 6rem;
+    align-self: start;
+    height: -webkit-max-content;
+    height: -moz-max-content;
+    height: max-content;
+  }
+}
