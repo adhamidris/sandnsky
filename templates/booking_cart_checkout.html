@@ -389,13 +389,7 @@
             <div class="flex flex-col items-end gap-2">
               <span class="rounded-full bg-primary/10 px-4 py-1 text-sm font-semibold text-primary" data-entry-total>{{ entry.currency }} {{ entry.grand_total_display }}</span>
               <span class="text-xs text-muted-foreground line-through {% if not entry.discount_total_cents %}hidden{% endif %}" data-entry-original>{{ entry.currency }} {{ entry.original_grand_total_display }}</span>
-              {% if entry.applied_reward %}
-              <span class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary" data-entry-discount-pill>
-                Saved {{ entry.applied_reward.discount_display }}
-              </span>
-              {% else %}
-              <span class="hidden inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary" data-entry-discount-pill></span>
-              {% endif %}
+
               {% if entry.trip_slug %}
               <a href="{% url 'web:trip-detail' entry.trip_slug %}" class="text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-primary">View trip details</a>
               {% endif %}
