@@ -3571,3 +3571,70 @@ body.gallery-lightbox--open {
     display: none;
   }
 }
+
+
+/* CUSTOM CSS */ 
+
+.checkoutpage {
+  background-color: #F5F1E8 !important;
+}
+
+.checkout-header {
+  color: #2a2a2a !important;
+  font-family: "Papyrus", fantasy !important;
+}
+
+.guest-details {
+  background-color: white !important;
+}
+
+.guest-detail-h2 {
+  color: #2a2a2a !important;
+}
+
+.field-label {
+  color: #2a2a2a !important;
+}
+
+.field-required {
+  color: #C9A961 !important;
+}
+
+#cart-checkout-form input:not([type="hidden"]),
+#cart-checkout-form textarea,
+#cart-checkout-form select {
+  /* ADJUST FONT LATER */
+}
+
+.remove-btn svg {
+  color: red !important;
+}
+
+.rewards-web {
+  background-color: #E8EFF3 !important;
+}
+
+.aside-rewards-titles {
+  color: #2B4356 !important;
+}
+
+.aside-rewards-titles-2 {
+  color: #6B8A9E !important;
+}
+
+.rewards-count-badge{
+  color: #2B4356 !important;
+  text-align: center !important;
+  background-color: #D4A574 !important;
+  border: 1px thin !important;
+  border-color:#C9A961 !important;
+}
+
+.progress-card {
+  background-color: white !important;
+  border-radius: 15px !important;
+}
+
+.rewards-amount {
+  border: 3px solid red !important;
+}
