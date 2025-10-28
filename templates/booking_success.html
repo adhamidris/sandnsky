@@ -194,6 +194,38 @@
             </section>
           </div>
 
+          <div class="booking-side-card booking-totals-card mt-6 space-y-4 rounded-2xl border border-border bg-background/80 px-5 py-5 text-sm text-muted-foreground lg:hidden">
+            <p class="booking-side-eyebrow text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Booking totals ({{ summary_pricing.currency }})</p>
+            <div class="booking-side-values space-y-2 text-foreground">
+              <div class="booking-side-row flex items-center justify-between">
+                <span>Base for all travelers</span>
+                <span>{{ summary_pricing.base_display }}</span>
+              </div>
+              <div class="booking-side-row flex items-center justify-between">
+                <span>Optional extras</span>
+                <span>{{ summary_pricing.extras_display }}</span>
+              </div>
+              {% if summary_pricing.has_discount %}
+              <div class="booking-side-row flex items-center justify-between font-semibold text-emerald-600">
+                <span>Reward savings</span>
+                <span>-{{ summary_pricing.discount_display }}</span>
+              </div>
+              {% endif %}
+              <div class="booking-side-total border-t border-border pt-3 text-base font-semibold">
+                <div class="flex items-center justify-between">
+                  <span>Total estimate</span>
+                  <span>{{ summary_pricing.total_display }}</span>
+                </div>
+              </div>
+            </div>
+            {% if summary_pricing.has_discount %}
+            <p class="booking-side-note text-xs text-muted-foreground">Original total before rewards {{ summary_pricing.pre_discount_total_display }}. You saved {{ summary_pricing.discount_display }} via rewards.</p>
+            <p class="booking-side-note text-xs">We'll confirm final pricing once we secure availability. Nothing is charged until you approve.</p>
+            {% else %}
+            <p class="booking-side-note text-xs">We'll confirm final pricing once we secure availability. Nothing is charged until you approve.</p>
+            {% endif %}
+          </div>
+
           <aside class="mt-4 flex flex-col items-stretch gap-4 lg:mt-0 lg:w-72 lg:items-end">
             <button type="button" class="booking-print-button booking-print-button-desktop order-0 items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary lg:self-end" onclick="window.print()">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4">
@@ -213,7 +245,7 @@
             </div>
           </div>
 
-          <div class="booking-side-card booking-totals-card order-2 lg:order-2 w-full space-y-4 rounded-2xl border border-border bg-background/80 px-5 py-5 text-sm text-muted-foreground">
+          <div class="booking-side-card booking-totals-card order-2 hidden space-y-4 rounded-2xl border border-border bg-background/80 px-5 py-5 text-sm text-muted-foreground lg:block">
             <p class="booking-side-eyebrow text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Booking totals ({{ summary_pricing.currency }})</p>
             <div class="booking-side-values space-y-2 text-foreground">
               <div class="booking-side-row flex items-center justify-between">
