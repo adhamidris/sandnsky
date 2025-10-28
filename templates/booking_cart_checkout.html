@@ -210,8 +210,7 @@
           </form>
         </div>
 
-        {% if cart_has_entries %}
-        <div class="divide-y divide-border overflow-hidden rounded-3xl bg-card shadow-[var(--shadow-subtle)]" data-cart-entries>
+        <div class="divide-y divide-border overflow-hidden rounded-3xl bg-card shadow-[var(--shadow-subtle)] {% if not cart_has_entries %}hidden{% endif %}" data-cart-entries>
           {% for entry in cart_entries %}
           <article
             class="flex flex-col gap-5 p-6 sm:flex-row sm:items-start sm:justify-between sm:gap-6"
@@ -355,91 +354,99 @@
           </button>
         </div>
 
-        <section class="mt-8 rounded-3xl bg-card p-6 shadow-[var(--shadow-subtle)] space-y-8">
-          <div>
+        <section
+          class="mt-8 rounded-3xl bg-card p-6 shadow-[var(--shadow-subtle)] space-y-8"
+          data-quick-add-root
+          data-quick-add-url-template="{% url 'web:booking-cart-quick-add' '__slug__' %}"
+          data-trip-url-template="{% url 'web:trip-detail' '__slug__' %}"
+          data-checkout-url="{% url 'web:booking-cart-checkout' %}"
+        >
+          <div data-quick-add-services>
             <h2 class="text-base font-semibold text-foreground">Services</h2>
-            {% if quick_add_services %}
-            <ul class="mt-4 space-y-3">
-              {% for service in quick_add_services %}
-              <li class="flex items-center justify-between gap-3 rounded-2xl border border-border bg-background/60 px-4 py-2">
-                <span class="text-sm font-medium text-foreground">{{ service.title }}</span>
-                <button
-                  type="button"
-                  class="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90"
-                  data-quick-add-trigger
-                  data-trip-id="{{ service.id }}"
-                  data-trip-slug="{{ service.slug }}"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
-                    <path fill-rule="evenodd" d="M10 3.5a.75.75 0 0 1 .75.75v5h5a.75.75 0 0 1 0 1.5h-5v5a.75.75 0 0 1-1.5 0v-5h-5a.75.75 0 0 1 0-1.5h5v-5A.75.75 0 0 1 10 3.5Z" clip-rule="evenodd" />
-                  </svg>
-                  Add
-                </button>
-              </li>
-              {% endfor %}
-            </ul>
-            {% else %}
-            <p class="mt-4 text-xs text-muted-foreground">No services available to add right now.</p>
-            {% endif %}
+            <div data-quick-add-services-body>
+              {% if quick_add_services %}
+              <ul class="mt-4 space-y-3" data-quick-add-services-list>
+                {% for service in quick_add_services %}
+                <li class="flex items-center justify-between gap-3 rounded-2xl border border-border bg-background/60 px-4 py-2">
+                  <span class="text-sm font-medium text-foreground">{{ service.title }}</span>
+                  <button
+                    type="button"
+                    class="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90"
+                    data-quick-add-trigger
+                    data-trip-id="{{ service.id }}"
+                    data-trip-slug="{{ service.slug }}"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
+                      <path fill-rule="evenodd" d="M10 3.5a.75.75 0 0 1 .75.75v5h5a.75.75 0 0 1 0 1.5h-5v5a.75.75 0 0 1-1.5 0v-5h-5a.75.75 0 0 1 0-1.5h5v-5A.75.75 0 0 1 10 3.5Z" clip-rule="evenodd" />
+                    </svg>
+                    Add
+                  </button>
+                </li>
+                {% endfor %}
+              </ul>
+              {% else %}
+              <p class="mt-4 text-xs text-muted-foreground" data-quick-add-services-empty>No services available to add right now.</p>
+              {% endif %}
+            </div>
           </div>
 
-          <div>
+          <div data-quick-add-recommendations>
             <h2 class="text-base font-semibold text-foreground">You may also like</h2>
-            {% if quick_add_recommendations %}
-            <div class="mt-4 space-y-4">
-              {% for trip in quick_add_recommendations|slice:":3" %}
-              <article class="flex items-stretch gap-4 rounded-2xl border border-border bg-background/60 p-4">
-                <div class="h-24 w-28 flex-none overflow-hidden rounded-xl bg-muted/40">
-                  {% if trip.image_url %}
-                  <img src="{{ trip.image_url }}" alt="" class="h-full w-full object-cover" loading="lazy" />
-                  {% else %}
-                  <div class="flex h-full w-full items-center justify-center text-[0.65rem] font-semibold uppercase tracking-wide text-muted-foreground">
-                    No image
-                  </div>
-                  {% endif %}
-                </div>
-                <div class="flex flex-1 flex-col gap-3">
-                  <div class="space-y-1">
-                    <p class="text-sm font-semibold text-foreground">{{ trip.title }}</p>
-                    <p class="text-xs text-muted-foreground">{{ trip.description }}</p>
-                  </div>
-                  <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-primary">
-                    <span>{{ trip.price }}</span>
-                    {% if trip.duration %}
-                    <span class="rounded-full bg-primary/10 px-2 py-0.5 text-[0.65rem] text-primary">{{ trip.duration }}</span>
+            <div data-quick-add-recommendations-body>
+              {% if quick_add_recommendations %}
+              <div class="mt-4 space-y-4" data-quick-add-recommendations-list>
+                {% for trip in quick_add_recommendations|slice:":3" %}
+                <article class="flex items-stretch gap-4 rounded-2xl border border-border bg-background/60 p-4">
+                  <div class="h-24 w-28 flex-none overflow-hidden rounded-xl bg-muted/40">
+                    {% if trip.image_url %}
+                    <img src="{{ trip.image_url }}" alt="" class="h-full w-full object-cover" loading="lazy" />
+                    {% else %}
+                    <div class="flex h-full w-full items-center justify-center text-[0.65rem] font-semibold uppercase tracking-wide text-muted-foreground">
+                      No image
+                    </div>
                     {% endif %}
                   </div>
-                  <div class="mt-auto flex flex-wrap items-center justify-end gap-2 text-xs">
-                    <button
-                      type="button"
-                      class="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 font-semibold text-primary-foreground transition hover:bg-primary/90"
-                      data-quick-add-trigger
-                      data-trip-slug="{{ trip.slug }}"
-                    >
-                      Quick add
-                    </button>
-                    <a href="{% url 'web:trip-detail' trip.slug %}" class="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1 font-semibold text-muted-foreground transition hover:text-foreground hover:border-foreground">
-                      See details
-                    </a>
+                  <div class="flex flex-1 flex-col gap-3">
+                    <div class="space-y-1">
+                      <p class="text-sm font-semibold text-foreground">{{ trip.title }}</p>
+                      <p class="text-xs text-muted-foreground">{{ trip.description }}</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-primary">
+                      <span>{{ trip.price }}</span>
+                      {% if trip.duration %}
+                      <span class="rounded-full bg-primary/10 px-2 py-0.5 text-[0.65rem] text-primary">{{ trip.duration }}</span>
+                      {% endif %}
+                    </div>
+                    <div class="mt-auto flex flex-wrap items-center justify-end gap-2 text-xs">
+                      <button
+                        type="button"
+                        class="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 font-semibold text-primary-foreground transition hover:bg-primary/90"
+                        data-quick-add-trigger
+                        data-trip-slug="{{ trip.slug }}"
+                      >
+                        Quick add
+                      </button>
+                      <a href="{% url 'web:trip-detail' trip.slug %}" class="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1 font-semibold text-muted-foreground transition hover:text-foreground hover:border-foreground">
+                        See details
+                      </a>
+                    </div>
                   </div>
-                </div>
-              </article>
-              {% endfor %}
+                </article>
+                {% endfor %}
+              </div>
+              {% else %}
+              <p class="mt-4 text-xs text-muted-foreground" data-quick-add-recommendations-empty>We'll surface suggestions once you add a few trips to your list.</p>
+              {% endif %}
             </div>
-            {% else %}
-            <p class="mt-4 text-xs text-muted-foreground">We'll surface suggestions once you add a few trips to your list.</p>
-            {% endif %}
           </div>
         </section>
 
-                {{ cart_summary|json_script:"cart-summary-state" }}
-        {% else %}
-        <div class="rounded-3xl bg-card p-10 text-center shadow-[var(--shadow-subtle)]">
+        <div class="rounded-3xl bg-card p-10 text-center shadow-[var(--shadow-subtle)] {% if cart_has_entries %}hidden{% endif %}" data-empty-cart-state>
           <p class="text-lg font-semibold text-foreground">Your booking list is empty.</p>
           <p class="mt-2 text-sm text-muted-foreground">Explore our curated journeys and add the ones you love. You can return here whenever you're ready.</p>
           <a href="{% url 'web:trips' %}" class="mt-6 inline-flex items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90">Browse trips</a>
         </div>
-        {% endif %}
+                {{ cart_summary|json_script:"cart-summary-state" }}
       </div>
     </div>
   </div>

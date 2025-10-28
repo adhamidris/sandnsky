@@ -15,6 +15,11 @@
   if (!currentSummary) return;
 
   const entriesContainer = document.querySelector("[data-cart-entries]");
+  const emptyStateEl = document.querySelector("[data-empty-cart-state]");
+  const quickAddRoot = document.querySelector("[data-quick-add-root]");
+  const quickAddUrlTemplate = quickAddRoot?.dataset.quickAddUrlTemplate || "";
+  const tripUrlTemplate = quickAddRoot?.dataset.tripUrlTemplate || "";
+  const checkoutUrl = quickAddRoot?.dataset.checkoutUrl || "";
   const progressContainer = root.querySelector("[data-reward-progress-container]");
   const phaseList = root.querySelector("[data-reward-phase-list]");
   const alertBox = root.querySelector("[data-rewards-alert]");
@@ -29,6 +34,16 @@
   const LOCKED_CLASS = "inline-flex items-center gap-1 rounded-full border border-dashed border-muted px-3 py-1 text-xs font-semibold text-muted-foreground";
   const REMOVE_CLASS = "inline-flex items-center gap-1 rounded-full border border-destructive/40 px-3 py-1 text-xs font-semibold text-destructive transition hover:bg-destructive/10";
 
+  function fillSlug(template, slug) {
+    if (!template || !slug) return "";
+    return template.replace("__slug__", encodeURIComponent(slug));
+  }
+
+  function buildTripUrl(template, slug, suffix = "") {
+    if (!template || !slug) return "";
+    return `${fillSlug(template, slug)}${suffix}`;
+  }
+
   function escapeHtml(value) {
     if (value === null || value === undefined) return "";
     return String(value)
@@ -42,6 +57,15 @@
   function setText(el, value) {
     if (!el) return;
     el.textContent = value;
+  }
+
+  function updateSummaryScript(summary) {
+    if (!summaryScript) return;
+    try {
+      summaryScript.textContent = JSON.stringify(summary);
+    } catch (error) {
+      // no-op
+    }
   }
 
   function getCsrfToken() {
@@ -344,6 +368,222 @@
       .join("");
   }
 
+  function renderEntryStatus(entry, rewards) {
+    if (entry.applied_reward) {
+      return `Applied <span class="font-medium text-foreground">${escapeHtml(
+        entry.applied_reward.phase_name || ""
+      )}</span> · Saved ${escapeHtml(entry.applied_reward.discount_display || "")}`;
+    }
+    const unlocked = getTripPhases(entry, rewards)
+      .filter(({ phase }) => phase.unlocked)
+      .map(({ phase }) => phase.name)
+      .filter(Boolean);
+    if (unlocked.length) {
+      return `Unlocked: ${unlocked.join(", ")} reward${unlocked.length === 1 ? "" : "s"} available.`;
+    }
+    return "No reward applied yet. Choose an unlocked phase below.";
+  }
+
+  function renderEntryRewardActions(entry) {
+    if (entry.applied_reward) {
+      return `<button type="button"
+                      class="${REMOVE_CLASS}"
+                      data-action="remove-reward"
+                      data-entry-id="${escapeHtml(entry.id)}">
+                Remove discount
+              </button>`;
+    }
+    return "";
+  }
+
+  function renderEntryCard(entry, summary, config) {
+    const rewards = summary.rewards || {};
+    const currency = entry.currency || config.currency || "";
+    const tripTitle = escapeHtml(entry.trip_title || "");
+    const travelDate = entry.travel_date_display
+      ? `<li><span class="font-medium text-foreground">Trip date:</span> ${escapeHtml(entry.travel_date_display)}</li>`
+      : "";
+    const travelerLabel = `<li><span class="font-medium text-foreground">Travelers:</span> ${escapeHtml(
+      entry.traveler_label || ""
+    )}</li>`;
+
+    const editLink =
+      entry.trip_slug && config.tripUrlTemplate
+        ? `<a href="${buildTripUrl(config.tripUrlTemplate, entry.trip_slug || "", "#booking-form")}"
+               class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 font-semibold text-primary transition hover:bg-primary/20">
+             Edit trip
+             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
+               <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 19.5 10.5M16.5 7.5 8.25 15.75 6 18l2.25-.75L16.5 9" />
+             </svg>
+           </a>`
+        : "";
+
+    const removeForm =
+      config.checkoutUrl && config.csrfToken
+        ? `<form method="post" action="${config.checkoutUrl}" class="inline-flex">
+             <input type="hidden" name="csrfmiddlewaretoken" value="${escapeHtml(config.csrfToken)}">
+             <input type="hidden" name="action" value="remove">
+             <input type="hidden" name="entry_id" value="${escapeHtml(entry.id)}">
+             <button type="submit" class="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 font-semibold text-muted-foreground transition hover:bg-muted/70">
+               Remove
+               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
+                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+               </svg>
+             </button>
+           </form>`
+        : "";
+
+    const detailLink =
+      entry.trip_slug && config.tripUrlTemplate
+        ? `<a href="${buildTripUrl(config.tripUrlTemplate, entry.trip_slug || "")}"
+               class="text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-primary">
+             View trip details
+           </a>`
+        : "";
+
+    const hasDiscount = Number(entry.discount_total_cents || 0) > 0;
+    const discountPillClass = entry.applied_reward
+      ? "inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary"
+      : "hidden inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary";
+
+    return `
+      <article
+        class="flex flex-col gap-5 p-6 sm:flex-row sm:items-start sm:justify-between sm:gap-6"
+        data-entry
+        data-entry-id="${escapeHtml(entry.id)}"
+        data-trip-id="${escapeHtml(entry.trip_id)}"
+        data-trip-slug="${escapeHtml(entry.trip_slug || "")}"
+      >
+        <div class="space-y-3">
+          <h2 class="font-serif text-xl text-foreground">${tripTitle}</h2>
+          <ul class="text-sm text-muted-foreground">
+            ${travelDate}
+            ${travelerLabel}
+          </ul>
+          <div class="flex flex-wrap gap-3 text-sm">
+            ${editLink || ""}
+            ${removeForm || ""}
+          </div>
+          <div class="rounded-3xl border border-border/60 bg-background/50 p-4" data-entry-reward-box>
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p class="text-sm font-semibold text-foreground">Rewards</p>
+                <p class="text-xs text-muted-foreground" data-entry-reward-status>${renderEntryStatus(entry, rewards)}</p>
+              </div>
+              <div class="flex flex-wrap items-center gap-2" data-entry-reward-actions>
+                ${renderEntryRewardActions(entry)}
+              </div>
+            </div>
+            <div class="mt-3 flex flex-wrap gap-2" data-entry-option-list>
+              ${renderEntryOptions(entry, rewards)}
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-col items-end gap-2">
+          <span class="rounded-full bg-primary/10 px-4 py-1 text-sm font-semibold text-primary" data-entry-total>${escapeHtml(
+            currency
+          )} ${escapeHtml(entry.grand_total_display || "")}</span>
+          <span class="text-xs text-muted-foreground line-through ${hasDiscount ? "" : "hidden"}" data-entry-original>${escapeHtml(
+            currency
+          )} ${escapeHtml(entry.original_grand_total_display || "")}</span>
+          <span class="${discountPillClass}" data-entry-discount-pill>
+            ${entry.applied_reward ? `Saved ${escapeHtml(entry.applied_reward.discount_display || "")}` : ""}
+          </span>
+          ${detailLink || ""}
+        </div>
+      </article>
+    `;
+  }
+
+  function renderEntriesHtml(summary, config) {
+    const entries = Array.isArray(summary.entries) ? summary.entries : [];
+    return entries.map((entry) => renderEntryCard(entry, summary, config)).join("");
+  }
+
+  function renderQuickAddServices(services) {
+    if (!Array.isArray(services) || services.length === 0) {
+      return `<p class="mt-4 text-xs text-muted-foreground" data-quick-add-services-empty>No services available to add right now.</p>`;
+    }
+    const items = services
+      .map(
+        (service) => `
+        <li class="flex items-center justify-between gap-3 rounded-2xl border border-border bg-background/60 px-4 py-2">
+          <span class="text-sm font-medium text-foreground">${escapeHtml(service.title || "")}</span>
+          <button
+            type="button"
+            class="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90"
+            data-quick-add-trigger
+            data-trip-id="${escapeHtml(service.id)}"
+            data-trip-slug="${escapeHtml(service.slug || "")}"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
+              <path fill-rule="evenodd" d="M10 3.5a.75.75 0 0 1 .75.75v5h5a.75.75 0 0 1 0 1.5h-5v5a.75.75 0 0 1-1.5 0v-5h-5a.75.75 0 0 1 0-1.5h5v-5A.75.75 0 0 1 10 3.5Z" clip-rule="evenodd" />
+            </svg>
+            Add
+          </button>
+        </li>
+      `
+      )
+      .join("");
+    return `<ul class="mt-4 space-y-3" data-quick-add-services-list>${items}</ul>`;
+  }
+
+  function renderQuickAddRecommendations(recommendations) {
+    if (!Array.isArray(recommendations) || recommendations.length === 0) {
+      return `<p class="mt-4 text-xs text-muted-foreground" data-quick-add-recommendations-empty>We'll surface suggestions once you add a few trips to your list.</p>`;
+    }
+    const cards = recommendations.slice(0, 3).map((trip) => {
+      const image = trip.image_url
+        ? `<img src="${escapeHtml(trip.image_url)}" alt="" class="h-full w-full object-cover" loading="lazy" />`
+        : `<div class="flex h-full w-full items-center justify-center text-[0.65rem] font-semibold uppercase tracking-wide text-muted-foreground">No image</div>`;
+      const tripUrl = tripUrlTemplate ? buildTripUrl(tripUrlTemplate, trip.slug || "") : "#";
+      return `
+        <article class="flex items-stretch gap-4 rounded-2xl border border-border bg-background/60 p-4">
+          <div class="h-24 w-28 flex-none overflow-hidden rounded-xl bg-muted/40">
+            ${image}
+          </div>
+          <div class="flex flex-1 flex-col gap-3">
+            <div class="space-y-1">
+              <p class="text-sm font-semibold text-foreground">${escapeHtml(trip.title || "")}</p>
+              <p class="text-xs text-muted-foreground">${escapeHtml(trip.description || "")}</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-primary">
+              <span>${escapeHtml(trip.price || "")}</span>
+              ${trip.duration ? `<span class="rounded-full bg-primary/10 px-2 py-0.5 text-[0.65rem] text-primary">${escapeHtml(trip.duration)}</span>` : ""}
+            </div>
+            <div class="mt-auto flex flex-wrap items-center justify-end gap-2 text-xs">
+              <button
+                type="button"
+                class="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 font-semibold text-primary-foreground transition hover:bg-primary/90"
+                data-quick-add-trigger
+                data-trip-slug="${escapeHtml(trip.slug || "")}"
+              >
+                Quick add
+              </button>
+              <a href="${tripUrl}"
+                 class="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1 font-semibold text-muted-foreground transition hover:text-foreground hover:border-foreground">
+                See details
+              </a>
+            </div>
+          </div>
+        </article>
+      `;
+    }).join("");
+    return `<div class="mt-4 space-y-4" data-quick-add-recommendations-list>${cards}</div>`;
+  }
+
+  function updateQuickAddPanels(payload = {}) {
+    if (!quickAddRoot) return;
+    const servicesBody = quickAddRoot.querySelector("[data-quick-add-services-body]");
+    const recommendationsBody = quickAddRoot.querySelector("[data-quick-add-recommendations-body]");
+    if (servicesBody) {
+      servicesBody.innerHTML = renderQuickAddServices(payload.services || []);
+    }
+    if (recommendationsBody) {
+      recommendationsBody.innerHTML = renderQuickAddRecommendations(payload.recommendations || []);
+    }
+  }
+
   function updateEntry(entry, rewards) {
     if (!entriesContainer) return;
     const entryEl = entriesContainer.querySelector(`[data-entry-id="${entry.id}"]`);
@@ -418,7 +658,33 @@
   }
 
   function updateEntries(summary) {
-    (summary.entries || []).forEach((entry) => updateEntry(entry, summary.rewards));
+    if (!entriesContainer) return;
+    const entries = Array.isArray(summary.entries) ? summary.entries : [];
+    const existingIds = new Set(
+      Array.from(entriesContainer.querySelectorAll("[data-entry-id]")).map((node) => node.dataset.entryId)
+    );
+    const summaryIds = new Set(entries.map((entry) => String(entry.id)));
+    const shouldRebuild =
+      entries.length !== existingIds.size ||
+      entries.some((entry) => !existingIds.has(String(entry.id)));
+
+    if (shouldRebuild) {
+      const config = {
+        currency: summary.currency || root.dataset.currency || "",
+        csrfToken: getCsrfToken(),
+        checkoutUrl,
+        tripUrlTemplate,
+      };
+      entriesContainer.innerHTML = renderEntriesHtml(summary, config);
+    } else {
+      entries.forEach((entry) => updateEntry(entry, summary.rewards));
+    }
+
+    const hasEntries = entries.length > 0;
+    entriesContainer.classList.toggle("hidden", !hasEntries);
+    if (emptyStateEl) {
+      emptyStateEl.classList.toggle("hidden", hasEntries);
+    }
   }
 
   function updateSummaryCard(summary) {
@@ -516,6 +782,7 @@
       const data = await postJson(url, payload);
       if (data && data.cart_summary) {
         currentSummary = data.cart_summary;
+        updateSummaryScript(currentSummary);
         updateRewardsUI(currentSummary);
         showAlert("Reward applied to your trip.", false);
       }
@@ -538,11 +805,65 @@
       const data = await postJson(url, { entry_id: entryId });
       if (data && data.cart_summary) {
         currentSummary = data.cart_summary;
+        updateSummaryScript(currentSummary);
         updateRewardsUI(currentSummary);
         showAlert("Reward removed from this trip.", false);
       }
     } catch (error) {
       showAlert(error.message || "Unable to remove that reward right now.");
+    } finally {
+      toggleBusy(button, false);
+    }
+  }
+
+  async function handleQuickAdd(button) {
+    if (!quickAddRoot) return;
+    const slug = button?.dataset?.tripSlug;
+    if (!slug) return;
+    if (!quickAddUrlTemplate) return;
+
+    const url = fillSlug(quickAddUrlTemplate, slug);
+    if (!url) return;
+
+    const formData = new URLSearchParams();
+    formData.append("csrfmiddlewaretoken", getCsrfToken());
+
+    toggleBusy(button, true);
+    clearAlert();
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+          Accept: "application/json",
+        },
+        body: formData,
+        credentials: "same-origin",
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const message = data && data.error ? data.error : "Unable to update your booking list.";
+        throw new Error(message);
+      }
+      if (data && data.cart_summary) {
+        currentSummary = data.cart_summary;
+        updateSummaryScript(currentSummary);
+        updateRewardsUI(currentSummary);
+      }
+      if (data && quickAddRoot) {
+        updateQuickAddPanels({
+          services: data.quick_add_services || [],
+          recommendations: data.quick_add_recommendations || [],
+        });
+      }
+      if (data && data.in_cart && data.trip_id) {
+        highlightEntryByTripId(data.trip_id);
+      }
+      if (data && data.toast_message) {
+        showAlert(data.toast_message, false);
+      }
+    } catch (error) {
+      showAlert(error.message || "Unable to update your booking list right now.");
     } finally {
       toggleBusy(button, false);
     }
@@ -593,6 +914,14 @@
       }
     });
   }
+
+  document.addEventListener("click", (event) => {
+    const quickAddBtn = event.target.closest("[data-quick-add-trigger]");
+    if (quickAddBtn) {
+      event.preventDefault();
+      handleQuickAdd(quickAddBtn);
+    }
+  });
 
   updateRewardsUI(currentSummary);
 })();
