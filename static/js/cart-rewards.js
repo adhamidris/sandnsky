@@ -100,6 +100,63 @@
     alertBox.classList.add("border-destructive/40", "bg-destructive/10", "text-destructive");
   }
 
+  function getScrollContainers(element) {
+    const containers = [];
+    const seen = new Set();
+    if (phaseList && phaseList.scrollHeight > phaseList.clientHeight + 1) {
+      containers.push(phaseList);
+      seen.add(phaseList);
+    }
+    let current = element?.parentElement || null;
+    while (current && current !== document.body) {
+      if (!seen.has(current) && current.scrollHeight > current.clientHeight + 1) {
+        containers.push(current);
+        seen.add(current);
+      }
+      current = current.parentElement;
+    }
+    if (root && root.scrollHeight > root.clientHeight + 1 && !seen.has(root)) {
+      containers.push(root);
+      seen.add(root);
+    }
+    return containers;
+  }
+
+  function scrollWithin(container, target) {
+    if (!container) return false;
+    if (container.scrollHeight <= container.clientHeight + 1) return false;
+    const containerRect = container.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    if (
+      targetRect.bottom <= containerRect.bottom &&
+      targetRect.top >= containerRect.top
+    ) {
+      return true;
+    }
+    let delta = 0;
+    if (targetRect.bottom > containerRect.bottom) {
+      delta = targetRect.bottom - containerRect.bottom + 12;
+    } else if (targetRect.top < containerRect.top) {
+      delta = targetRect.top - containerRect.top - 12;
+    }
+    if (delta !== 0) {
+      container.scrollBy({ top: delta, behavior: "smooth" });
+      return true;
+    }
+    return false;
+  }
+
+  function ensureVisibleWithinPanel(element) {
+    if (!element) return;
+    const containers = getScrollContainers(element);
+    for (let i = 0; i < containers.length; i += 1) {
+      if (scrollWithin(containers[i], element)) {
+        return;
+      }
+    }
+    element.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+
   function renderProgressCard(rewards) {
     const phases = Array.isArray(rewards?.phases) ? rewards.phases : [];
     const progress = rewards?.progress || {};
@@ -223,17 +280,68 @@
                 const disabled = unlocked ? "" : " disabled";
                 const muted = unlocked ? "" : " opacity-50";
                 const image = trip.card_image_url
-                  ? `<img src="${escapeHtml(trip.card_image_url)}" alt="" class="h-10 w-14 rounded-lg object-cover" />`
+                  ? `<img src="${escapeHtml(trip.card_image_url)}" alt="" class="h-12 w-16 rounded-lg object-cover" />`
                   : "";
+                const comparison = trip.comparison || {};
+                const travelerLabel = comparison.traveler_label || "";
+                const fullPrice = comparison.full_price_display || "";
+                const rewardPrice = comparison.reward_price_display || "";
+                const discountDisplay = comparison.discount_display || "";
+                const perPersonFull = trip.base_price_per_person_display || "";
+                const perPersonReward = comparison.reward_price_per_person_display || "";
+                const showComparison = travelerLabel && fullPrice && rewardPrice;
+                const discountPercentValue = Number(phase.discount_percent || 0);
+                const discountPercentLabel = Number.isFinite(discountPercentValue)
+                  ? `${discountPercentValue % 1 === 0 ? discountPercentValue.toFixed(0) : discountPercentValue.toFixed(2)}%`
+                  : "";
+                const comparisonLines = showComparison
+                  ? `
+                      <p class="text-[0.65rem] text-muted-foreground">
+                        <span class="font-medium text-foreground">${escapeHtml(travelerLabel)}</span>
+                        · ${escapeHtml(fullPrice)} → <span class="font-semibold text-primary">${escapeHtml(rewardPrice)}</span>
+                        ${discountDisplay ? `· Save ${escapeHtml(discountDisplay)}` : ""}
+                      </p>
+                      ${
+                        perPersonFull && perPersonReward
+                          ? `<p class="text-[0.65rem] text-muted-foreground">
+                               Per traveler: ${escapeHtml(perPersonFull)} → <span class="font-semibold text-primary">${escapeHtml(perPersonReward)}</span>
+                             </p>`
+                          : ""
+                      }
+                    `
+                  : perPersonFull
+                  ? `<p class="text-[0.65rem] text-muted-foreground">From ${escapeHtml(perPersonFull)} per traveler</p>`
+                  : "";
+                const lockedMessage =
+                  !unlocked && discountPercentLabel
+                    ? `<p class="text-[0.65rem] text-muted-foreground">Unlock this phase to activate ${escapeHtml(discountPercentLabel)} savings.</p>`
+                    : "";
                 return `
-                  <button type="button"
-                          class="flex items-center justify-between gap-3 rounded-xl border border-border bg-background px-3 py-2 text-left text-xs font-semibold text-foreground transition focus:outline-none focus:ring-2 focus:ring-primary${muted}"
-                          data-reward-trip
-                          data-phase-id="${escapeHtml(phase.id)}"
-                          data-trip-id="${escapeHtml(trip.trip_id)}"${disabled}>
-                    <span>${escapeHtml(trip.title || "")}</span>
-                    ${image}
-                  </button>
+                  <div class="rounded-xl border border-border bg-background px-3 py-2${muted}">
+                    <button type="button"
+                            class="flex w-full items-center justify-between gap-3 text-left text-xs font-semibold text-foreground transition focus:outline-none focus:ring-2 focus:ring-primary"
+                            data-reward-trip
+                            data-phase-id="${escapeHtml(phase.id)}"
+                            data-trip-id="${escapeHtml(trip.trip_id)}"${disabled}>
+                      <div class="flex-1">
+                        <p class="text-xs font-semibold text-foreground">${escapeHtml(trip.title || "")}</p>
+                        ${comparisonLines}
+                        ${lockedMessage}
+                      </div>
+                      ${image}
+                    </button>
+                    <div class="mt-2 flex flex-wrap items-center justify-between gap-2 text-[0.65rem]">
+                      <span class="text-muted-foreground">
+                        ${discountPercentLabel ? `${escapeHtml(discountPercentLabel)} off reward` : "Reward savings"}
+                      </span>
+                      <button type="button"
+                              class="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90"
+                              data-quick-add-trigger
+                              data-trip-slug="${escapeHtml(trip.slug || "")}">
+                        Quick add
+                      </button>
+                    </div>
+                  </div>
                 `;
               })
               .join("")
@@ -870,6 +978,10 @@
   }
 
   root.addEventListener("click", (event) => {
+    if (event.target.closest("[data-quick-add-trigger]")) {
+      return;
+    }
+
     const toggle = event.target.closest("[data-reward-phase-toggle]");
     if (toggle) {
       event.preventDefault();
@@ -880,7 +992,12 @@
         const isOpen = article.dataset.open === "true";
         article.dataset.open = isOpen ? "false" : "true";
         if (body) {
-          body.classList.toggle("hidden", isOpen);
+          if (isOpen) {
+            body.classList.add("hidden");
+          } else {
+            body.classList.remove("hidden");
+            requestAnimationFrame(() => ensureVisibleWithinPanel(body));
+          }
         }
         if (chevron) {
           chevron.classList.toggle("rotate-180", !isOpen);

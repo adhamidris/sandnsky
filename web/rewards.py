@@ -22,6 +22,7 @@ class PhaseTripData:
     title: str
     position: int
     card_image_url: str
+    base_price_cents: int
 
 
 @dataclass(frozen=True)
@@ -155,6 +156,7 @@ def _load_reward_phases(*, active_only: bool) -> List[RewardPhaseData]:
                     title=trip.title,
                     position=linking.position,
                     card_image_url=card_image_url,
+                    base_price_cents=_decimal_to_cents(trip.base_price_per_person),
                 )
             )
         trips.sort(key=lambda item: (item.position, item.id))

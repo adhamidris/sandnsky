@@ -143,19 +143,63 @@
                 <p class="font-semibold text-foreground">Eligible trips</p>
                 <div class="mt-2 grid grid-cols-1 gap-2" data-reward-phase-trips>
                   {% for trip in phase.trip_options %}
-                  <button
-                    type="button"
-                    class="flex items-center justify-between gap-3 rounded-xl border border-border bg-background px-3 py-2 text-left transition focus:outline-none focus:ring-2 focus:ring-primary {% if not phase.unlocked %}opacity-50{% endif %}"
-                    data-reward-trip
-                    data-phase-id="{{ phase.id }}"
-                    data-trip-id="{{ trip.trip_id }}"
-                    {% if not phase.unlocked %}disabled{% endif %}
-                  >
-                    <span class="text-xs font-semibold text-foreground">{{ trip.title }}</span>
-                    {% if trip.card_image_url %}
-                    <img src="{{ trip.card_image_url }}" alt="" class="h-10 w-14 rounded-lg object-cover" />
-                    {% endif %}
-                  </button>
+                  <div class="rounded-xl border border-border bg-background px-3 py-2 {% if not phase.unlocked %}opacity-50{% endif %}">
+                    <button
+                      type="button"
+                      class="flex w-full items-center justify-between gap-3 text-left text-xs font-semibold text-foreground transition focus:outline-none focus:ring-2 focus:ring-primary"
+                      data-reward-trip
+                      data-phase-id="{{ phase.id }}"
+                      data-trip-id="{{ trip.trip_id }}"
+                      {% if not phase.unlocked %}disabled{% endif %}
+                    >
+                      <div class="flex-1">
+                        <p class="text-xs font-semibold text-foreground">{{ trip.title }}</p>
+                        {% with comparison=trip.comparison %}
+                          {% if comparison %}
+                          <p class="text-[0.65rem] text-muted-foreground">
+                            <span class="font-medium text-foreground">{{ comparison.traveler_label }}</span>
+                            · {{ comparison.full_price_display }} →
+                            <span class="font-semibold text-primary">{{ comparison.reward_price_display }}</span>
+                            {% if comparison.discount_display %}· Save {{ comparison.discount_display }}{% endif %}
+                          </p>
+                          {% if comparison.full_price_per_person_display and comparison.reward_price_per_person_display %}
+                          <p class="text-[0.65rem] text-muted-foreground">
+                            Per traveler: {{ comparison.full_price_per_person_display }} →
+                            <span class="font-semibold text-primary">{{ comparison.reward_price_per_person_display }}</span>
+                          </p>
+                          {% endif %}
+                          {% else %}
+                            {% if trip.base_price_per_person_display %}
+                            <p class="text-[0.65rem] text-muted-foreground">From {{ trip.base_price_per_person_display }} per traveler</p>
+                            {% endif %}
+                          {% endif %}
+                        {% endwith %}
+                        {% if not phase.unlocked %}
+                        <p class="text-[0.65rem] text-muted-foreground">
+                          Unlock this phase to activate {{ phase.discount_percent|floatformat:"-2" }}% savings.
+                        </p>
+                        {% endif %}
+                      </div>
+                      {% if trip.card_image_url %}
+                      <img src="{{ trip.card_image_url }}" alt="" class="h-12 w-16 rounded-lg object-cover" />
+                      {% endif %}
+                    </button>
+                    <div class="mt-2 flex flex-wrap items-center justify-between gap-2 text-[0.65rem]">
+                      <span class="text-muted-foreground">
+                        {% with discount_display=phase.discount_percent|floatformat:"-2" %}
+                          {% if discount_display %}{{ discount_display }}% off reward{% else %}Reward savings{% endif %}
+                        {% endwith %}
+                      </span>
+                      <button
+                        type="button"
+                        class="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90"
+                        data-quick-add-trigger
+                        data-trip-slug="{{ trip.slug }}"
+                      >
+                        Quick add
+                      </button>
+                    </div>
+                  </div>
                   {% endfor %}
                 </div>
                 {% if phase.applied_entry_ids %}

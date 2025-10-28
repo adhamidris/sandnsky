@@ -364,6 +364,11 @@ def _format_money_cents(cents: int) -> str:
     return format(quantized, ",.2f")
 
 
+def _format_traveler_label(count: int) -> str:
+    count = max(int(count or 0), 1)
+    return "1 traveler" if count == 1 else f"{count} travelers"
+
+
 def _serialize_summary_entry(entry: Dict[str, Any]) -> Dict[str, Any]:
     pricing = entry.get("pricing") or {}
     try:
@@ -391,7 +396,7 @@ def _serialize_summary_entry(entry: Dict[str, Any]) -> Dict[str, Any]:
     infants = int(entry.get("infants") or 0)
     traveler_count = max(adults + children, 1)
 
-    traveler_label = "1 traveler" if traveler_count == 1 else f"{traveler_count} travelers"
+    traveler_label = _format_traveler_label(traveler_count)
     if infants:
         infant_label = "infant" if infants == 1 else "infants"
         traveler_label = f"{traveler_label} + {infants} {infant_label}"
@@ -539,9 +544,82 @@ def _build_rewards_metadata(
 ) -> Dict[str, Any]:
     unlocked_set = set(rewards_state.unlocked_phase_ids)
 
+    snapshots_by_trip_id: Dict[int, CartEntrySnapshot] = {}
+    default_traveler_count = 1
+    for snapshot in rewards_state.snapshots.values():
+        trip_key = snapshot.trip_id
+        if trip_key not in snapshots_by_trip_id:
+            snapshots_by_trip_id[trip_key] = snapshot
+        if snapshot.traveler_count > default_traveler_count:
+            default_traveler_count = max(snapshot.traveler_count, 1)
+
+    has_snapshot_context = bool(snapshots_by_trip_id)
+
     phases_payload: List[Dict[str, Any]] = []
     for phase in rewards_state.phases:
         phase_threshold_cents = _decimal_to_cents(phase.threshold_amount)
+        discount_percent_value = phase.discount_percent or Decimal("0")
+        discount_fraction = discount_percent_value / Decimal("100")
+
+        trip_payloads: List[Dict[str, Any]] = []
+        for trip in phase.trips:
+            base_price_cents = int(trip.base_price_cents or 0)
+            base_price_display = _format_money_cents(base_price_cents) if base_price_cents else "0.00"
+
+            snapshot = snapshots_by_trip_id.get(trip.trip_id)
+            traveler_count = snapshot.traveler_count if snapshot else default_traveler_count if has_snapshot_context else 0
+            traveler_count = max(int(traveler_count or 0), 0)
+
+            comparison_payload: Optional[Dict[str, Any]] = None
+            if traveler_count > 0 and base_price_cents > 0:
+                base_total_cents = base_price_cents * traveler_count
+                base_total_amount = Decimal(base_total_cents) / Decimal("100")
+                discount_amount = base_total_amount * discount_fraction
+                discount_cents = min(
+                    base_total_cents,
+                    _decimal_to_cents(discount_amount),
+                )
+                reward_total_cents = max(base_total_cents - discount_cents, 0)
+
+                reward_total_amount = Decimal(reward_total_cents) / Decimal("100")
+                reward_per_person_amount = (
+                    reward_total_amount / Decimal(traveler_count)
+                    if traveler_count > 0
+                    else Decimal("0")
+                )
+
+                comparison_payload = {
+                    "traveler_count": traveler_count,
+                    "traveler_label": _format_traveler_label(traveler_count),
+                    "full_price_cents": base_total_cents,
+                    "full_price_display": _format_money_cents(base_total_cents),
+                    "reward_price_cents": reward_total_cents,
+                    "reward_price_display": _format_money_cents(reward_total_cents),
+                    "discount_cents": discount_cents,
+                    "discount_display": _format_money_cents(discount_cents),
+                    "full_price_per_person_display": base_price_display,
+                    "reward_price_per_person_display": _format_money_cents(
+                        _decimal_to_cents(reward_per_person_amount)
+                    )
+                    if traveler_count > 0
+                    else base_price_display,
+                    "source": "entry" if snapshot else "cart",
+                }
+
+            trip_payloads.append(
+                {
+                    "phase_trip_id": trip.id,
+                    "trip_id": trip.trip_id,
+                    "slug": trip.slug,
+                    "title": trip.title,
+                    "position": trip.position,
+                    "card_image_url": trip.card_image_url,
+                    "base_price_per_person_cents": base_price_cents,
+                    "base_price_per_person_display": base_price_display,
+                    "comparison": comparison_payload,
+                }
+            )
+
         phase_payload = {
             "id": phase.id,
             "name": phase.name,
@@ -555,17 +633,7 @@ def _build_rewards_metadata(
             "unlocked": phase.id in unlocked_set,
             "headline": phase.headline,
             "description": phase.description,
-            "trip_options": [
-                {
-                    "phase_trip_id": trip.id,
-                    "trip_id": trip.trip_id,
-                    "slug": trip.slug,
-                    "title": trip.title,
-                    "position": trip.position,
-                    "card_image_url": trip.card_image_url,
-                }
-                for trip in phase.trips
-            ],
+            "trip_options": trip_payloads,
             "applied_entry_ids": [
                 entry_id
                 for entry_id, calculation in rewards_state.calculations.items()

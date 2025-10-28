@@ -3559,4 +3559,15 @@ body.gallery-lightbox--open {
     height: -moz-max-content;
     height: max-content;
   }
+  .checkout-sticky-panel [data-cart-rewards-root] {
+    max-height: calc(100vh - 8rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .checkout-sticky-panel [data-cart-rewards-root]::-webkit-scrollbar {
+    display: none;
+  }
 }
