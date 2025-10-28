@@ -16,6 +16,55 @@
     <main class="min-h-screen pt-16">
       {% block content %}{% endblock %}
     </main>
+    <a
+      href="https://wa.me/201108741159?text=Hello%20Sand%20%26%20Sky%20Tours%2C%20I%20would%20like%20to%20know%20more%20about%20your%20tours%20in%20Egypt."
+      class="whatsapp-fab"
+      target="_blank"
+      rel="noopener"
+      aria-label="Chat with Sand &amp; Sky Tours on WhatsApp"
+    >
+      <svg viewBox="0 0 32 32" aria-hidden="true">
+        <circle cx="16" cy="16" r="16" fill="#25D366" />
+        <path
+          d="M16 7a9 9 0 0 0-7.484 13.965L8 25l4.18-1.372A9 9 0 1 0 16 7Zm5.088 12.433c-.206.582-1.212 1.14-1.683 1.182-.43.04-.967.057-1.56-.098a13.6 13.6 0 0 1-1.491-.49c-2.624-1.146-4.324-3.953-4.454-4.136-.127-.182-1.064-1.416-1.064-2.702 0-1.287.671-1.918.91-2.186.238-.27.522-.337.696-.337.174 0 .348.002.5.01.16.007.375-.061.587.447.206.514.7 1.778.762 1.905.06.13.1.275.018.457-.08.182-.12.297-.238.456-.127.182-.268.408-.382.548-.127.13-.258.27-.111.53.146.26.649 1.07 1.393 1.732.959.86 1.769 1.13 2.032 1.257.254.128.4.11.548-.066.148-.174.631-.74.798-.994.17-.256.338-.215.566-.13.228.087 1.446.682 1.692.805.248.122.413.183.474.286.063.103.063.6-.143 1.182Z"
+          fill="#fff"
+        />
+      </svg>
+    </a>
+    <style>
+      .whatsapp-fab {
+        position: fixed;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        width: 3.5rem;
+        height: 3.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 9999px;
+        box-shadow: 0 12px 30px rgba(37, 211, 102, 0.35);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        z-index: 60;
+      }
+      .whatsapp-fab svg {
+        width: 100%;
+        height: 100%;
+      }
+      .whatsapp-fab:hover,
+      .whatsapp-fab:focus-visible {
+        transform: translateY(-4px);
+        box-shadow: 0 18px 40px rgba(37, 211, 102, 0.45);
+        outline: none;
+      }
+      @media (max-width: 640px) {
+        .whatsapp-fab {
+          bottom: 1rem;
+          right: 1rem;
+          width: 3rem;
+          height: 3rem;
+        }
+      }
+    </style>
     {% include 'includes/footer.html' %}
     <script src="{% static 'js/booking-form.js' %}"></script>
     <script src="{% static 'js/main.js' %}"></script>
