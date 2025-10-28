@@ -4416,3 +4416,204 @@ body.gallery-lightbox--open {
   text-decoration: underline;
   text-decoration-color: #D4A574;
 }
+
+.booking-success-page {
+  background-color: #F5F1E8 !important;
+}
+
+.booking-success-card {
+  background-color: #FFFFFF !important;
+  border: 1px solid rgba(74, 124, 158, 0.16) !important;
+  border-radius: 32px !important;
+  box-shadow: 0 24px 48px rgba(43, 67, 86, 0.12);
+}
+
+.booking-status-chip {
+  letter-spacing: 0.18em !important;
+}
+
+.booking-success-title {
+  color: #2B4356 !important;
+  letter-spacing: -0.015em;
+}
+
+.booking-success-intro {
+  color: #4A3F35 !important;
+  line-height: 1.6;
+}
+
+.booking-meta-grid dt {
+  color: #6B8A9E !important;
+  letter-spacing: 0.14em;
+}
+
+.booking-meta-grid dd {
+  color: #2B4356 !important;
+}
+
+.booking-section-eyebrow {
+  color: #6B8A9E !important;
+  letter-spacing: 0.2em;
+}
+
+.booking-section-title {
+  color: #2B4356 !important;
+  letter-spacing: -0.01em;
+}
+
+.booking-section-description {
+  color: #4A3F35 !important;
+}
+
+.booking-trip-card {
+  background-color: #FFFFFF !important;
+  border: 1px solid rgba(74, 124, 158, 0.14) !important;
+  border-radius: 20px !important;
+  padding: 1.75rem !important;
+}
+
+.booking-trip-eyebrow,
+.booking-trip-label {
+  color: #6B8A9E !important;
+  letter-spacing: 0.18em;
+}
+
+.booking-trip-title {
+  color: #2B4356 !important;
+  letter-spacing: -0.01em;
+}
+
+.booking-trip-subtitle,
+.booking-trip-meta {
+  color: #4A3F35 !important;
+}
+
+.booking-trip-link {
+  color: #4A7C9E !important;
+  transition: color 0.2s ease;
+}
+
+.booking-trip-link:hover,
+.booking-trip-link:focus-visible {
+  color: #D4A574 !important;
+}
+
+.booking-trip-special {
+  background: rgba(232, 220, 200, 0.2) !important;
+  border: 1px dashed rgba(74, 124, 158, 0.26) !important;
+  border-radius: 16px !important;
+}
+
+.booking-price-card {
+  background: rgba(74, 124, 158, 0.06) !important;
+  border: 1px solid rgba(74, 124, 158, 0.16) !important;
+  border-radius: 16px !important;
+}
+
+.booking-price-card .border-t {
+  border-color: rgba(74, 124, 158, 0.18) !important;
+}
+
+.booking-extra-card {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid rgba(74, 124, 158, 0.14) !important;
+  border-radius: 16px !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+.booking-extra-list li + li {
+  border-top: 1px solid rgba(74, 124, 158, 0.12);
+  padding-top: 0.4rem;
+}
+
+.booking-print-button {
+  border-color: rgba(74, 124, 158, 0.16) !important;
+  color: #2B4356 !important;
+  background: #FFFFFF !important;
+}
+
+.booking-print-button:hover,
+.booking-print-button:focus-visible {
+  border-color: #4A7C9E !important;
+  color: #4A7C9E !important;
+}
+
+.booking-side-card {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(74, 124, 158, 0.14) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 10px 22px rgba(43, 67, 86, 0.08);
+}
+
+.booking-side-eyebrow {
+  color: #6B8A9E !important;
+  letter-spacing: 0.16em;
+}
+
+.booking-side-copy {
+  color: #4A3F35 !important;
+  line-height: 1.6;
+}
+
+.contact-button {
+  color: #2B4356 !important;
+  border: 1px solid rgba(74, 124, 158, 0.18) !important;
+  background: rgba(74, 124, 158, 0.05) !important;
+  border-radius: 12px !important;
+  transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+}
+
+.contact-button:hover,
+.contact-button:focus-visible {
+  border-color: #D4A574 !important;
+  color: #D4A574 !important;
+  background: rgba(212, 165, 116, 0.1) !important;
+}
+
+.booking-side-values span {
+  font-weight: 600;
+}
+
+.booking-side-row span:last-child {
+  color: #2B4356 !important;
+}
+
+.booking-side-total span:last-child {
+  color: #4A7C9E !important;
+  font-weight: 700;
+}
+
+.booking-side-note {
+  color: #6B8A9E !important;
+}
+
+.booking-next-steps {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(74, 124, 158, 0.18) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 22px rgba(43, 67, 86, 0.08);
+}
+
+.booking-side-list {
+  color: #2B4356 !important;
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+}
+
+.booking-side-list li {
+  position: relative;
+  padding-left: 1.25rem;
+}
+
+.booking-side-list li::before {
+  content: "";
+  position: absolute;
+  left: 0.2rem;
+  top: 0.55rem;
+  width: 0.35rem;
+  height: 0.35rem;
+  border-radius: 9999px;
+  background: #4A7C9E;
+  box-shadow: 0 0 0 2px rgba(74, 124, 158, 0.18);
+}

@@ -680,7 +680,7 @@
     const editLink =
       entry.trip_slug && config.tripUrlTemplate
         ? `<a href="${buildTripUrl(config.tripUrlTemplate, entry.trip_slug || "", "#booking-form")}"
-               class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 font-semibold text-primary transition hover:bg-primary/20">
+               class="trip-action-edit inline-flex items-center gap-1 rounded-full px-3 py-1 font-semibold transition">
              Edit trip
              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 19.5 10.5M16.5 7.5 8.25 15.75 6 18l2.25-.75L16.5 9" />
@@ -694,7 +694,7 @@
              <input type="hidden" name="csrfmiddlewaretoken" value="${escapeHtml(config.csrfToken)}">
              <input type="hidden" name="action" value="remove">
              <input type="hidden" name="entry_id" value="${escapeHtml(entry.id)}">
-             <button type="submit" class="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 font-semibold text-muted-foreground transition hover:bg-muted/70">
+             <button type="submit" class="remove-btn inline-flex items-center gap-1 rounded-full px-3 py-1 font-semibold transition">
                Remove
                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -706,7 +706,7 @@
     const detailLink =
       entry.trip_slug && config.tripUrlTemplate
         ? `<a href="${buildTripUrl(config.tripUrlTemplate, entry.trip_slug || "")}"
-               class="text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-primary">
+               class="trip-details-link text-xs font-semibold uppercase tracking-wide">
              View trip details
            </a>`
         : "";
@@ -718,27 +718,27 @@
 
     return `
       <article
-        class="flex flex-col gap-5 p-6 sm:flex-row sm:items-start sm:justify-between sm:gap-6"
+        class="checkout-trip-card flex flex-col gap-5 p-6 sm:flex-row sm:items-start sm:justify-between sm:gap-6"
         data-entry
         data-entry-id="${escapeHtml(entry.id)}"
         data-trip-id="${escapeHtml(entry.trip_id)}"
         data-trip-slug="${escapeHtml(entry.trip_slug || "")}"
       >
         <div class="space-y-3">
-          <h2 class="font-serif text-xl text-foreground">${tripTitle}</h2>
-          <ul class="text-sm text-muted-foreground">
+          <h2 class="checkout-trip-title font-serif text-xl text-foreground">${tripTitle}</h2>
+          <ul class="checkout-trip-meta text-sm text-muted-foreground">
             ${travelDate}
             ${travelerLabel}
           </ul>
-          <div class="flex flex-wrap gap-3 text-sm">
+          <div class="checkout-trip-actions flex flex-wrap gap-3 text-sm">
             ${editLink || ""}
             ${removeForm || ""}
           </div>
-          <div class="rounded-3xl border border-border/60 bg-background/50 p-4" data-entry-reward-box>
+          <div class="checkout-trip-rewards rounded-3xl border border-border/60 bg-background/50 p-4" data-entry-reward-box>
             <div class="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p class="text-sm font-semibold text-foreground">Rewards</p>
-                <p class="text-xs text-muted-foreground" data-entry-reward-status>${renderEntryStatus(entry, rewards)}</p>
+                <p class="trip-reward-label text-sm font-semibold text-foreground">Rewards</p>
+                <p class="trip-reward-status text-xs text-muted-foreground" data-entry-reward-status>${renderEntryStatus(entry, rewards)}</p>
               </div>
               <div class="flex flex-wrap items-center gap-2" data-entry-reward-actions>
                 ${renderEntryRewardActions(entry)}
@@ -750,10 +750,10 @@
           </div>
         </div>
         <div class="flex flex-col items-end gap-2">
-          <span class="rounded-full bg-primary/10 px-4 py-1 text-sm font-semibold text-primary" data-entry-total>${escapeHtml(
+          <span class="trip-price-chip rounded-full bg-primary/10 px-4 py-1 text-sm font-semibold text-primary" data-entry-total>${escapeHtml(
             currency
           )} ${escapeHtml(entry.grand_total_display || "")}</span>
-          <span class="text-xs text-muted-foreground line-through ${hasDiscount ? "" : "hidden"}" data-entry-original>${escapeHtml(
+          <span class="trip-price-original text-xs text-muted-foreground line-through ${hasDiscount ? "" : "hidden"}" data-entry-original>${escapeHtml(
             currency
           )} ${escapeHtml(entry.original_grand_total_display || "")}</span>
           <span class="${discountPillClass}" data-entry-discount-pill>
@@ -772,16 +772,16 @@
 
   function renderQuickAddServices(services) {
     if (!Array.isArray(services) || services.length === 0) {
-      return `<p class="mt-4 text-xs text-muted-foreground" data-quick-add-services-empty>No services available to add right now.</p>`;
+      return `<p class="quick-add-empty mt-4 text-xs text-muted-foreground" data-quick-add-services-empty>No services available to add right now.</p>`;
     }
     const items = services
       .map(
         (service) => `
-        <li class="flex items-center justify-between gap-3 rounded-2xl border border-border bg-background/60 px-4 py-2">
-          <span class="text-sm font-medium text-foreground">${escapeHtml(service.title || "")}</span>
+        <li class="quick-add-service-item flex items-center justify-between gap-3">
+          <span class="quick-add-service-title text-sm font-medium text-foreground">${escapeHtml(service.title || "")}</span>
           <button
             type="button"
-            class="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90"
+            class="quick-add-button inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold transition"
             data-quick-add-trigger
             data-trip-id="${escapeHtml(service.id)}"
             data-trip-slug="${escapeHtml(service.slug || "")}"
@@ -800,38 +800,44 @@
 
   function renderQuickAddRecommendations(recommendations) {
     if (!Array.isArray(recommendations) || recommendations.length === 0) {
-      return `<p class="mt-4 text-xs text-muted-foreground" data-quick-add-recommendations-empty>We'll surface suggestions once you add a few trips to your list.</p>`;
+      return `<p class="quick-add-empty mt-4 text-xs text-muted-foreground" data-quick-add-recommendations-empty>We'll surface suggestions once you add a few trips to your list.</p>`;
     }
     const cards = recommendations.slice(0, 3).map((trip) => {
       const image = trip.image_url
         ? `<img src="${escapeHtml(trip.image_url)}" alt="" class="h-full w-full object-cover" loading="lazy" />`
-        : `<div class="flex h-full w-full items-center justify-center text-[0.65rem] font-semibold uppercase tracking-wide text-muted-foreground">No image</div>`;
+        : `<div class="quick-add-card-placeholder flex h-full w-full items-center justify-center text-[0.65rem] font-semibold uppercase tracking-wide text-muted-foreground">No image</div>`;
       const tripUrl = tripUrlTemplate ? buildTripUrl(tripUrlTemplate, trip.slug || "") : "#";
       return `
-        <article class="flex items-stretch gap-4 rounded-2xl border border-border bg-background/60 p-4">
-          <div class="h-24 w-28 flex-none overflow-hidden rounded-xl bg-muted/40">
+        <article class="quick-add-card flex items-stretch gap-4">
+          <div class="quick-add-card-media h-24 w-28 flex-none overflow-hidden rounded-xl">
             ${image}
           </div>
           <div class="flex flex-1 flex-col gap-3">
             <div class="space-y-1">
-              <p class="text-sm font-semibold text-foreground">${escapeHtml(trip.title || "")}</p>
-              <p class="text-xs text-muted-foreground">${escapeHtml(trip.description || "")}</p>
+              <p class="quick-add-card-title text-sm font-semibold text-foreground">${escapeHtml(trip.title || "")}</p>
+              <p class="quick-add-card-description text-xs text-muted-foreground">${escapeHtml(trip.description || "")}</p>
             </div>
-            <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-primary">
-              <span>${escapeHtml(trip.price || "")}</span>
-              ${trip.duration ? `<span class="rounded-full bg-primary/10 px-2 py-0.5 text-[0.65rem] text-primary">${escapeHtml(trip.duration)}</span>` : ""}
+            <div class="quick-add-card-meta flex flex-wrap items-center gap-2 text-xs font-semibold">
+              <span class="quick-add-card-price">${escapeHtml(trip.price || "")}</span>
+              ${
+                trip.duration
+                  ? `<span class="quick-add-card-duration inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[0.65rem] text-primary">${escapeHtml(
+                      trip.duration
+                    )}</span>`
+                  : ""
+              }
             </div>
             <div class="mt-auto flex flex-wrap items-center justify-end gap-2 text-xs">
               <button
                 type="button"
-                class="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 font-semibold text-primary-foreground transition hover:bg-primary/90"
+                class="quick-add-button inline-flex items-center gap-1 rounded-full px-3 py-1 font-semibold transition"
                 data-quick-add-trigger
                 data-trip-slug="${escapeHtml(trip.slug || "")}"
               >
                 Quick add
               </button>
               <a href="${tripUrl}"
-                 class="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1 font-semibold text-muted-foreground transition hover:text-foreground hover:border-foreground">
+                 class="quick-add-link inline-flex items-center gap-1 rounded-full px-3 py-1 font-semibold transition">
                 See details
               </a>
             </div>

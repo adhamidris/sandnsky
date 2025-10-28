@@ -8,22 +8,22 @@
 {% endblock %}
 
 {% block content %}
-<section class="booking-page bg-background px-4 py-16 sm:px-6 lg:px-8">
+<section class="booking-page booking-success-page px-4 py-16 sm:px-6 lg:px-8">
   <div class="mx-auto max-w-5xl space-y-10">
-    <div class="booking-success rounded-3xl border border-border bg-card px-6 py-8 shadow-subtle sm:px-10 sm:py-12">
+    <div class="booking-success booking-success-card rounded-3xl border border-border bg-card px-6 py-8 shadow-subtle sm:px-10 sm:py-12">
       <div class="flex flex-col gap-10">
         <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div class="flex-1 space-y-8 lg:pr-10">
             <div class="space-y-4">
             <div>
-              <span class="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.28em] ring-1 ring-inset {% if booking_status.code == 'confirmed' %}bg-emerald-50 text-emerald-700 ring-emerald-200{% elif booking_status.code == 'cancelled' %}bg-red-50 text-red-700 ring-red-200{% else %}bg-amber-50 text-amber-700 ring-amber-200{% endif %}">
+              <span class="booking-status-chip inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.28em] ring-1 ring-inset {% if booking_status.code == 'confirmed' %}bg-emerald-50 text-emerald-700 ring-emerald-200{% elif booking_status.code == 'cancelled' %}bg-red-50 text-red-700 ring-red-200{% else %}bg-amber-50 text-amber-700 ring-amber-200{% endif %}">
                 <span class="inline-block h-2 w-2 rounded-full {% if booking_status.code == 'confirmed' %}bg-emerald-500{% elif booking_status.code == 'cancelled' %}bg-red-500{% else %}bg-amber-500{% endif %}"></span>
                 <span>{{ booking_status.label }}</span>
               </span>
             </div>
-            <h1 class="font-serif text-3xl text-foreground sm:text-4xl">Thanks for choosing Sand &amp; Sky Tours</h1>
-            <p class="max-w-xl text-sm text-muted-foreground">Your travel specialist is reviewing the details and will reach out within 24 hours to confirm availability, customise the itinerary, and finalise payment arrangements.</p>
-            <dl class="mt-4 grid grid-cols-1 gap-3 text-sm text-muted-foreground sm:grid-cols-3">
+            <h1 class="booking-success-title font-serif text-3xl text-foreground sm:text-4xl">Thanks for choosing Sand &amp; Sky Tours</h1>
+            <p class="booking-success-intro max-w-xl text-sm text-muted-foreground">Your travel specialist is reviewing the details and will reach out within 24 hours to confirm availability, customise the itinerary, and finalise payment arrangements.</p>
+            <dl class="booking-meta-grid mt-4 grid grid-cols-1 gap-3 text-sm text-muted-foreground sm:grid-cols-3">
               <div>
               <dt class="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Booking reference</dt>
               <dd class="flex items-center gap-3 font-mono text-base text-foreground whitespace-nowrap">
@@ -54,10 +54,13 @@
               <dd>{{ booking_created_at|date:"j M Y, H:i" }} ({{ booking_created_at|date:"T" }})</dd>
             </div>
           </dl>
-          {% if booking_status.note %}
+            {% if booking_status.note %}
           <p class="text-xs text-muted-foreground">Note from our team: <span class="text-foreground">{{ booking_status.note }}</span></p>
             {% endif %}
             <p class="text-xs text-muted-foreground">No payment has been processed yet.</p>
+            {% if summary_pricing.has_discount %}
+            <p class="text-xs font-semibold text-emerald-600">Reward savings applied: You saved {{ summary_pricing.discount_display }} with your booking rewards{% if applied_rewards %}{% if applied_rewards|length == 1 %} · {{ applied_rewards.0.phase_name }} ({{ applied_rewards.0.discount_percent|floatformat:"-2" }}% off){% else %} across {{ applied_rewards|length }} rewards{% endif %}{% endif %}.</p>
+            {% endif %}
             <a href="{{ primary_trip_url }}" class="inline-flex items-center gap-2 text-sm font-semibold text-primary transition-colors hover:text-primary/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
               {% if multi_booking %}View primary trip details{% else %}View trip details{% endif %}
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4">
@@ -66,27 +69,27 @@
             </a>
             </div>
 
-            <section class="space-y-8">
-              <header class="space-y-2">
-                <p class="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Trip overview</p>
+            <section class="booking-section space-y-8">
+              <header class="booking-section-header space-y-2">
+                <p class="booking-section-eyebrow text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Trip overview</p>
                 {% if multi_booking %}
-                <h2 class="text-2xl font-serif text-foreground">Trips in your booking list</h2>
-                <p class="text-sm text-muted-foreground">You're confirming {{ bookings_count }} trip{{ bookings_count|pluralize }}. Review each itinerary below.</p>
+                <h2 class="booking-section-title text-2xl font-serif text-foreground">Trips in your booking list</h2>
+                <p class="booking-section-description text-sm text-muted-foreground">You're confirming {{ bookings_count }} trip{{ bookings_count|pluralize }}. Review each itinerary below.</p>
                 {% else %}
-                <h2 class="text-2xl font-serif text-foreground">{{ trip.title }}</h2>
-                <p class="text-sm text-muted-foreground">Trip date {{ primary_travel_date_display }} · {{ traveler_summary }}</p>
+                <h2 class="booking-section-title text-2xl font-serif text-foreground">{{ trip.title }}</h2>
+                <p class="booking-section-description text-sm text-muted-foreground">Trip date {{ primary_travel_date_display }} · {{ traveler_summary }}</p>
                 {% endif %}
               </header>
 
               <div class="space-y-6">
                 {% for item in bookings_detail %}
-                <article class="space-y-6 rounded-2xl border border-border bg-background/60 p-5">
+                <article class="booking-trip-card space-y-6 rounded-2xl border border-border bg-background/60 p-5">
                   <div class="space-y-2">
-                    <p class="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Trip {{ forloop.counter }}</p>
-                    <h3 class="font-serif text-xl text-foreground">{{ item.trip_title }}</h3>
-                    <p class="text-sm text-muted-foreground">Trip date {{ item.travel_date_display }} · {{ item.traveler_summary }}</p>
+                    <p class="booking-trip-eyebrow text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Trip {{ forloop.counter }}</p>
+                    <h3 class="booking-trip-title font-serif text-xl text-foreground">{{ item.trip_title }}</h3>
+                    <p class="booking-trip-subtitle text-sm text-muted-foreground">Trip date {{ item.travel_date_display }} · {{ item.traveler_summary }}</p>
                     {% if item.trip_url %}
-                    <a href="{{ item.trip_url }}" class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-primary transition-colors hover:text-primary/80">
+                    <a href="{{ item.trip_url }}" class="booking-trip-link inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-primary transition-colors hover:text-primary/80">
                       View trip details
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-3.5 w-3.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m9 5 7 7-7 7" />
@@ -97,17 +100,17 @@
 
                   <div class="grid gap-6 sm:grid-cols-2">
                     <div class="space-y-2 text-sm">
-                      <p class="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Primary destination</p>
-                      <p class="text-foreground">{{ item.destination_name }}</p>
+                      <p class="booking-trip-label text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Primary destination</p>
+                      <p class="booking-trip-value text-foreground">{{ item.destination_name }}</p>
                       {% if item.additional_destinations %}
-                      <p class="text-muted-foreground">Also visiting: {{ item.additional_destinations|join:", " }}</p>
+                      <p class="booking-trip-meta text-muted-foreground">Also visiting: {{ item.additional_destinations|join:", " }}</p>
                       {% endif %}
                     </div>
                     <div class="space-y-2 text-sm">
-                      <p class="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Lead traveler</p>
+                      <p class="booking-trip-label text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Lead traveler</p>
                       {% if contact_details.name %}<p class="text-foreground">{{ contact_details.name }}</p>{% endif %}
                       {% if contact_details.email or contact_details.phone %}
-                      <p class="text-muted-foreground">
+                      <p class="booking-trip-meta text-muted-foreground">
                         {% if contact_details.email %}{{ contact_details.email }}{% endif %}
                         {% if contact_details.email and contact_details.phone %} · {% endif %}
                         {% if contact_details.phone %}{{ contact_details.phone }}{% endif %}
@@ -117,15 +120,15 @@
                   </div>
 
                   {% if item.special_requests %}
-                  <div class="rounded-2xl border border-dashed border-border bg-background/60 px-4 py-4 text-sm text-muted-foreground">
-                    <p class="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Special requests</p>
+                  <div class="booking-trip-special rounded-2xl border border-dashed border-border bg-background/60 px-4 py-4 text-sm text-muted-foreground">
+                    <p class="booking-trip-label text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Special requests</p>
                     <p class="mt-1 whitespace-pre-line text-foreground">{{ item.special_requests }}</p>
                   </div>
                   {% endif %}
 
                   <div class="space-y-4">
-                    <h3 class="text-sm font-semibold uppercase tracking-[0.25em] text-muted-foreground">Pricing summary ({{ item.pricing.currency }})</h3>
-                    <div class="price-summary space-y-2 rounded-2xl border border-border bg-background/80 p-4 text-sm text-foreground">
+                    <h3 class="booking-trip-label text-sm font-semibold uppercase tracking-[0.25em] text-muted-foreground">Pricing summary ({{ item.pricing.currency }})</h3>
+                    <div class="booking-price-card price-summary space-y-2 rounded-2xl border border-border bg-background/80 p-4 text-sm text-foreground">
                       <div class="flex items-center justify-between">
                         <span>Base for travelers</span>
                         <span>{{ item.pricing.base_display }}</span>
@@ -134,6 +137,16 @@
                         <span>Optional extras</span>
                         <span>{{ item.pricing.extras_display }}</span>
                       </div>
+                      {% if item.pricing.has_discount %}
+                      <div class="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>Original total before rewards</span>
+                        <span>{{ item.pricing.pre_discount_total_display }}</span>
+                      </div>
+                      <div class="flex items-center justify-between text-sm font-semibold text-emerald-600">
+                        <span>Reward savings</span>
+                        <span>-{{ item.pricing.discount_display }}</span>
+                      </div>
+                      {% endif %}
                       <div class="border-t border-border pt-3 text-base font-semibold">
                         <div class="flex items-center justify-between">
                           <span>Total estimate</span>
@@ -142,10 +155,23 @@
                         <p class="mt-1 text-xs text-muted-foreground">Payable once your travel specialist confirms availability.</p>
                       </div>
                     </div>
+                    {% if item.pricing.has_discount and item.applied_rewards %}
+                    <div class="booking-reward-card rounded-2xl bg-emerald-50/80 p-4 text-xs text-emerald-700">
+                      <p class="booking-trip-label text-[11px] font-semibold uppercase tracking-[0.25em] text-emerald-700">Reward savings detail</p>
+                      <ul class="mt-2 space-y-1 text-sm text-emerald-800">
+                        {% for reward in item.applied_rewards %}
+                        <li class="flex items-center justify-between">
+                          <span>{{ reward.phase_name }}</span>
+                          <span>Saved {{ reward.discount_display }} ({{ reward.discount_percent|floatformat:"-2" }}%)</span>
+                        </li>
+                        {% endfor %}
+                      </ul>
+                    </div>
+                    {% endif %}
                     {% if item.extras %}
-                    <div class="rounded-2xl border border-border/70 bg-background/60 p-4 text-sm text-muted-foreground">
-                      <p class="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Included extras</p>
-                      <ul class="mt-3 space-y-2 text-foreground">
+                    <div class="booking-extra-card rounded-2xl border border-border/70 bg-background/60 p-4 text-sm text-muted-foreground">
+                      <p class="booking-trip-label text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Included extras</p>
+                      <ul class="booking-extra-list mt-3 space-y-2 text-foreground">
                         {% for extra in item.extras %}
                         <li class="flex items-center justify-between">
                           <span>{{ extra.name }}</span>
@@ -163,15 +189,15 @@
           </div>
 
           <aside class="mt-4 flex flex-col items-stretch gap-4 lg:mt-0 lg:w-72 lg:items-end">
-            <button type="button" class="inline-flex items-center gap-2 self-end rounded-full border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" onclick="window.print()">
+            <button type="button" class="booking-print-button inline-flex items-center gap-2 self-end rounded-full border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" onclick="window.print()">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4">
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 9V4h12v5M6 19h12v-6H6v6Zm12 0V9H6v10" />
             </svg>
             <span>Print or save PDF</span>
           </button>
-          <div class="booking-updates w-full rounded-2xl border border-border/60 bg-background/80 px-5 py-5 text-sm">
-            <p class="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Need updates?</p>
-            <p class="mt-2 text-muted-foreground">Share your reference <span class="font-mono text-xs text-foreground">{{ primary_reference }}</span>{% if additional_reference_codes %} (plus {% for code in additional_reference_codes %}<span class="font-mono text-xs text-foreground">{{ code }}</span>{% if not forloop.last %}, {% endif %}{% endfor %}){% endif %} when you call, email, or WhatsApp our team.</p>
+          <div class="booking-side-card booking-updates w-full rounded-2xl border border-border/60 bg-background/80 px-5 py-5 text-sm">
+            <p class="booking-side-eyebrow text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Need updates?</p>
+            <p class="booking-side-copy mt-2 text-muted-foreground">Share your reference <span class="font-mono text-xs text-foreground">{{ primary_reference }}</span>{% if additional_reference_codes %} (plus {% for code in additional_reference_codes %}<span class="font-mono text-xs text-foreground">{{ code }}</span>{% if not forloop.last %}, {% endif %}{% endfor %}){% endif %} when you call, email, or WhatsApp our team.</p>
             <div class="mt-4 space-y-2">
               {% for action in contact_actions %}
               <a href="{{ action.href }}" class="contact-button block rounded-full border border-border/60 px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" target="_blank" rel="noopener">
@@ -181,36 +207,47 @@
             </div>
           </div>
 
-          <div class="w-full space-y-4 rounded-2xl border border-border bg-background/80 px-5 py-5 text-sm text-muted-foreground">
-            <p class="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Booking totals ({{ summary_pricing.currency }})</p>
-            <div class="space-y-2 text-foreground">
-              <div class="flex items-center justify-between">
+          <div class="booking-side-card w-full space-y-4 rounded-2xl border border-border bg-background/80 px-5 py-5 text-sm text-muted-foreground">
+            <p class="booking-side-eyebrow text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Booking totals ({{ summary_pricing.currency }})</p>
+            <div class="booking-side-values space-y-2 text-foreground">
+              <div class="booking-side-row flex items-center justify-between">
                 <span>Base for all travelers</span>
                 <span>{{ summary_pricing.base_display }}</span>
               </div>
-              <div class="flex items-center justify-between">
+              <div class="booking-side-row flex items-center justify-between">
                 <span>Optional extras</span>
                 <span>{{ summary_pricing.extras_display }}</span>
               </div>
-              <div class="border-t border-border pt-3 text-base font-semibold">
+              {% if summary_pricing.has_discount %}
+              <div class="booking-side-row flex items-center justify-between font-semibold text-emerald-600">
+                <span>Reward savings</span>
+                <span>-{{ summary_pricing.discount_display }}</span>
+              </div>
+              {% endif %}
+              <div class="booking-side-total border-t border-border pt-3 text-base font-semibold">
                 <div class="flex items-center justify-between">
                   <span>Total estimate</span>
                   <span>{{ summary_pricing.total_display }}</span>
                 </div>
               </div>
             </div>
-            <p class="text-xs">We'll confirm final pricing once we secure availability. Nothing is charged until you approve.</p>
+            {% if summary_pricing.has_discount %}
+            <p class="booking-side-note text-xs text-muted-foreground">Original total before rewards {{ summary_pricing.pre_discount_total_display }}. You saved {{ summary_pricing.discount_display }} via rewards.</p>
+            <p class="booking-side-note text-xs">We'll confirm final pricing once we secure availability. Nothing is charged until you approve.</p>
+            {% else %}
+            <p class="booking-side-note text-xs">We'll confirm final pricing once we secure availability. Nothing is charged until you approve.</p>
+            {% endif %}
           </div>
 
           {% if contact_details.notes %}
-          <div class="w-full rounded-2xl border border-border/60 bg-background/80 px-5 py-5 text-sm text-muted-foreground">
-            <p class="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Notes you shared</p>
-            <p class="mt-2 whitespace-pre-line text-foreground">{{ contact_details.notes }}</p>
+          <div class="booking-side-card w-full rounded-2xl border border-border/60 bg-background/80 px-5 py-5 text-sm text-muted-foreground">
+            <p class="booking-side-eyebrow text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Notes you shared</p>
+            <p class="booking-side-copy mt-2 whitespace-pre-line text-foreground">{{ contact_details.notes }}</p>
           </div>
           {% endif %}
-          <div class="next-steps w-full rounded-2xl border border-dashed border-border px-5 py-5 text-xs text-muted-foreground">
-            <p class="font-semibold uppercase tracking-[0.25em]">Next steps</p>
-            <ol class="mt-3 space-y-2 text-sm">
+          <div class="booking-next-steps next-steps w-full rounded-2xl border border-dashed border-border px-5 py-5 text-xs text-muted-foreground">
+            <p class="booking-side-eyebrow font-semibold uppercase tracking-[0.25em]">Next steps</p>
+            <ol class="booking-side-list mt-3 space-y-2 text-sm">
               <li>1. Our team reviews your request and confirms availability.</li>
               <li>2. We fine-tune the itinerary with you.</li>
               <li>3. You receive a secure payment link to confirm your booking.</li>
@@ -225,14 +262,6 @@
 
 {% block scripts %}
 <style>
-.booking-success {
-  background-image: url('/media/testio.png');
-  background-repeat: no-repeat;
-  background-size: cover;
-  border: 0 !important;
-  background-color: transparent;
-  box-shadow: none !important;
-}
 
 .booking-updates {
   background-color: transparent;
@@ -250,13 +279,47 @@
   color: #EBE2D3;
 }
 
-.next-steps {
-  background-color: #4e8ea2 !important;
-  border: 0 !important;
-  color: #EBE2D3;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+@media print {
+  body {
+    background: #fff !important;
+  }
 
+  nav,
+  header,
+  footer,
+  .site-header,
+  .site-footer {
+    display: none !important;
+  }
+
+  main {
+    padding: 0 !important;
+  }
+
+  main > * {
+    display: none !important;
+  }
+
+  .booking-success-page {
+    display: block !important;
+    padding: 0 !important;
+  }
+
+  .booking-success-page .mx-auto {
+    max-width: 100% !important;
+  }
+
+  .booking-success-card {
+    border: none !important;
+    box-shadow: none !important;
+    background: #fff !important;
+  }
+
+  .booking-success-page .booking-print-button {
+    display: none !important;
+  }
 }
+
 
 </style>
   {{ block.super }}

@@ -167,7 +167,11 @@ def load_booking_from_token(token, *, max_age=BOOKING_REFERENCE_MAX_AGE):
 
     queryset = (
         Booking.objects.select_related("trip", "trip__destination")
-        .prefetch_related("trip__additional_destinations", "booking_extras__extra")
+        .prefetch_related(
+            "trip__additional_destinations",
+            "booking_extras__extra",
+            "rewards__reward_phase",
+        )
     )
     return get_object_or_404(queryset, pk=booking_id)
 
@@ -201,7 +205,11 @@ def load_cart_bookings_from_token(token, *, max_age=BOOKING_CART_REFERENCE_MAX_A
 
     queryset = (
         Booking.objects.select_related("trip", "trip__destination")
-        .prefetch_related("trip__additional_destinations", "booking_extras__extra")
+        .prefetch_related(
+            "trip__additional_destinations",
+            "booking_extras__extra",
+            "rewards__reward_phase",
+        )
         .filter(pk__in=booking_ids)
     )
 
@@ -1942,6 +1950,7 @@ class BookingSuccessView(TemplateView):
         summary_base = Decimal("0")
         summary_extras = Decimal("0")
         summary_total = Decimal("0")
+        summary_discount = Decimal("0")
         bookings_detail = []
         latest_status_update = primary_booking.status_updated_at
 
@@ -1978,6 +1987,33 @@ class BookingSuccessView(TemplateView):
                 destination.name for destination in trip.additional_destinations.all()
             ]
 
+            reward_records = list(booking.rewards.all())
+            discount_total = Decimal("0")
+            applied_rewards = []
+            reward_currency = DEFAULT_CURRENCY
+            for reward_record in reward_records:
+                discount_amount = reward_record.discount_amount or Decimal("0")
+                discount_total += discount_amount
+                currency = (reward_record.currency or DEFAULT_CURRENCY).upper()
+                if applied_rewards:
+                    # Preserve currency from the first reward for consistent formatting
+                    pass
+                else:
+                    reward_currency = currency
+                applied_rewards.append(
+                    {
+                        "phase_name": getattr(reward_record.reward_phase, "name", ""),
+                        "discount_percent": reward_record.discount_percent,
+                        "discount_display": format_currency(
+                            discount_amount, currency
+                        ),
+                        "currency": currency,
+                    }
+                )
+
+            pre_discount_base = booking.base_subtotal + discount_total
+            pre_discount_total = booking.grand_total + discount_total
+
             pricing = {
                 "base": booking.base_subtotal,
                 "base_display": format_currency(
@@ -1992,6 +2028,21 @@ class BookingSuccessView(TemplateView):
                     booking.grand_total, DEFAULT_CURRENCY
                 ),
                 "currency": DEFAULT_CURRENCY,
+                "discount": discount_total,
+                "discount_display": format_currency(
+                    discount_total, reward_currency
+                )
+                if discount_total
+                else "",
+                "pre_discount_base": pre_discount_base,
+                "pre_discount_base_display": format_currency(
+                    pre_discount_base, DEFAULT_CURRENCY
+                ),
+                "pre_discount_total": pre_discount_total,
+                "pre_discount_total_display": format_currency(
+                    pre_discount_total, DEFAULT_CURRENCY
+                ),
+                "has_discount": discount_total > 0,
             }
 
             bookings_detail.append(
@@ -2007,18 +2058,22 @@ class BookingSuccessView(TemplateView):
                     "pricing": pricing,
                     "extras": extras,
                     "special_requests": (booking.special_requests or "").strip(),
+                    "applied_rewards": applied_rewards,
                 }
             )
 
             summary_base += booking.base_subtotal
             summary_extras += booking.extras_subtotal
             summary_total += booking.grand_total
+            summary_discount += discount_total
 
             if booking.status_updated_at and (
                 latest_status_update is None
                 or booking.status_updated_at > latest_status_update
             ):
                 latest_status_update = booking.status_updated_at
+
+        summary_pre_discount_total = summary_total + summary_discount
 
         summary_pricing = {
             "base": summary_base,
@@ -2028,6 +2083,15 @@ class BookingSuccessView(TemplateView):
             "total": summary_total,
             "total_display": format_currency(summary_total, DEFAULT_CURRENCY),
             "currency": DEFAULT_CURRENCY,
+            "discount": summary_discount,
+            "discount_display": format_currency(summary_discount, DEFAULT_CURRENCY)
+            if summary_discount
+            else "",
+            "pre_discount_total": summary_pre_discount_total,
+            "pre_discount_total_display": format_currency(
+                summary_pre_discount_total, DEFAULT_CURRENCY
+            ),
+            "has_discount": summary_discount > 0,
         }
 
         reference_codes = [booking.reference_code for booking in bookings]
@@ -2055,6 +2119,11 @@ class BookingSuccessView(TemplateView):
         }
 
         primary_details = bookings_detail[0]
+        all_applied_rewards = [
+            reward
+            for booking_detail in bookings_detail
+            for reward in booking_detail.get("applied_rewards", [])
+        ]
 
         context.update(
             booking=primary_booking,
@@ -2078,6 +2147,14 @@ class BookingSuccessView(TemplateView):
             booking_created_at=primary_booking.created_at,
             primary_details=primary_details,
             primary_travel_date_display=primary_details["travel_date_display"],
+            reward_savings_total=summary_discount,
+            reward_savings_total_display=format_currency(
+                summary_discount, DEFAULT_CURRENCY
+            )
+            if summary_discount
+            else "",
+            reward_savings_applied=summary_discount > 0,
+            applied_rewards=all_applied_rewards,
         )
         return context
 
