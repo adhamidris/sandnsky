@@ -388,9 +388,18 @@
             {% if quick_add_recommendations %}
             <div class="mt-4 space-y-4">
               {% for trip in quick_add_recommendations|slice:":3" %}
-              <article class="rounded-2xl border border-border bg-background/60 p-4">
-                <div class="flex flex-col gap-3">
-                  <div class="flex flex-col gap-1">
+              <article class="flex items-stretch gap-4 rounded-2xl border border-border bg-background/60 p-4">
+                <div class="h-24 w-28 flex-none overflow-hidden rounded-xl bg-muted/40">
+                  {% if trip.image_url %}
+                  <img src="{{ trip.image_url }}" alt="" class="h-full w-full object-cover" loading="lazy" />
+                  {% else %}
+                  <div class="flex h-full w-full items-center justify-center text-[0.65rem] font-semibold uppercase tracking-wide text-muted-foreground">
+                    No image
+                  </div>
+                  {% endif %}
+                </div>
+                <div class="flex flex-1 flex-col gap-3">
+                  <div class="space-y-1">
                     <p class="text-sm font-semibold text-foreground">{{ trip.title }}</p>
                     <p class="text-xs text-muted-foreground">{{ trip.description }}</p>
                   </div>
@@ -400,7 +409,7 @@
                     <span class="rounded-full bg-primary/10 px-2 py-0.5 text-[0.65rem] text-primary">{{ trip.duration }}</span>
                     {% endif %}
                   </div>
-                  <div class="flex flex-wrap gap-2 text-xs">
+                  <div class="mt-auto flex flex-wrap items-center justify-end gap-2 text-xs">
                     <button
                       type="button"
                       class="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 font-semibold text-primary-foreground transition hover:bg-primary/90"
