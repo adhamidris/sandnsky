@@ -3,7 +3,7 @@ from decimal import Decimal, ROUND_HALF_UP
 import datetime as dt
 import mimetypes
 from urllib.parse import urlencode
-from typing import Mapping
+from typing import Any, Mapping
 
 from django.contrib import messages
 from django.core import signing
@@ -1315,6 +1315,89 @@ class CartQuickAddView(View):
 
     DEFAULT_ADULTS = 2
 
+    @staticmethod
+    def _find_entry_id(summary: Mapping[str, Any], trip_id: int) -> str | None:
+        entries = summary.get("entries", [])
+        if not isinstance(entries, list):
+            return None
+        for entry in entries:
+            if not isinstance(entry, Mapping):
+                continue
+            if entry.get("trip_id") == trip_id:
+                entry_id = entry.get("id")
+                if entry_id:
+                    return str(entry_id)
+        return None
+
+    def _auto_apply_reward(
+        self,
+        request,
+        *,
+        summary: Mapping[str, Any],
+        trip_id: int,
+        entry_id: str,
+    ) -> int | None:
+        rewards = summary.get("rewards", {})
+        if not isinstance(rewards, Mapping):
+            return None
+        phases = rewards.get("phases", [])
+        if not isinstance(phases, list):
+            return None
+
+        for phase in phases:
+            if not isinstance(phase, Mapping):
+                continue
+            if not phase.get("unlocked"):
+                continue
+            options = [
+                option
+                for option in phase.get("trip_options", [])
+                if isinstance(option, Mapping)
+            ]
+            if not options:
+                continue
+            if not any(option.get("trip_id") == trip_id for option in options):
+                continue
+            phase_id = int(phase.get("id") or 0)
+            if phase_id <= 0:
+                continue
+            apply_reward_selection(
+                request.session,
+                entry_id=entry_id,
+                phase_id=phase_id,
+                trip_id=trip_id,
+            )
+            return phase_id
+        return None
+
+    @staticmethod
+    def _remove_other_reward_entries(
+        request,
+        *,
+        summary: Mapping[str, Any],
+        phase_id: int | None,
+        keep_entry_id: str,
+    ) -> bool:
+        entries = summary.get("entries", [])
+        if not isinstance(entries, list):
+            return False
+        removed = False
+        for entry in entries:
+            if not isinstance(entry, Mapping):
+                continue
+            entry_id = entry.get("id")
+            if not entry_id or str(entry_id) == str(keep_entry_id):
+                continue
+            applied_reward = entry.get("applied_reward")
+            if not isinstance(applied_reward, Mapping):
+                continue
+            applied_phase_id = int(applied_reward.get("phase_id") or 0)
+            if phase_id is not None and applied_phase_id != phase_id:
+                continue
+            remove_entry(request.session, entry_id)
+            removed = True
+        return removed
+
     def post(self, request, slug):
         if not hasattr(request, "session"):
             raise Http404("Bookings require session support.")
@@ -1352,18 +1435,35 @@ class CartQuickAddView(View):
             in_cart = True
 
         summary = summarize_cart(request.session)
+        added_entry_id: str | None = None
+        replacement_performed = False
+        if in_cart:
+            added_entry_id = self._find_entry_id(summary, trip.pk)
+            if added_entry_id:
+                applied_phase_id = self._auto_apply_reward(
+                    request,
+                    summary=summary,
+                    trip_id=trip.pk,
+                    entry_id=added_entry_id,
+                )
+                if applied_phase_id is not None:
+                    summary = summarize_cart(request.session)
+                    if self._remove_other_reward_entries(
+                        request,
+                        summary=summary,
+                        phase_id=None,
+                        keep_entry_id=added_entry_id,
+                    ):
+                        replacement_performed = True
+                        summary = summarize_cart(request.session)
+                    if replacement_performed:
+                        toast_message = f'Reward switched to "{trip.title}"'
+                    else:
+                        toast_message = f'Reward applied to "{trip.title}"'
+
         cart_trip_ids = extract_cart_trip_ids(summary)
         services = list_quick_add_services(cart_trip_ids)
         recommendations = list_quick_add_recommendations(cart_trip_ids)
-
-        added_entry_id = None
-        if in_cart:
-            for entry in summary.get("entries", []):
-                if not isinstance(entry, Mapping):
-                    continue
-                if entry.get("trip_id") == trip.pk:
-                    added_entry_id = entry.get("id")
-                    break
 
         is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest" or "application/json" in (request.headers.get("Accept") or "")
 

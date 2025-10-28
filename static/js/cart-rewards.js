@@ -264,6 +264,11 @@
       }
     });
 
+    const globalRedeemedTrips = new Set(
+      Array.isArray(rewards?.redeemed_trip_ids) ? rewards.redeemed_trip_ids : []
+    );
+    const hasGlobalRedeemed = globalRedeemedTrips.size > 0;
+
     return phases
       .map((phase, index) => {
         const unlocked = !!phase.unlocked;
@@ -273,12 +278,9 @@
               .filter(Boolean)
           : [];
         const isOpen = appliedEntries.length > 0;
-
         const tripsHtml = Array.isArray(phase.trip_options)
           ? phase.trip_options
               .map((trip) => {
-                const disabled = unlocked ? "" : " disabled";
-                const muted = unlocked ? "" : " opacity-50";
                 const image = trip.card_image_url
                   ? `<img src="${escapeHtml(trip.card_image_url)}" alt="" class="h-12 w-16 rounded-lg object-cover" />`
                   : "";
@@ -294,6 +296,14 @@
                 const discountPercentLabel = Number.isFinite(discountPercentValue)
                   ? `${discountPercentValue % 1 === 0 ? discountPercentValue.toFixed(0) : discountPercentValue.toFixed(2)}%`
                   : "";
+                const isRedeemed = !!trip.is_redeemed;
+                const quickAddState = !unlocked
+                  ? "locked"
+                  : isRedeemed
+                  ? "redeemed"
+                  : hasGlobalRedeemed
+                  ? "replace"
+                  : "active";
                 const comparisonLines = showComparison
                   ? `
                       <p class="text-[0.65rem] text-muted-foreground">
@@ -312,21 +322,76 @@
                   : perPersonFull
                   ? `<p class="text-[0.65rem] text-muted-foreground">From ${escapeHtml(perPersonFull)} per traveler</p>`
                   : "";
-                const lockedMessage =
-                  !unlocked && discountPercentLabel
+                let statusLine = "";
+                if (!unlocked) {
+                  statusLine = discountPercentLabel
                     ? `<p class="text-[0.65rem] text-muted-foreground">Unlock this phase to activate ${escapeHtml(discountPercentLabel)} savings.</p>`
-                    : "";
+                    : `<p class="text-[0.65rem] text-muted-foreground">Unlock this phase to redeem rewards.</p>`;
+                } else if (isRedeemed) {
+                  statusLine = `<p class="text-[0.65rem] font-semibold text-primary">Reward redeemed for your list.</p>`;
+                } else if (hasGlobalRedeemed) {
+                  statusLine = `<p class="text-[0.65rem] text-muted-foreground">Redeem this trip instead to switch rewards.</p>`;
+                }
+                const cardClasses = [
+                  "rounded-xl",
+                  "border",
+                  isRedeemed ? "border-primary" : "border-border",
+                  isRedeemed ? "bg-primary/10" : "bg-background",
+                  "px-3",
+                  "py-2",
+                ];
+                if (!unlocked) {
+                  cardClasses.push("opacity-50");
+                }
+                const plusIcon = `
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
+                    <path fill-rule="evenodd" d="M10 3.5a.75.75 0 0 1 .75.75v5h5a.75.75 0 0 1 0 1.5h-5v5a.75.75 0 0 1-1.5 0v-5h-5a.75.75 0 0 1 0-1.5h5v-5A.75.75 0 0 1 10 3.5Z" clip-rule="evenodd" />
+                  </svg>
+                `;
+                const checkIcon = `
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
+                    <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 0 1 0 1.414l-6.764 6.764a1 1 0 0 1-1.414 0l-3.53-3.53a1 1 0 0 1 1.414-1.414l2.823 2.823 6.057-6.057a1 1 0 0 1 1.414 0Z" clip-rule="evenodd" />
+                  </svg>
+                `;
+                const minusIcon = `
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
+                    <path fill-rule="evenodd" d="M4 10a1 1 0 0 1 .883-.993L5 9h10a1 1 0 0 1 .117 1.993L15 11H5a1 1 0 0 1-1-1Z" clip-rule="evenodd" />
+                  </svg>
+                `;
+                const lockIcon = `
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
+                    <path d="M10 2a5 5 0 0 1 5 5v2h1a1 1 0 0 1 0 2h-1v4a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V11H4a1 1 0 1 1 0-2h1V7a5 5 0 0 1 5-5Zm-3 7h6V7a3 3 0 1 0-6 0v2Z" />
+                  </svg>
+                `;
+                let quickAddLabel = "Redeem this trip";
+                let quickAddIcon = plusIcon;
+                let quickAddClasses =
+                  "inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90";
+                let quickAddAttributes = `data-quick-add-trigger data-trip-slug="${escapeHtml(trip.slug || "")}"`;
+                if (quickAddState === "redeemed") {
+                  quickAddLabel = "Remove reward";
+                  quickAddIcon = minusIcon;
+                } else if (quickAddState === "replace") {
+                  quickAddLabel = "Redeem instead";
+                  quickAddIcon = checkIcon;
+                } else if (quickAddState === "locked") {
+                  quickAddLabel = "Locked";
+                  quickAddIcon = lockIcon;
+                  quickAddClasses =
+                    "inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground cursor-not-allowed";
+                  quickAddAttributes = "disabled";
+                }
                 return `
-                  <div class="rounded-xl border border-border bg-background px-3 py-2${muted}">
+                  <div class="${cardClasses.join(" ")}">
                     <button type="button"
                             class="flex w-full items-center justify-between gap-3 text-left text-xs font-semibold text-foreground transition focus:outline-none focus:ring-2 focus:ring-primary"
                             data-reward-trip
                             data-phase-id="${escapeHtml(phase.id)}"
-                            data-trip-id="${escapeHtml(trip.trip_id)}"${disabled}>
+                            data-trip-id="${escapeHtml(trip.trip_id)}"${unlocked ? "" : " disabled"}>
                       <div class="flex-1">
                         <p class="text-xs font-semibold text-foreground">${escapeHtml(trip.title || "")}</p>
                         ${comparisonLines}
-                        ${lockedMessage}
+                        ${statusLine}
                       </div>
                       ${image}
                     </button>
@@ -335,10 +400,10 @@
                         ${discountPercentLabel ? `${escapeHtml(discountPercentLabel)} off reward` : "Reward savings"}
                       </span>
                       <button type="button"
-                              class="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90"
-                              data-quick-add-trigger
-                              data-trip-slug="${escapeHtml(trip.slug || "")}">
-                        Quick add
+                              class="${quickAddClasses}"
+                              ${quickAddAttributes}>
+                        ${quickAddIcon}
+                        ${escapeHtml(quickAddLabel)}
                       </button>
                     </div>
                   </div>

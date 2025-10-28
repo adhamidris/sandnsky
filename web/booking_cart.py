@@ -5,7 +5,7 @@ import datetime as dt
 import uuid
 from dataclasses import dataclass
 from decimal import Decimal, ROUND_HALF_UP
-from typing import Any, Dict, Iterable, List, Mapping, MutableMapping, Optional, Sequence, Tuple
+from typing import Any, Dict, Iterable, List, Mapping, MutableMapping, Optional, Sequence, Set, Tuple
 from urllib.parse import quote_plus
 
 from django.utils import timezone
@@ -544,6 +544,12 @@ def _build_rewards_metadata(
 ) -> Dict[str, Any]:
     unlocked_set = set(rewards_state.unlocked_phase_ids)
 
+    redeemed_lookup: Dict[Tuple[int, int], List[str]] = {}
+    global_redeemed_trip_ids: Set[int] = set()
+    for entry_id, calculation in rewards_state.calculations.items():
+        key = (calculation.phase_id, calculation.trip_id)
+        redeemed_lookup.setdefault(key, []).append(entry_id)
+
     snapshots_by_trip_id: Dict[int, CartEntrySnapshot] = {}
     default_traveler_count = 1
     for snapshot in rewards_state.snapshots.values():
@@ -562,6 +568,7 @@ def _build_rewards_metadata(
         discount_fraction = discount_percent_value / Decimal("100")
 
         trip_payloads: List[Dict[str, Any]] = []
+        redeemed_trip_ids: Set[int] = set()
         for trip in phase.trips:
             base_price_cents = int(trip.base_price_cents or 0)
             base_price_display = _format_money_cents(base_price_cents) if base_price_cents else "0.00"
@@ -569,6 +576,11 @@ def _build_rewards_metadata(
             snapshot = snapshots_by_trip_id.get(trip.trip_id)
             traveler_count = snapshot.traveler_count if snapshot else default_traveler_count if has_snapshot_context else 0
             traveler_count = max(int(traveler_count or 0), 0)
+
+            redeemed_entry_ids = redeemed_lookup.get((phase.id, trip.trip_id), [])
+            if redeemed_entry_ids:
+                redeemed_trip_ids.add(trip.trip_id)
+                global_redeemed_trip_ids.add(trip.trip_id)
 
             comparison_payload: Optional[Dict[str, Any]] = None
             if traveler_count > 0 and base_price_cents > 0:
@@ -617,6 +629,8 @@ def _build_rewards_metadata(
                     "base_price_per_person_cents": base_price_cents,
                     "base_price_per_person_display": base_price_display,
                     "comparison": comparison_payload,
+                    "is_redeemed": bool(redeemed_entry_ids),
+                    "redeemed_entry_ids": redeemed_entry_ids,
                 }
             )
 
@@ -634,6 +648,7 @@ def _build_rewards_metadata(
             "headline": phase.headline,
             "description": phase.description,
             "trip_options": trip_payloads,
+            "redeemed_trip_ids": sorted(redeemed_trip_ids),
             "applied_entry_ids": [
                 entry_id
                 for entry_id, calculation in rewards_state.calculations.items()
@@ -666,6 +681,8 @@ def _build_rewards_metadata(
         "discount_total_display": _format_money_cents(total_discount_cents)
         if total_discount_cents
         else "0.00",
+        "has_redeemed_trip": bool(global_redeemed_trip_ids),
+        "redeemed_trip_ids": sorted(global_redeemed_trip_ids),
     }
     return rewards_summary
 
