@@ -1,6 +1,11 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Booking List Submitted · Sand & Sky Tours{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'css/main2.css' %}" />
+{% endblock %}
 
 {% block content %}
 <section class="bg-muted/20 py-16">
