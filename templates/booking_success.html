@@ -3,6 +3,10 @@
 
 {% block title %}Booking Confirmation — {{ trip.title }}{% endblock %}
 
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'css/main2.css' %}" />
+{% endblock %}
+
 {% block content %}
 <section class="booking-page bg-background px-4 py-16 sm:px-6 lg:px-8">
   <div class="mx-auto max-w-5xl space-y-10">

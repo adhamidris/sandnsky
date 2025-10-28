@@ -244,7 +244,11 @@
         const percentStr = Number(percent.toFixed(3)).toString();
         const unlocked = phase.unlocked;
         const phaseIdStr = phase?.id === undefined || phase?.id === null ? "" : String(phase.id);
-        const phaseStatus = unlocked
+        const hasApplied =
+          Array.isArray(phase?.applied_entry_ids) && phase.applied_entry_ids.length > 0;
+        const phaseStatus = hasApplied
+          ? "redeemed"
+          : unlocked
           ? "unlocked"
           : nextPhaseIdStr && nextPhaseIdStr === phaseIdStr
           ? "active"
@@ -269,7 +273,11 @@
         );
         const percentStr = Number(percent.toFixed(3)).toString();
         const phaseIdStr = phase?.id === undefined || phase?.id === null ? "" : String(phase.id);
-        const phaseStatus = unlockedIdSet.has(phaseIdStr)
+        const hasApplied =
+          Array.isArray(phase?.applied_entry_ids) && phase.applied_entry_ids.length > 0;
+        const phaseStatus = hasApplied
+          ? "redeemed"
+          : unlockedIdSet.has(phaseIdStr)
           ? "unlocked"
           : nextPhaseIdStr && nextPhaseIdStr === phaseIdStr
           ? "active"
@@ -349,6 +357,7 @@
               .filter(Boolean)
           : [];
         const isOpen = appliedEntries.length > 0;
+        const phaseStatus = !unlocked ? "locked" : appliedEntries.length > 0 ? "redeemed" : "unlocked";
         const tripsHtml = Array.isArray(phase.trip_options)
           ? phase.trip_options
               .map((trip) => {
@@ -368,13 +377,14 @@
                   ? `${discountPercentValue % 1 === 0 ? discountPercentValue.toFixed(0) : discountPercentValue.toFixed(2)}%`
                   : "";
                 const isRedeemed = !!trip.is_redeemed;
-                const quickAddState = !unlocked
+                const cardState = !unlocked
                   ? "locked"
                   : isRedeemed
                   ? "redeemed"
                   : hasGlobalRedeemed
                   ? "replace"
-                  : "active";
+                  : "available";
+                const quickAddState = cardState;
                 const comparisonLines = showComparison
                   ? `
                       <p class="text-[0.65rem] text-muted-foreground">
@@ -438,7 +448,7 @@
                 let quickAddIcon = plusIcon;
                 let quickAddClasses =
                   "inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90";
-                let quickAddAttributes = `data-quick-add-trigger data-trip-slug="${escapeHtml(trip.slug || "")}"`;
+                let quickAddAttributes = `data-reward-trip-action data-trip-state="${escapeHtml(quickAddState)}"`;
                 if (quickAddState === "redeemed") {
                   quickAddLabel = "Remove reward";
                   quickAddIcon = minusIcon;
@@ -450,10 +460,15 @@
                   quickAddIcon = lockIcon;
                   quickAddClasses =
                     "inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground cursor-not-allowed";
-                  quickAddAttributes = "disabled";
+                  quickAddAttributes += " disabled";
+                }
+                if (quickAddState !== "locked") {
+                  quickAddAttributes += ` data-quick-add-trigger data-trip-slug="${escapeHtml(trip.slug || "")}"`;
                 }
                 return `
-                  <div class="${cardClasses.join(" ")}">
+                  <div class="${cardClasses.join(" ")}"
+                       data-reward-trip-card
+                       data-trip-state="${escapeHtml(cardState)}">
                     <button type="button"
                             class="flex w-full items-center justify-between gap-3 text-left text-xs font-semibold text-foreground transition focus:outline-none focus:ring-2 focus:ring-primary"
                             data-reward-trip
@@ -502,23 +517,33 @@
           `
           : "";
 
-        const statusBadge = unlocked
-          ? `
+        let statusBadge = `
+          <span class="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-muted-foreground">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5">
+              <path d="M10 2a5 5 0 0 1 5 5v2h1a1 1 0 0 1 0 2h-1v4a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V11H4a1 1 0 1 1 0-2h1V7a5 5 0 0 1 5-5Zm-3 7h6V7a3 3 0 1 0-6 0v2Z" />
+            </svg>
+            Locked
+          </span>
+        `;
+        if (phaseStatus === "unlocked") {
+          statusBadge = `
             <span class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-primary">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5">
                 <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 0 1 0 1.414l-6.764 6.764a1 1 0 0 1-1.414 0l-3.53-3.53a1 1 0 0 1 1.414-1.414l2.823 2.823 6.057-6.057a1 1 0 0 1 1.414 0Z" clip-rule="evenodd" />
               </svg>
               Unlocked
             </span>
-          `
-          : `
-            <span class="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-muted-foreground">
+          `;
+        } else if (phaseStatus === "redeemed") {
+          statusBadge = `
+            <span class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-primary">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5">
-                <path d="M10 2a5 5 0 0 1 5 5v2h1a1 1 0 0 1 0 2h-1v4a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V11H4a1 1 0 1 1 0-2h1V7a5 5 0 0 1 5-5Zm-3 7h6V7a3 3 0 1 0-6 0v2Z" />
+                <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 0 1 0 1.414l-6.764 6.764a1 1 0 0 1-1.414 0l-3.53-3.53a1 1 0 0 1 1.414-1.414l2.823 2.823 6.057-6.057a1 1 0 0 1 1.414 0Z" clip-rule="evenodd" />
               </svg>
-              Locked
+              Redeemed
             </span>
           `;
+        }
 
         const bodyClasses = ["border-t", "border-border/60", "px-4", "pb-4", "pt-3", "text-xs", "text-muted-foreground"];
         if (!isOpen) {
@@ -530,6 +555,7 @@
                    data-reward-phase
                    data-phase-id="${escapeHtml(phase.id)}"
                    data-phase-unlocked="${unlocked ? "true" : "false"}"
+                   data-phase-status="${escapeHtml(phaseStatus)}"
                    data-open="${isOpen ? "true" : "false"}">
             <button type="button"
                     class="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"

@@ -74,7 +74,9 @@
                     style="left: {{ marker_percent }}%;"
                     data-reward-progress-marker
                     data-phase-id="{{ phase.id }}"
-                    {% if phase.unlocked %}
+                    {% if phase.applied_entry_ids %}
+                    data-phase-status="redeemed"
+                    {% elif phase.unlocked %}
                     data-phase-status="unlocked"
                     {% elif progress.next_phase_id and progress.next_phase_id == phase.id %}
                     data-phase-status="active"
@@ -93,7 +95,9 @@
                     class="rewards-phase-pill flex-1 text-left {% if not forloop.first %}text-center{% endif %} {% if forloop.last %}text-right{% endif %}"
                     style="--phase-percent: {{ label_percent }}%"
                     data-phase-id="{{ phase.id }}"
-                    {% if phase.unlocked %}
+                    {% if phase.applied_entry_ids %}
+                    data-phase-status="redeemed"
+                    {% elif phase.unlocked %}
                     data-phase-status="unlocked"
                     {% elif progress.next_phase_id and progress.next_phase_id == phase.id %}
                     data-phase-status="active"
@@ -129,7 +133,14 @@
 
           <div class="space-y-3" data-reward-phase-list>
             {% for phase in rewards.phases %}
-            <article class="rounded-2xl border border-border bg-background/70" data-reward-phase data-phase-id="{{ phase.id }}" data-phase-unlocked="{{ phase.unlocked|yesno:'true,false' }}">
+            <article
+              class="rounded-2xl border border-border bg-background/70"
+              data-reward-phase
+              data-phase-id="{{ phase.id }}"
+              data-phase-unlocked="{{ phase.unlocked|yesno:'true,false' }}"
+              data-phase-status="{% if not phase.unlocked %}locked{% elif phase.applied_entry_ids %}redeemed{% else %}unlocked{% endif %}"
+              data-open="{% if phase.applied_entry_ids %}true{% else %}false{% endif %}"
+            >
               <button type="button" class="flex w-full items-center justify-between gap-3 px-4 py-3 text-left" data-reward-phase-toggle>
                 <div>
                   <p class="text-xs uppercase tracking-wide text-muted-foreground">Phase {{ forloop.counter }}</p>
@@ -138,12 +149,21 @@
                 </div>
                 <div class="flex items-center gap-2 text-xs font-semibold">
                   {% if phase.unlocked %}
-                  <span class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-primary">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5">
-                      <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 0 1 0 1.414l-6.764 6.764a1 1 0 0 1-1.414 0l-3.53-3.53a1 1 0 0 1 1.414-1.414l2.823 2.823 6.057-6.057a1 1 0 0 1 1.414 0Z" clip-rule="evenodd" />
-                    </svg>
-                    Unlocked
-                  </span>
+                    {% if phase.applied_entry_ids %}
+                    <span class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-primary">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5">
+                        <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 0 1 0 1.414l-6.764 6.764a1 1 0 0 1-1.414 0l-3.53-3.53a1 1 0 0 1 1.414-1.414l2.823 2.823 6.057-6.057a1 1 0 0 1 1.414 0Z" clip-rule="evenodd" />
+                      </svg>
+                      Redeemed
+                    </span>
+                    {% else %}
+                    <span class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-primary">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5">
+                        <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 0 1 0 1.414l-6.764 6.764a1 1 0 0 1-1.414 0l-3.53-3.53a1 1 0 0 1 1.414-1.414l2.823 2.823 6.057-6.057a1 1 0 0 1 1.414 0Z" clip-rule="evenodd" />
+                      </svg>
+                      Unlocked
+                    </span>
+                    {% endif %}
                   {% else %}
                   <span class="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-muted-foreground">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5">
@@ -157,7 +177,7 @@
                   </svg>
                 </div>
               </button>
-              <div class="hidden border-t border-border/60 px-4 pb-4 pt-3 text-xs text-muted-foreground" data-reward-phase-body>
+              <div class="{% if not phase.applied_entry_ids %}hidden {% endif %}border-t border-border/60 px-4 pb-4 pt-3 text-xs text-muted-foreground" data-reward-phase-body>
                 {% if phase.headline %}
                 <p class="mb-3 text-sm font-medium text-foreground">{{ phase.headline }}</p>
                 {% elif phase.description %}
@@ -167,7 +187,11 @@
                 <div class="mt-2 grid grid-cols-1 gap-2" data-reward-phase-trips>
                   {% for trip in phase.trip_options %}
                   {% with is_redeemed=trip.is_redeemed has_global=cart_summary.rewards.redeemed_trip_ids %}
-                  <div class="rounded-xl border px-3 py-2 {% if is_redeemed %}border-primary bg-primary/10{% else %}border-border bg-background{% endif %} {% if not phase.unlocked %}opacity-50{% endif %}">
+                  <div
+                    class="rounded-xl border px-3 py-2 {% if is_redeemed %}border-primary bg-primary/10{% else %}border-border bg-background{% endif %} {% if not phase.unlocked %}opacity-50{% endif %}"
+                    data-reward-trip-card
+                    data-trip-state="{% if not phase.unlocked %}locked{% elif is_redeemed %}redeemed{% elif has_global %}replace{% else %}available{% endif %}"
+                  >
                     <button
                       type="button"
                       class="flex w-full items-center justify-between gap-3 text-left text-xs font-semibold text-foreground transition focus:outline-none focus:ring-2 focus:ring-primary"
@@ -219,7 +243,13 @@
                         {% endwith %}
                       </span>
                       {% if not phase.unlocked %}
-                      <button type="button" class="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground cursor-not-allowed" disabled>
+                      <button
+                        type="button"
+                        class="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground cursor-not-allowed"
+                        data-reward-trip-action
+                        data-trip-state="locked"
+                        disabled
+                      >
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
                           <path d="M10 2a5 5 0 0 1 5 5v2h1a1 1 0 0 1 0 2h-1v4a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V11H4a1 1 0 1 1 0-2h1V7a5 5 0 0 1 5-5Zm-3 7h6V7a3 3 0 1 0-6 0v2Z" />
                         </svg>
@@ -229,6 +259,8 @@
                       <button
                         type="button"
                         class="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90"
+                        data-reward-trip-action
+                        data-trip-state="redeemed"
                         data-quick-add-trigger
                         data-trip-slug="{{ trip.slug }}"
                       >
@@ -241,6 +273,8 @@
                       <button
                         type="button"
                         class="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90"
+                        data-reward-trip-action
+                        data-trip-state="replace"
                         data-quick-add-trigger
                         data-trip-slug="{{ trip.slug }}"
                       >
@@ -253,6 +287,8 @@
                       <button
                         type="button"
                         class="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90"
+                        data-reward-trip-action
+                        data-trip-state="available"
                         data-quick-add-trigger
                         data-trip-slug="{{ trip.slug }}"
                       >
@@ -294,9 +330,9 @@
     <div class="order-1 lg:order-1 lg:col-start-1 lg:row-start-1 lg:row-span-2">
       <div class="space-y-6">
         <header class="hidden space-y-2 lg:block">
-          <p class="text-sm uppercase tracking-wide text-muted-foreground">Your curated adventures</p>
+          <p class="checkout-section-eyebrow text-sm uppercase tracking-wide text-muted-foreground">Your curated adventures</p>
           <h1 class="checkout-header font-serif text-4xl text-foreground">Review &amp; confirm your booking list</h1>
-          <p class="text-sm text-muted-foreground">Fine-tune your selection, update traveler details, and submit everything in one go. You can still book individual trips directly from each trip page.</p>
+          <p class="checkout-section-description text-sm text-muted-foreground">Fine-tune your selection, update traveler details, and submit everything in one go. You can still book individual trips directly from each trip page.</p>
         </header>
 
         <div class="guest-details rounded-3xl bg-card p-6 shadow-[var(--shadow-medium)]">
@@ -322,7 +358,7 @@
         <div class="divide-y divide-border overflow-hidden rounded-3xl bg-card shadow-[var(--shadow-subtle)] {% if not cart_has_entries %}hidden{% endif %}" data-cart-entries>
           {% for entry in cart_entries %}
           <article
-            class="flex flex-col gap-5 p-6 sm:flex-row sm:items-start sm:justify-between sm:gap-6"
+            class="checkout-trip-card flex flex-col gap-5 p-6 sm:flex-row sm:items-start sm:justify-between sm:gap-6"
             id="cart-entry-{{ entry.id }}"
             data-entry
             data-entry-id="{{ entry.id }}"
@@ -330,14 +366,14 @@
             data-trip-slug="{{ entry.trip_slug }}"
           >
             <div class="space-y-3">
-              <h2 class="font-serif text-xl text-foreground">{{ entry.trip_title }}</h2>
-              <ul class="text-sm text-muted-foreground">
+              <h2 class="checkout-trip-title font-serif text-xl text-foreground">{{ entry.trip_title }}</h2>
+              <ul class="checkout-trip-meta text-sm text-muted-foreground">
                 {% if entry.travel_date_display %}<li><span class="font-medium text-foreground">Trip date:</span> {{ entry.travel_date_display }}</li>{% endif %}
                 <li><span class="font-medium text-foreground">Travelers:</span> {{ entry.traveler_label }}</li>
               </ul>
-              <div class="flex flex-wrap gap-3 text-sm">
+              <div class="checkout-trip-actions flex flex-wrap gap-3 text-sm">
                 {% if entry.trip_slug %}
-                <a href="{% url 'web:trip-detail' entry.trip_slug %}#booking-form" class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 font-semibold text-primary transition hover:bg-primary/20">
+                <a href="{% url 'web:trip-detail' entry.trip_slug %}#booking-form" class="trip-action-edit inline-flex items-center gap-1 rounded-full px-3 py-1 font-semibold transition">
                   Edit trip
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 19.5 10.5M16.5 7.5 8.25 15.75 6 18l2.25-.75L16.5 9" />
@@ -348,7 +384,7 @@
                   {% csrf_token %}
                   <input type="hidden" name="action" value="remove" />
                   <input type="hidden" name="entry_id" value="{{ entry.id }}" />
-                  <button type="submit" class="remove-btn inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 font-semibold text-muted-foreground transition hover:bg-muted/70">
+                  <button type="submit" class="remove-btn inline-flex items-center gap-1 rounded-full px-3 py-1 font-semibold transition">
                     Remove
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -356,16 +392,16 @@
                   </button>
                 </form>
               </div>
-              <div class="rounded-3xl border border-border/60 bg-background/50 p-4" data-entry-reward-box>
+              <div class="checkout-trip-rewards rounded-3xl border border-border/60 bg-background/50 p-4" data-entry-reward-box>
                 <div class="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p class="text-sm font-semibold text-foreground">Rewards</p>
+                    <p class="trip-reward-label text-sm font-semibold text-foreground">Rewards</p>
                     {% if entry.applied_reward %}
-                    <p class="text-xs text-muted-foreground" data-entry-reward-status>
+                    <p class="trip-reward-status text-xs text-muted-foreground" data-entry-reward-status>
                       Applied <span class="font-medium text-foreground">{{ entry.applied_reward.phase_name }}</span> · Saved {{ entry.applied_reward.discount_display }}
                     </p>
                     {% else %}
-                    <p class="text-xs text-muted-foreground" data-entry-reward-status>No reward applied yet. Choose an unlocked phase below.</p>
+                    <p class="trip-reward-status text-xs text-muted-foreground" data-entry-reward-status>No reward applied yet. Choose an unlocked phase below.</p>
                     {% endif %}
                   </div>
                   <div class="flex flex-wrap items-center gap-2" data-entry-reward-actions>
@@ -389,7 +425,7 @@
                   {% if not entry.applied_reward or entry.applied_reward.phase_id != phase.id %}
                   <button
                     type="button"
-                    class="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-background px-3 py-1 text-xs font-semibold text-primary transition hover:bg-primary/10"
+                    class="trip-reward-dropdown inline-flex items-center gap-1 rounded-full border border-primary/40 bg-background px-3 py-1 text-xs font-semibold text-primary transition hover:bg-primary/10"
                     data-action="apply-reward"
                     data-entry-id="{{ entry.id }}"
                     data-phase-id="{{ phase.id }}"
@@ -410,11 +446,11 @@
               </div>
             </div>
             <div class="flex flex-col items-end gap-2">
-              <span class="rounded-full bg-primary/10 px-4 py-1 text-sm font-semibold text-primary" data-entry-total>{{ entry.currency }} {{ entry.grand_total_display }}</span>
-              <span class="text-xs text-muted-foreground line-through {% if not entry.discount_total_cents %}hidden{% endif %}" data-entry-original>{{ entry.currency }} {{ entry.original_grand_total_display }}</span>
+              <span class="trip-price-chip rounded-full bg-primary/10 px-4 py-1 text-sm font-semibold text-primary" data-entry-total>{{ entry.currency }} {{ entry.grand_total_display }}</span>
+              <span class="trip-price-original text-xs text-muted-foreground line-through {% if not entry.discount_total_cents %}hidden{% endif %}" data-entry-original>{{ entry.currency }} {{ entry.original_grand_total_display }}</span>
 
               {% if entry.trip_slug %}
-              <a href="{% url 'web:trip-detail' entry.trip_slug %}" class="text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-primary">View trip details</a>
+              <a href="{% url 'web:trip-detail' entry.trip_slug %}" class="trip-details-link text-xs font-semibold uppercase tracking-wide">View trip details</a>
               {% endif %}
             </div>
           </article>
@@ -459,28 +495,28 @@
         </div>
         {% endwith %}
 
-        <div class="rounded-3xl bg-card p-6 shadow-[var(--shadow-subtle)]">
-          <h2 class="text-lg font-semibold text-foreground">Summary</h2>
-          <dl class="mt-4 space-y-3 text-sm text-muted-foreground">
-            <div class="flex justify-between">
+        <div class="checkout-summary-card rounded-3xl bg-card p-6 shadow-[var(--shadow-subtle)]">
+          <h2 class="checkout-summary-title text-lg font-semibold text-foreground">Summary</h2>
+          <dl class="checkout-summary-list mt-4 space-y-3 text-sm text-muted-foreground">
+            <div class="checkout-summary-row flex justify-between">
               <dt>Trips in list</dt>
               <dd class="font-semibold text-foreground" data-summary-count>{{ cart_summary.count }}</dd>
             </div>
-            <div class="flex justify-between">
+            <div class="checkout-summary-row flex justify-between">
               <dt>Pre-discount total</dt>
               <dd class="font-semibold text-foreground" data-summary-pre-discount>{{ cart_currency }} {{ cart_summary.pre_discount_total_display }}</dd>
             </div>
-            <div class="flex justify-between text-primary">
+            <div class="checkout-summary-row checkout-summary-savings flex justify-between">
               <dt>Rewards savings</dt>
               <dd class="font-semibold" data-summary-discount>{{ cart_currency }} {{ cart_summary.discount_total_display }}</dd>
             </div>
-            <div class="flex justify-between">
+            <div class="checkout-summary-row flex justify-between">
               <dt>Updated total</dt>
               <dd class="font-semibold text-foreground" data-summary-total>{{ cart_currency }} {{ cart_total_display }}</dd>
             </div>
           </dl>
           <div class="mt-4">
-            <a href="{% url 'web:trips' %}" class="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80">
+            <a href="{% url 'web:trips' %}" class="checkout-summary-link inline-flex items-center gap-2 text-sm font-semibold">
               Add another trip
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -496,23 +532,23 @@
         </div>
 
         <section
-          class="mt-8 rounded-3xl bg-card p-6 shadow-[var(--shadow-subtle)] space-y-8"
+          class="quick-add-section mt-8 rounded-3xl bg-card p-6 shadow-[var(--shadow-subtle)] space-y-8"
           data-quick-add-root
           data-quick-add-url-template="{% url 'web:booking-cart-quick-add' '__slug__' %}"
           data-trip-url-template="{% url 'web:trip-detail' '__slug__' %}"
           data-checkout-url="{% url 'web:booking-cart-checkout' %}"
         >
           <div data-quick-add-services>
-            <h2 class="text-base font-semibold text-foreground">Services</h2>
+            <h2 class="quick-add-services-title text-base font-semibold text-foreground">Services</h2>
             <div data-quick-add-services-body>
               {% if quick_add_services %}
               <ul class="mt-4 space-y-3" data-quick-add-services-list>
                 {% for service in quick_add_services %}
-                <li class="flex items-center justify-between gap-3 rounded-2xl border border-border bg-background/60 px-4 py-2">
-                  <span class="text-sm font-medium text-foreground">{{ service.title }}</span>
+                <li class="quick-add-service-item flex items-center justify-between gap-3">
+                  <span class="quick-add-service-title text-sm font-medium text-foreground">{{ service.title }}</span>
                   <button
                     type="button"
-                    class="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90"
+                    class="quick-add-button inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold transition"
                     data-quick-add-trigger
                     data-trip-id="{{ service.id }}"
                     data-trip-slug="{{ service.slug }}"
@@ -526,48 +562,51 @@
                 {% endfor %}
               </ul>
               {% else %}
-              <p class="mt-4 text-xs text-muted-foreground" data-quick-add-services-empty>No services available to add right now.</p>
+              <p class="quick-add-empty mt-4 text-xs text-muted-foreground" data-quick-add-services-empty>No services available to add right now.</p>
               {% endif %}
             </div>
           </div>
 
           <div data-quick-add-recommendations>
-            <h2 class="text-base font-semibold text-foreground">You may also like</h2>
+            <div class="quick-add-heading flex flex-col gap-1">
+              <p class="quick-add-subheading text-sm font-medium">You may also like</p>
+              <h2 class="quick-add-recommendations-title text-base font-semibold text-foreground">Recommended add-ons</h2>
+            </div>
             <div data-quick-add-recommendations-body>
               {% if quick_add_recommendations %}
               <div class="mt-4 space-y-4" data-quick-add-recommendations-list>
                 {% for trip in quick_add_recommendations|slice:":3" %}
-                <article class="flex items-stretch gap-4 rounded-2xl border border-border bg-background/60 p-4">
-                  <div class="h-24 w-28 flex-none overflow-hidden rounded-xl bg-muted/40">
+                <article class="quick-add-card flex items-stretch gap-4">
+                  <div class="quick-add-card-media h-24 w-28 flex-none overflow-hidden rounded-xl">
                     {% if trip.image_url %}
                     <img src="{{ trip.image_url }}" alt="" class="h-full w-full object-cover" loading="lazy" />
                     {% else %}
-                    <div class="flex h-full w-full items-center justify-center text-[0.65rem] font-semibold uppercase tracking-wide text-muted-foreground">
+                    <div class="quick-add-card-placeholder flex h-full w-full items-center justify-center text-[0.65rem] font-semibold uppercase tracking-wide text-muted-foreground">
                       No image
                     </div>
                     {% endif %}
                   </div>
                   <div class="flex flex-1 flex-col gap-3">
                     <div class="space-y-1">
-                      <p class="text-sm font-semibold text-foreground">{{ trip.title }}</p>
-                      <p class="text-xs text-muted-foreground">{{ trip.description }}</p>
+                      <p class="quick-add-card-title text-sm font-semibold text-foreground">{{ trip.title }}</p>
+                      <p class="quick-add-card-description text-xs text-muted-foreground">{{ trip.description }}</p>
                     </div>
-                    <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-primary">
-                      <span>{{ trip.price }}</span>
+                    <div class="quick-add-card-meta flex flex-wrap items-center gap-2 text-xs font-semibold">
+                      <span class="quick-add-card-price">{{ trip.price }}</span>
                       {% if trip.duration %}
-                      <span class="rounded-full bg-primary/10 px-2 py-0.5 text-[0.65rem] text-primary">{{ trip.duration }}</span>
+                      <span class="quick-add-card-duration inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[0.65rem] text-primary">{{ trip.duration }}</span>
                       {% endif %}
                     </div>
                     <div class="mt-auto flex flex-wrap items-center justify-end gap-2 text-xs">
                       <button
                         type="button"
-                        class="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 font-semibold text-primary-foreground transition hover:bg-primary/90"
+                        class="quick-add-button inline-flex items-center gap-1 rounded-full px-3 py-1 font-semibold transition"
                         data-quick-add-trigger
                         data-trip-slug="{{ trip.slug }}"
                       >
                         Quick add
                       </button>
-                      <a href="{% url 'web:trip-detail' trip.slug %}" class="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1 font-semibold text-muted-foreground transition hover:text-foreground hover:border-foreground">
+                      <a href="{% url 'web:trip-detail' trip.slug %}" class="quick-add-link inline-flex items-center gap-1 rounded-full px-3 py-1 font-semibold transition">
                         See details
                       </a>
                     </div>
@@ -576,7 +615,7 @@
                 {% endfor %}
               </div>
               {% else %}
-              <p class="mt-4 text-xs text-muted-foreground" data-quick-add-recommendations-empty>We'll surface suggestions once you add a few trips to your list.</p>
+              <p class="quick-add-empty mt-4 text-xs text-muted-foreground" data-quick-add-recommendations-empty>We'll surface suggestions once you add a few trips to your list.</p>
               {% endif %}
             </div>
           </div>
