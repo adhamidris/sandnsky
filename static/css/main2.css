@@ -3611,7 +3611,9 @@ body.gallery-lightbox--open {
 }
 
 .rewards-web {
-  background-color: #E8EFF3 !important;
+  background: linear-gradient(to bottom, rgba(74, 124, 158, 0.12), rgba(212, 165, 116, 0.08)) !important;
+  border: 1px solid rgba(74, 124, 158, 0.18) !important;
+  box-shadow: 0 18px 36px rgba(43, 67, 86, 0.08) !important;
 }
 
 .aside-rewards-titles {
@@ -3622,19 +3624,222 @@ body.gallery-lightbox--open {
   color: #6B8A9E !important;
 }
 
-.rewards-count-badge{
+.rewards-count-badge {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.85rem;
   color: #2B4356 !important;
-  text-align: center !important;
   background-color: #D4A574 !important;
-  border: 1px thin !important;
-  border-color:#C9A961 !important;
+  border-radius: 9999px !important;
+  box-shadow: 0 8px 20px rgba(212, 165, 116, 0.28);
+  font-weight: 600 !important;
+  border: none !important;
 }
 
-.progress-card {
-  background-color: white !important;
-  border-radius: 15px !important;
+[data-mobile-reward-count] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.75rem;
+  background-color: rgba(212, 165, 116, 0.24);
+  color: #2B4356;
+  border-radius: 9999px;
+  font-weight: 600;
 }
 
-.rewards-amount {
-  border: 3px solid red !important;
+[data-reward-progress-block] {
+  background-color: #FFFFFF !important;
+  border: 1px solid rgba(74, 124, 158, 0.15) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 16px 30px rgba(43, 67, 86, 0.06);
+}
+
+[data-reward-total] {
+  color: #2B4356 !important;
+  font-size: 1.35rem;
+  font-weight: 700 !important;
+  line-height: 1.25;
+}
+
+[data-reward-next] {
+  color: #4A3F35 !important;
+}
+
+[data-reward-progress-track] {
+  background-color: #E8DCC8 !important;
+}
+
+[data-reward-progress-fill] {
+  background: linear-gradient(to right, #4A7C9E, #D4A574) !important;
+}
+
+[data-reward-progress-marker] span {
+  background-color: #FFFFFF !important;
+  border-color: rgba(43, 67, 86, 0.25) !important;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.6);
+}
+
+[data-reward-progress-marker][data-phase-status="active"] span {
+  background-color: #4A7C9E !important;
+  border-color: #4A7C9E !important;
+}
+
+[data-reward-progress-marker][data-phase-status="unlocked"] span {
+  background-color: #D4A574 !important;
+  border-color: #D4A574 !important;
+}
+
+[data-reward-progress-labels] {
+  gap: 0.5rem;
+}
+
+.rewards-phase-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  background-color: #FFFFFF;
+  border: 1px solid rgba(74, 124, 158, 0.18);
+  font-weight: 600;
+  color: #2B4356;
+  min-width: 0;
+  white-space: nowrap;
+  transition: background-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.rewards-phase-pill[data-phase-status="locked"] {
+  background-color: rgba(255, 255, 255, 0.85);
+  color: #6B8A9E;
+  border-color: rgba(107, 138, 158, 0.4);
+}
+
+.rewards-phase-pill[data-phase-status="active"] {
+  background-color: #4A7C9E;
+  color: #FFFFFF !important;
+  border-color: #4A7C9E;
+  box-shadow: 0 6px 16px rgba(74, 124, 158, 0.25);
+}
+
+.rewards-phase-pill[data-phase-status="active"]::before {
+  content: "•";
+  color: #FFFFFF;
+  font-size: 1rem;
+  line-height: 1;
+  margin-right: 0.35rem;
+}
+
+.rewards-phase-pill[data-phase-status="unlocked"] {
+  background-color: rgba(212, 165, 116, 0.2);
+  color: #2B4356;
+  border-color: rgba(212, 165, 116, 0.7);
+}
+
+.rewards-phase-pill[data-phase-status="unlocked"]::before {
+  content: "✓";
+  color: #D4A574;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-right: 0.35rem;
+}
+
+[data-reward-progress-block] > p {
+  color: #4A3F35 !important;
+}
+
+.rewards-web details summary,
+[data-mobile-reward-details] details summary {
+  color: #4A7C9E !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: color 0.25s ease;
+}
+
+.rewards-web details summary:hover,
+.rewards-web details summary:focus-visible,
+[data-mobile-reward-details] details summary:hover,
+[data-mobile-reward-details] details summary:focus-visible {
+  color: #D4A574 !important;
+}
+
+.rewards-web details summary::-webkit-details-marker,
+[data-mobile-reward-details] details summary::-webkit-details-marker {
+  color: #4A7C9E !important;
+}
+
+.rewards-web details summary::marker,
+[data-mobile-reward-details] details summary::marker {
+  color: #4A7C9E;
+}
+
+.rewards-web details summary:hover::marker,
+.rewards-web details summary:focus-visible::marker,
+[data-mobile-reward-details] details summary:hover::marker,
+[data-mobile-reward-details] details summary:focus-visible::marker {
+  color: #D4A574;
+}
+
+[data-reward-phase] {
+  background: linear-gradient(135deg, rgba(74, 124, 158, 0.08), rgba(255, 255, 255, 0.9)) !important;
+  border: 1px solid rgba(74, 124, 158, 0.18) !important;
+  box-shadow: 0 14px 28px rgba(43, 67, 86, 0.05);
+}
+
+[data-reward-phase] [data-reward-phase-toggle] .text-xs.uppercase {
+  color: #6B8A9E !important;
+  letter-spacing: 0.12em !important;
+}
+
+[data-reward-phase] [data-reward-phase-toggle] .text-sm.font-semibold {
+  color: #2B4356 !important;
+}
+
+[data-reward-phase] [data-reward-phase-toggle] .text-xs.text-muted-foreground {
+  color: #4A3F35 !important;
+}
+
+[data-reward-phase] [data-reward-phase-toggle] span.inline-flex {
+  border-radius: 9999px;
+  padding: 0.25rem 0.75rem;
+  font-weight: 600;
+}
+
+[data-reward-phase][data-phase-unlocked="true"] [data-reward-phase-toggle] span.inline-flex {
+  background-color: rgba(212, 165, 116, 0.2) !important;
+  color: #D4A574 !important;
+}
+
+[data-reward-phase][data-phase-unlocked="true"] [data-reward-phase-toggle] span.inline-flex svg {
+  color: #D4A574 !important;
+}
+
+[data-reward-phase][data-phase-unlocked="false"] [data-reward-phase-toggle] span.inline-flex {
+  background-color: rgba(107, 138, 158, 0.12) !important;
+  color: #6B8A9E !important;
+}
+
+[data-reward-phase][data-phase-unlocked="false"] [data-reward-phase-toggle] span.inline-flex svg {
+  color: #6B8A9E !important;
+}
+
+[data-reward-phase] [data-chevron] {
+  color: #6B8A9E !important;
+  transition: transform 0.25s ease, color 0.25s ease;
+}
+
+[data-reward-phase][data-open="true"] [data-chevron] {
+  color: #D4A574 !important;
+}
+
+[data-reward-phase-body] {
+  background-color: rgba(255, 255, 255, 0.88);
+  color: #4A3F35 !important;
+}
+
+[data-reward-phase-body] p {
+  color: #4A3F35 !important;
 }

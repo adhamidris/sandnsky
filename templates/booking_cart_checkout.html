@@ -69,15 +69,38 @@
                   <div class="absolute left-0 top-0 h-full rounded-full bg-primary transition-all" style="width: {{ progress_percent }}%;" data-reward-progress-fill></div>
                   {% for phase in phases %}
                   {% widthratio phase.threshold_amount_cents max_threshold 100 as marker_percent %}
-                  <div class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2" style="left: {{ marker_percent }}%;" data-reward-progress-marker data-phase-id="{{ phase.id }}">
+                  <div
+                    class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2"
+                    style="left: {{ marker_percent }}%;"
+                    data-reward-progress-marker
+                    data-phase-id="{{ phase.id }}"
+                    {% if phase.unlocked %}
+                    data-phase-status="unlocked"
+                    {% elif progress.next_phase_id and progress.next_phase_id == phase.id %}
+                    data-phase-status="active"
+                    {% else %}
+                    data-phase-status="locked"
+                    {% endif %}
+                  >
                     <span class="block h-2.5 w-2.5 rounded-full border-2 {% if phase.unlocked %}border-primary bg-primary{% else %}border-muted bg-background{% endif %}"></span>
                   </div>
                   {% endfor %}
                 </div>
-                <div class="mt-3 flex justify-between text-[0.65rem] text-muted-foreground" data-reward-progress-labels>
+                <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-[0.65rem] text-muted-foreground" data-reward-progress-labels>
                   {% for phase in phases %}
                   {% widthratio phase.threshold_amount_cents max_threshold 100 as label_percent %}
-                  <span class="flex-1 text-left {% if not forloop.first %}text-center{% endif %} {% if forloop.last %}text-right{% endif %}" style="--phase-percent: {{ label_percent }}%">
+                  <span
+                    class="rewards-phase-pill flex-1 text-left {% if not forloop.first %}text-center{% endif %} {% if forloop.last %}text-right{% endif %}"
+                    style="--phase-percent: {{ label_percent }}%"
+                    data-phase-id="{{ phase.id }}"
+                    {% if phase.unlocked %}
+                    data-phase-status="unlocked"
+                    {% elif progress.next_phase_id and progress.next_phase_id == phase.id %}
+                    data-phase-status="active"
+                    {% else %}
+                    data-phase-status="locked"
+                    {% endif %}
+                  >
                     Phase {{ forloop.counter }}
                   </span>
                   {% endfor %}

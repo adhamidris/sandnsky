@@ -209,6 +209,14 @@
     const totalCents = Number(progress.total_cents || 0);
     const unlockedIds = Array.isArray(progress.unlocked_phase_ids) ? progress.unlocked_phase_ids : [];
     const nextPhaseId = progress.next_phase_id;
+    const unlockedIdSet = new Set(
+      unlockedIds.map((id) => {
+        if (id === null || id === undefined) return "";
+        return String(id);
+      })
+    );
+    const nextPhaseIdStr =
+      nextPhaseId === null || nextPhaseId === undefined ? null : String(nextPhaseId);
     const remainingDisplay = progress.remaining_to_next_display || "";
     const currency = progress.currency || currentSummary.currency || root.dataset.currency || "";
     const totalDisplay = progress.total_display || "0.00";
@@ -235,11 +243,18 @@
         );
         const percentStr = Number(percent.toFixed(3)).toString();
         const unlocked = phase.unlocked;
+        const phaseIdStr = phase?.id === undefined || phase?.id === null ? "" : String(phase.id);
+        const phaseStatus = unlocked
+          ? "unlocked"
+          : nextPhaseIdStr && nextPhaseIdStr === phaseIdStr
+          ? "active"
+          : "locked";
         return `
           <div class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2"
                style="left: ${percentStr}%;"
                data-reward-progress-marker
-               data-phase-id="${escapeHtml(phase.id)}">
+               data-phase-id="${escapeHtml(phase.id)}"
+               data-phase-status="${escapeHtml(phaseStatus)}">
             <span class="block h-2.5 w-2.5 rounded-full border-2 ${unlocked ? "border-primary bg-primary" : "border-muted bg-background"}"></span>
           </div>
         `;
@@ -253,8 +268,18 @@
           Math.max(0, ((Number(phase.threshold_amount_cents || 0) / maxThreshold) * 100))
         );
         const percentStr = Number(percent.toFixed(3)).toString();
+        const phaseIdStr = phase?.id === undefined || phase?.id === null ? "" : String(phase.id);
+        const phaseStatus = unlockedIdSet.has(phaseIdStr)
+          ? "unlocked"
+          : nextPhaseIdStr && nextPhaseIdStr === phaseIdStr
+          ? "active"
+          : "locked";
         return `
-          <span class="flex-1 text-left ${index === 0 ? "" : index === phases.length - 1 ? "text-right" : "text-center"}">
+          <span class="rewards-phase-pill flex-1 text-left ${
+            index === 0 ? "" : index === phases.length - 1 ? "text-right" : "text-center"
+          }"
+                data-phase-id="${escapeHtml(phase.id)}"
+                data-phase-status="${escapeHtml(phaseStatus)}">
             Phase ${escapeHtml(index + 1)}
           </span>
         `;
@@ -292,7 +317,7 @@
                  data-reward-progress-fill></div>
             ${markerHtml}
           </div>
-          <div class="mt-3 flex justify-between text-[0.65rem] text-muted-foreground" data-reward-progress-labels>
+          <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-[0.65rem] text-muted-foreground" data-reward-progress-labels>
             ${labelHtml}
           </div>
         </div>
