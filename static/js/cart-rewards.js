@@ -24,6 +24,13 @@
   const phaseList = root.querySelector("[data-reward-phase-list]");
   const alertBox = root.querySelector("[data-rewards-alert]");
   const badgeEl = root.querySelector("[data-reward-badge]");
+  const mobileSummary = document.querySelector("[data-mobile-reward-summary]");
+  const mobileProgressContainer = document.querySelector("[data-mobile-progress]");
+  const mobileCountEl = document.querySelector("[data-mobile-reward-count]");
+  const mobileToggle = document.querySelector("[data-mobile-reward-toggle]");
+  const mobileDetails = document.querySelector("[data-mobile-reward-details]");
+  const mobilePhaseList = document.querySelector("[data-mobile-phase-list]");
+  const mobileAlertBox = document.querySelector("[data-mobile-rewards-alert]");
 
   const summaryCountEl = document.querySelector("[data-summary-count]");
   const summaryPreEl = document.querySelector("[data-summary-pre-discount]");
@@ -59,6 +66,18 @@
     el.textContent = value;
   }
 
+  function setMobileExpanded(expanded) {
+    if (!mobileDetails) return;
+    const isExpanded = !!expanded;
+    mobileDetails.dataset.mobileExpanded = isExpanded ? "true" : "false";
+    mobileDetails.classList.toggle("hidden", !isExpanded);
+    mobileDetails.classList.toggle("block", isExpanded);
+    if (mobileToggle) {
+      mobileToggle.textContent = isExpanded ? "Hide rewards" : "Redeem here";
+      mobileToggle.setAttribute("aria-expanded", isExpanded ? "true" : "false");
+    }
+  }
+
   function updateSummaryScript(summary) {
     if (!summaryScript) return;
     try {
@@ -80,24 +99,34 @@
     return csrfInput ? csrfInput.value : "";
   }
 
+  function applyAlertState(box, message, isError) {
+    if (!box) return;
+    box.textContent = message;
+    box.classList.toggle("hidden", false);
+    box.classList.toggle("border-destructive/40", !!isError);
+    box.classList.toggle("bg-destructive/10", !!isError);
+    box.classList.toggle("text-destructive", !!isError);
+    box.classList.toggle("border-primary/40", !isError);
+    box.classList.toggle("bg-primary/10", !isError);
+    box.classList.toggle("text-primary", !isError);
+  }
+
+  function resetAlert(box) {
+    if (!box) return;
+    box.textContent = "";
+    box.classList.add("hidden");
+    box.classList.remove("border-primary/40", "bg-primary/10", "text-primary");
+    box.classList.add("border-destructive/40", "bg-destructive/10", "text-destructive");
+  }
+
   function showAlert(message, isError = true) {
-    if (!alertBox) return;
-    alertBox.textContent = message;
-    alertBox.classList.toggle("hidden", false);
-    alertBox.classList.toggle("border-destructive/40", isError);
-    alertBox.classList.toggle("bg-destructive/10", isError);
-    alertBox.classList.toggle("text-destructive", isError);
-    alertBox.classList.toggle("border-primary/40", !isError);
-    alertBox.classList.toggle("bg-primary/10", !isError);
-    alertBox.classList.toggle("text-primary", !isError);
+    applyAlertState(alertBox, message, isError);
+    applyAlertState(mobileAlertBox, message, isError);
   }
 
   function clearAlert() {
-    if (!alertBox) return;
-    alertBox.textContent = "";
-    alertBox.classList.add("hidden");
-    alertBox.classList.remove("border-primary/40", "bg-primary/10", "text-primary");
-    alertBox.classList.add("border-destructive/40", "bg-destructive/10", "text-destructive");
+    resetAlert(alertBox);
+    resetAlert(mobileAlertBox);
   }
 
   function getScrollContainers(element) {
@@ -106,6 +135,10 @@
     if (phaseList && phaseList.scrollHeight > phaseList.clientHeight + 1) {
       containers.push(phaseList);
       seen.add(phaseList);
+    }
+    if (mobilePhaseList && mobilePhaseList.scrollHeight > mobilePhaseList.clientHeight + 1) {
+      containers.push(mobilePhaseList);
+      seen.add(mobilePhaseList);
     }
     let current = element?.parentElement || null;
     while (current && current !== document.body) {
@@ -155,6 +188,19 @@
       }
     }
     element.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+
+  if (mobileDetails) {
+    setMobileExpanded(mobileDetails.dataset.mobileExpanded === "true");
+  }
+  if (mobileToggle && mobileDetails) {
+    mobileToggle.addEventListener("click", () => {
+      const expanded = mobileDetails.dataset.mobileExpanded === "true";
+      setMobileExpanded(!expanded);
+      if (!expanded) {
+        ensureVisibleWithinPanel(mobileDetails);
+      }
+    });
   }
 
   function renderProgressCard(rewards) {
@@ -870,14 +916,22 @@
 
   function updateRewardsUI(summary) {
     const rewards = summary.rewards || {};
+    const phases = Array.isArray(rewards.phases) ? rewards.phases : [];
+    const unlockedPhaseIds = Array.isArray(rewards.progress?.unlocked_phase_ids)
+      ? rewards.progress.unlocked_phase_ids
+      : [];
+    const totalPhases = phases.length;
+    const unlockedCount = unlockedPhaseIds.length;
+    const entriesForRender = summary.entries || [];
+    const progressHtml = renderProgressCard(rewards);
+
     if (progressContainer) {
-      progressContainer.innerHTML = renderProgressCard(rewards);
+      progressContainer.innerHTML = progressHtml;
+    }
+    if (mobileProgressContainer) {
+      mobileProgressContainer.innerHTML = progressHtml;
     }
     if (badgeEl) {
-      const totalPhases = Array.isArray(rewards.phases) ? rewards.phases.length : 0;
-      const unlockedCount = Array.isArray(rewards.progress?.unlocked_phase_ids)
-        ? rewards.progress.unlocked_phase_ids.length
-        : 0;
       if (!totalPhases) {
         badgeEl.textContent = "No rewards yet";
       } else if (unlockedCount) {
@@ -886,8 +940,23 @@
         badgeEl.textContent = `${totalPhases} available`;
       }
     }
+    if (mobileCountEl) {
+      if (!totalPhases) {
+        mobileCountEl.textContent = "No rewards yet";
+      } else {
+        mobileCountEl.textContent = `${unlockedCount}/${totalPhases} unlocked`;
+      }
+    }
+    const phaseCardsHtml = renderPhaseCards(rewards, entriesForRender);
     if (phaseList) {
-      phaseList.innerHTML = renderPhaseCards(rewards, summary.entries || []);
+      phaseList.innerHTML = phaseCardsHtml;
+    }
+    if (mobilePhaseList) {
+      mobilePhaseList.innerHTML = phaseCardsHtml;
+    }
+    if (mobileDetails) {
+      const expandedState = mobileDetails.dataset.mobileExpanded === "true";
+      setMobileExpanded(expandedState);
     }
     updateEntries(summary);
     updateSummaryCard(summary);
@@ -1042,7 +1111,7 @@
     }
   }
 
-  root.addEventListener("click", (event) => {
+  function handlePhaseContainerClick(event) {
     if (event.target.closest("[data-quick-add-trigger]")) {
       return;
     }
@@ -1079,7 +1148,12 @@
         highlightEntryByTripId(tripId);
       }
     }
-  });
+  }
+
+  root.addEventListener("click", handlePhaseContainerClick);
+  if (mobileDetails) {
+    mobileDetails.addEventListener("click", handlePhaseContainerClick);
+  }
 
   if (entriesContainer) {
     entriesContainer.addEventListener("click", (event) => {
