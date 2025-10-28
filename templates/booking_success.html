@@ -15,11 +15,17 @@
         <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div class="flex-1 space-y-8 lg:pr-10">
             <div class="space-y-4">
-            <div>
+            <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
               <span class="booking-status-chip inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.28em] ring-1 ring-inset {% if booking_status.code == 'confirmed' %}bg-emerald-50 text-emerald-700 ring-emerald-200{% elif booking_status.code == 'cancelled' %}bg-red-50 text-red-700 ring-red-200{% else %}bg-amber-50 text-amber-700 ring-amber-200{% endif %}">
                 <span class="inline-block h-2 w-2 rounded-full {% if booking_status.code == 'confirmed' %}bg-emerald-500{% elif booking_status.code == 'cancelled' %}bg-red-500{% else %}bg-amber-500{% endif %}"></span>
                 <span>{{ booking_status.label }}</span>
               </span>
+              <button type="button" class="booking-print-button booking-print-button-mobile inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary lg:hidden" onclick="window.print()">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 9V4h12v5M6 19h12v-6H6v6Zm12 0V9H6v10" />
+                </svg>
+                <span>Print or save PDF</span>
+              </button>
             </div>
             <h1 class="booking-success-title font-serif text-3xl text-foreground sm:text-4xl">Thanks for choosing Sand &amp; Sky Tours</h1>
             <p class="booking-success-intro max-w-xl text-sm text-muted-foreground">Your travel specialist is reviewing the details and will reach out within 24 hours to confirm availability, customise the itinerary, and finalise payment arrangements.</p>
@@ -189,13 +195,13 @@
           </div>
 
           <aside class="mt-4 flex flex-col items-stretch gap-4 lg:mt-0 lg:w-72 lg:items-end">
-            <button type="button" class="booking-print-button inline-flex items-center gap-2 self-end rounded-full border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" onclick="window.print()">
+            <button type="button" class="booking-print-button booking-print-button-desktop order-0 items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary lg:self-end" onclick="window.print()">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4">
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 9V4h12v5M6 19h12v-6H6v6Zm12 0V9H6v10" />
             </svg>
             <span>Print or save PDF</span>
           </button>
-          <div class="booking-side-card booking-updates w-full rounded-2xl border border-border/60 bg-background/80 px-5 py-5 text-sm">
+          <div class="booking-side-card booking-updates order-2 lg:order-1 w-full rounded-2xl border border-border/60 bg-background/80 px-5 py-5 text-sm">
             <p class="booking-side-eyebrow text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Need updates?</p>
             <p class="booking-side-copy mt-2 text-muted-foreground">Share your reference <span class="font-mono text-xs text-foreground">{{ primary_reference }}</span>{% if additional_reference_codes %} (plus {% for code in additional_reference_codes %}<span class="font-mono text-xs text-foreground">{{ code }}</span>{% if not forloop.last %}, {% endif %}{% endfor %}){% endif %} when you call, email, or WhatsApp our team.</p>
             <div class="mt-4 space-y-2">
@@ -207,7 +213,7 @@
             </div>
           </div>
 
-          <div class="booking-side-card w-full space-y-4 rounded-2xl border border-border bg-background/80 px-5 py-5 text-sm text-muted-foreground">
+          <div class="booking-side-card order-1 lg:order-2 w-full space-y-4 rounded-2xl border border-border bg-background/80 px-5 py-5 text-sm text-muted-foreground">
             <p class="booking-side-eyebrow text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Booking totals ({{ summary_pricing.currency }})</p>
             <div class="booking-side-values space-y-2 text-foreground">
               <div class="booking-side-row flex items-center justify-between">
@@ -240,12 +246,12 @@
           </div>
 
           {% if contact_details.notes %}
-          <div class="booking-side-card w-full rounded-2xl border border-border/60 bg-background/80 px-5 py-5 text-sm text-muted-foreground">
+          <div class="booking-side-card order-3 w-full rounded-2xl border border-border/60 bg-background/80 px-5 py-5 text-sm text-muted-foreground">
             <p class="booking-side-eyebrow text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Notes you shared</p>
             <p class="booking-side-copy mt-2 whitespace-pre-line text-foreground">{{ contact_details.notes }}</p>
           </div>
           {% endif %}
-          <div class="booking-next-steps next-steps w-full rounded-2xl border border-dashed border-border px-5 py-5 text-xs text-muted-foreground">
+          <div class="booking-next-steps next-steps order-4 w-full rounded-2xl border border-dashed border-border px-5 py-5 text-xs text-muted-foreground">
             <p class="booking-side-eyebrow font-semibold uppercase tracking-[0.25em]">Next steps</p>
             <ol class="booking-side-list mt-3 space-y-2 text-sm">
               <li>1. Our team reviews your request and confirms availability.</li>
@@ -277,6 +283,10 @@
 .contact-button {
   background-color: #4e8ea2;
   color: #EBE2D3;
+}
+
+.booking-print-button-desktop {
+  display: none;
 }
 
 @media print {
@@ -317,6 +327,19 @@
 
   .booking-success-page .booking-print-button {
     display: none !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .booking-print-button-desktop {
+    display: inline-flex !important;
+  }
+}
+
+@media (max-width: 1023.98px) {
+  .booking-print-button-mobile {
+    display: inline-flex !important;
+    align-self: flex-start;
   }
 }
 
