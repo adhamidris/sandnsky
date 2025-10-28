@@ -32,22 +32,10 @@
     </nav>
 
     <!-- CTAs (Book/Tours + Cart) -->
-    {% with request.resolver_match as match %}
     <div class="cta">
-      {% if match and match.url_name == 'trip-detail' %}
-        <a href="#booking-form"
-           class="navcart-btn btn dark cta-btn"
-           data-mobile-sheet-open
-           aria-controls="booking-drawer"
-           aria-expanded="false">
-          Book Now
-        </a>
-      {% endif %}
-
       {# cart dropdown / icon #}
       {% include 'includes/navigation_cart.html' %}
     </div>
-    {% endwith %}
   </div>
 
   <!-- Mobile panel -->
@@ -72,15 +60,6 @@
         {% endif %}
       </nav>
 
-      {% with request.resolver_match as match %}
-      <div class="mobile-cta">
-        {% if match and match.url_name == 'trip-detail' %}
-          <a href="#booking-form" class="btn dark cta-btn" data-close-nav data-mobile-sheet-open aria-controls="booking-drawer" aria-expanded="false">
-            Book Now
-          </a>
-        {% endif %}
-      </div>
-      {% endwith %}
     </div>
   </div>
 </header>

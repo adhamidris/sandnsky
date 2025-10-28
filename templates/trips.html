@@ -213,7 +213,7 @@
       </div>
       <div class="trip-grid grid gap-10 sm:grid-cols-2 xl:grid-cols-3" data-trip-grid>
         {% for trip in trips %}
-        <article class="trip-cardi max-h-[520px] group flex h-full flex-col overflow-hidden rounded-md border border-border bg-card shadow-sm transition-colors">
+        <article class="trip-cardi max-h-[520px] group flex h-full flex-col overflow-hidden rounded-md border border-border/40">
           {% if trip.category %}
           <span class="trip-card__badge">{{ trip.category }}</span>
           {% endif %}
@@ -228,7 +228,7 @@
           </div>
 
           <div class="flex flex-1 flex-col gap-4 p-4">
-            <header>
+            <header class="rounded-md px-2 py-1">
               <h3 class="font-serif text-lg leading-tight text-foreground">{{ trip.title }}</h3>
             </header>
 
@@ -265,26 +265,26 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .843-3 1.882C9 10.92 10.343 11.764 12 11.764s3 .843 3 1.882S13.657 15.528 12 15.528s-3-.843-3-1.882" />
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14" />
                   </svg>
-                  <dd class="trip-card__value text-[13px]">
-                    <span class="trip-card__prefix">Starts from</span>
+                  <dd class="trip-card__value trip-card__price text-[13px]">
+                    <span class="trip-card__prefix text-muted-foreground">Starts from</span>
                     {{ trip.price }}
                   </dd>
                 </div>
               </dl>
 
               <a href="{% url 'web:trip-detail' trip.slug %}"
-                 class="inline-flex w-full items-center justify-center rounded-md bg-primary px-3 py-2 text-xs sm:text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+                 class="trip-card__cta-primary inline-flex w-full items-center justify-center rounded-md px-3 py-2 text-xs sm:text-sm font-semibold shadow-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
                 View details
               </a>
               <form method="post" action="{% url 'web:booking-cart-quick-add' trip.slug %}" class="mt-2" data-cart-toggle>
                 {% csrf_token %}
                 <input type="hidden" name="next" value="{{ request.get_full_path }}" />
                 {% if trip.in_cart %}
-                <button type="submit" class="inline-flex w-full items-center justify-center rounded-md border px-3 py-2 text-xs sm:text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary border-destructive/60 text-destructive hover:bg-muted/40" data-cart-state="added" data-cart-class-added="border-destructive/60 text-destructive hover:bg-muted/40" data-cart-class-removed="border-primary text-primary hover:bg-primary/10">
+                <button type="submit" class="trip-card__cta-secondary inline-flex w-full items-center justify-center rounded-md border px-3 py-2 text-xs sm:text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-cart-state="added" data-cart-class-added="trip-card__cta-secondary" data-cart-class-removed="trip-card__cta-secondary">
                   Remove from booking list
                 </button>
                 {% else %}
-                <button type="submit" class="inline-flex w-full items-center justify-center rounded-md border px-3 py-2 text-xs sm:text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary border-primary text-primary hover:bg-primary/10" data-cart-state="removed" data-cart-class-added="border-destructive/60 text-destructive hover:bg-muted/40" data-cart-class-removed="border-primary text-primary hover:bg-primary/10">
+                <button type="submit" class="trip-card__cta-secondary inline-flex w-full items-center justify-center rounded-md border px-3 py-2 text-xs sm:text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-cart-state="removed" data-cart-class-added="trip-card__cta-secondary" data-cart-class-removed="trip-card__cta-secondary">
                   Add to booking list
                 </button>
                 {% endif %}
@@ -384,8 +384,8 @@
         </fieldset>
 
         <div class="flex flex-wrap items-center gap-3">
-          <button type="submit" class="inline-flex items-center justify-center rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-subtle transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Apply filters</button>
-          <a href="{% url 'web:trips' %}" class="text-sm font-semibold text-muted-foreground transition-colors hover:text-primary" data-filter-reset>Reset</a>
+          <button type="submit" class="filter-submit inline-flex items-center justify-center rounded-full px-5 py-2 text-sm font-semibold shadow-subtle transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Apply filters</button>
+          <a href="{% url 'web:trips' %}" class="filter-reset text-sm font-semibold transition" data-filter-reset>Reset</a>
         </div>
       </form>
     </aside>
@@ -465,6 +465,125 @@
       overflow-y: auto;
     }
   }
+
+  .trip-cardi {
+    background: #EBE2D3;
+    border-color: rgba(17,17,17,.08);
+    box-shadow: 0 6px 16px -12px rgba(24,24,24,0.45);
+    transition: box-shadow .25s ease, transform .25s ease;
+  }
+
+  .trip-cardi:hover {
+    box-shadow: 0 10px 24px -12px rgba(24,24,24,0.55);
+    transform: translateY(-2px);
+  }
+
+  .trip-cardi .trip-card__price {
+    color: var(--primary);
+    font-weight: 600;
+  }
+
+  .trip-cardi .trip-card__prefix {
+    color: rgba(17,17,17,0.55);
+    font-weight: 500;
+  }
+
+  .trip-card__cta-primary {
+    background: linear-gradient(90deg, rgba(201,169,97,0.95), rgba(201,169,97,0.8));
+    color: #1f1b12;
+    border: none;
+    box-shadow: 0 10px 28px -16px rgba(201,169,97,0.65);
+  }
+
+  .trip-card__cta-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 16px 34px -18px rgba(201,169,97,0.75);
+  }
+
+  .trip-card__cta-secondary {
+    background: rgba(255,255,255,0.65);
+    border-color: rgba(201,169,97,0.45);
+    color: #7b5b2b;
+    transition: background-color .2s ease, border-color .2s ease, color .2s ease, transform .2s ease;
+  }
+
+  .trip-card__cta-secondary:hover {
+    background: rgba(201,169,97,0.15);
+    border-color: rgba(201,169,97,0.6);
+  }
+
+  .trip-card__cta-secondary[data-cart-state="added"] {
+    background: rgba(249, 218, 218, 0.8);
+    color: #9f1239;
+    border-color: rgba(220, 38, 38, 0.3);
+  }
+
+  .trip-card__cta-secondary[data-cart-state="added"]:hover {
+    background: rgba(249, 218, 218, 0.95);
+    border-color: rgba(220, 38, 38, 0.45);
+  }
+
+  .filter-bar {
+    background: rgba(247, 240, 230, 0.9);
+    border-color: rgba(17,17,17,0.06);
+    box-shadow: 0 20px 44px -28px rgba(31, 27, 18, 0.45);
+    backdrop-filter: blur(10px);
+  }
+
+  .filter-bar label,
+  .filter-bar legend,
+  .filter-bar h3 {
+    color: rgba(31, 27, 18, 0.68);
+  }
+
+  .filter-bar input[type="number"],
+  .filter-bar select {
+    background: rgba(255,255,255,0.82);
+    border-color: rgba(17,17,17,0.1);
+    color: #1f1b12;
+  }
+
+  .filter-bar input[type="number"]:focus,
+  .filter-bar select:focus {
+    border-color: rgba(201,169,97,0.5);
+    box-shadow: 0 0 0 2px rgba(201,169,97,0.15);
+  }
+
+  .filter-bar input[type="checkbox"] {
+    border-color: rgba(17,17,17,0.14);
+  }
+
+  .filter-bar input[type="checkbox"]:checked {
+    background-color: rgba(201,169,97,0.82);
+    border-color: rgba(201,169,97,0.82);
+  }
+
+  .filter-bar input[type="checkbox"]:focus-visible {
+    outline: 2px solid rgba(201,169,97,0.35);
+    outline-offset: 2px;
+  }
+
+  .filter-submit {
+    background: linear-gradient(90deg, rgba(201,169,97,1), rgba(201,169,97,0.82));
+    color: #1f1b12;
+    box-shadow: 0 12px 28px -18px rgba(201,169,97,0.65);
+    border: none;
+    transition: transform .2s ease, box-shadow .2s ease;
+  }
+
+  .filter-submit:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 16px 36px -18px rgba(201,169,97,0.75);
+  }
+
+  .filter-reset {
+    color: rgba(102, 82, 47, 0.85);
+  }
+
+  .filter-reset:hover {
+    color: rgba(201,169,97,0.95);
+  }
+
 
 
 </style>
