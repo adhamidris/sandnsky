@@ -444,6 +444,12 @@
                     <path d="M10 2a5 5 0 0 1 5 5v2h1a1 1 0 0 1 0 2h-1v4a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V11H4a1 1 0 1 1 0-2h1V7a5 5 0 0 1 5-5Zm-3 7h6V7a3 3 0 1 0-6 0v2Z" />
                   </svg>
                 `;
+                const arrowIcon = `
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5">
+                    <path fill-rule="evenodd" d="M5 10a.75.75 0 0 1 .75-.75h6.19l-2.22-2.22a.75.75 0 1 1 1.06-1.06l3.5 3.5a.75.75 0 0 1 0 1.06l-3.5 3.5a.75.75 0 1 1-1.06-1.06l2.22-2.22H5.75A.75.75 0 0 1 5 10Z" clip-rule="evenodd" />
+                  </svg>
+                `;
+                const tripUrl = tripUrlTemplate ? buildTripUrl(tripUrlTemplate, trip.slug || "") : "";
                 let quickAddLabel = "Redeem this trip";
                 let quickAddIcon = plusIcon;
                 let quickAddClasses =
@@ -465,6 +471,21 @@
                 if (quickAddState !== "locked") {
                   quickAddAttributes += ` data-quick-add-trigger data-trip-slug="${escapeHtml(trip.slug || "")}"`;
                 }
+                const viewControl = tripUrl
+                  ? `<a href="${escapeHtml(tripUrl)}"
+                        class="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary transition hover:bg-primary/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+                       View trip
+                       ${arrowIcon}
+                     </a>`
+                  : trip.slug
+                  ? `<button type="button"
+                            class="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary transition hover:bg-primary/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                            data-action="view-trip"
+                            data-trip-slug="${escapeHtml(trip.slug || "")}">
+                       View trip
+                       ${arrowIcon}
+                     </button>`
+                  : "";
                 return `
                   <div class="${cardClasses.join(" ")}"
                        data-reward-trip-card
@@ -485,12 +506,15 @@
                       <span class="text-muted-foreground">
                         ${discountPercentLabel ? `${escapeHtml(discountPercentLabel)} off reward` : "Reward savings"}
                       </span>
-                      <button type="button"
-                              class="${quickAddClasses}"
-                              ${quickAddAttributes}>
-                        ${quickAddIcon}
-                        ${escapeHtml(quickAddLabel)}
-                      </button>
+                      <div class="flex flex-wrap items-center gap-2">
+                        ${viewControl}
+                        <button type="button"
+                                class="${quickAddClasses}"
+                                ${quickAddAttributes}>
+                          ${quickAddIcon}
+                          ${escapeHtml(quickAddLabel)}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 `;
@@ -611,7 +635,7 @@
   function renderEntryOptions(entry, rewards) {
     const matches = getTripPhases(entry, rewards);
     if (!matches.length) {
-      return `<span class="text-xs text-muted-foreground">No rewards available for this trip yet.</span>`;
+      return "";
     }
 
     return matches
@@ -651,7 +675,7 @@
     if (unlocked.length) {
       return `Unlocked: ${unlocked.join(", ")} reward${unlocked.length === 1 ? "" : "s"} available.`;
     }
-    return "No reward applied yet. Choose an unlocked phase below.";
+    return "";
   }
 
   function renderEntryRewardActions(entry) {
@@ -711,6 +735,23 @@
            </a>`
         : "";
 
+    const statusHtml = renderEntryStatus(entry, rewards);
+    const optionsHtml = renderEntryOptions(entry, rewards);
+    const hasRewardContent = (
+      Boolean(entry.applied_reward) || (statusHtml && statusHtml.trim()) || (optionsHtml && optionsHtml.trim())
+    );
+    const rewardBoxClasses = [
+      "checkout-trip-rewards",
+      "rounded-3xl",
+      "border",
+      "border-border/60",
+      "bg-background/50",
+      "p-4",
+    ];
+    if (!hasRewardContent) {
+      rewardBoxClasses.push("hidden");
+    }
+
     const hasDiscount = Number(entry.discount_total_cents || 0) > 0;
     const discountPillClass = entry.applied_reward
       ? "inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary"
@@ -734,18 +775,18 @@
             ${editLink || ""}
             ${removeForm || ""}
           </div>
-          <div class="checkout-trip-rewards rounded-3xl border border-border/60 bg-background/50 p-4" data-entry-reward-box>
+          <div class="${rewardBoxClasses.join(" ")}" data-entry-reward-box>
             <div class="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p class="trip-reward-label text-sm font-semibold text-foreground">Rewards</p>
-                <p class="trip-reward-status text-xs text-muted-foreground" data-entry-reward-status>${renderEntryStatus(entry, rewards)}</p>
+                <p class="trip-reward-status text-xs text-muted-foreground" data-entry-reward-status>${statusHtml}</p>
               </div>
               <div class="flex flex-wrap items-center gap-2" data-entry-reward-actions>
                 ${renderEntryRewardActions(entry)}
               </div>
             </div>
             <div class="mt-3 flex flex-wrap gap-2" data-entry-option-list>
-              ${renderEntryOptions(entry, rewards)}
+              ${optionsHtml}
             </div>
           </div>
         </div>
@@ -918,7 +959,7 @@
         if (unlocked.length) {
           statusEl.textContent = `Unlocked: ${unlocked.join(", ")} reward${unlocked.length === 1 ? "" : "s"} available.`;
         } else {
-          statusEl.textContent = "No reward applied yet. Choose an unlocked phase below.";
+          statusEl.textContent = "";
         }
       }
     }
@@ -930,6 +971,11 @@
     if (rewardBox) {
       rewardBox.classList.toggle("border-primary/60", !!entry.applied_reward);
       rewardBox.classList.toggle("bg-primary/5", !!entry.applied_reward);
+      const statusContent = statusEl ? statusEl.textContent.trim() || statusEl.innerHTML.trim() : "";
+      const optionsContent = optionsEl ? optionsEl.textContent.trim() : "";
+      const hasActions = actionsEl && actionsEl.childElementCount > 0;
+      const shouldShow = Boolean(entry.applied_reward) || !!statusContent || !!optionsContent || hasActions;
+      rewardBox.classList.toggle("hidden", !shouldShow);
     }
   }
 
@@ -1170,6 +1216,16 @@
 
   function handlePhaseContainerClick(event) {
     if (event.target.closest("[data-quick-add-trigger]")) {
+      return;
+    }
+
+    const viewLink = event.target.closest("[data-action='view-trip']");
+    if (viewLink) {
+      event.preventDefault();
+      const slug = viewLink.getAttribute('data-trip-slug');
+      if (slug && tripUrlTemplate) {
+        window.location.href = buildTripUrl(tripUrlTemplate, slug);
+      }
       return;
     }
 

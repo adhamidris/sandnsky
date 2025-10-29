@@ -1,7 +1,24 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block body_classes %}trip-detail-page{% endblock %}
+
 {% block title %}{{ trip.title }} - Sand & Sky{% endblock %}
+
+{% block head_extra %}
+  {{ block.super }}
+  <style>
+    body.trip-detail-page .whatsapp-fab {
+      bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+    }
+
+    @media (min-width: 1024px) {
+      body.trip-detail-page .whatsapp-fab {
+        bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px));
+      }
+    }
+  </style>
+{% endblock %}
 
 {% block content %}
 <header class="relative isolate overflow-hidden bg-black text-white">
