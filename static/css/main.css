@@ -1123,6 +1123,13 @@
     #gallery .switch-img { transition: opacity 300ms linear; transform: none; }
     #gallery .switch-img.is-exit { transform: none; }
   }
+  #gallery .gallery-card--interactive {
+    cursor: pointer;
+  }
+  #gallery .gallery-card--interactive:focus-visible {
+    outline: 2px solid rgba(234,220,194,.9);
+    outline-offset: 4px;
+  }
   
   /* CTA as simple textual block (neutralizes way-card look) */
   #gallery .gallery-cta {
@@ -1173,7 +1180,161 @@
     text-underline-offset: 3px;
   }
   #gallery .cta-link:hover { opacity: .8; }
-  
+
+  /* Gallery Lightbox */
+  body.is-lightbox-open {
+    overflow: hidden;
+  }
+
+  #gallery-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(24px, 6vw, 48px);
+    background: rgba(6, 8, 14, .78);
+    backdrop-filter: blur(8px);
+  }
+
+  #gallery-lightbox.is-visible {
+    display: flex;
+  }
+
+  #gallery-lightbox .gallery-lightbox__backdrop {
+    position: absolute;
+    inset: 0;
+  }
+
+  .gallery-lightbox__dialog {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(16px, 3vw, 28px);
+    width: min(1100px, 90vw);
+    max-height: 90vh;
+    background: rgba(12, 16, 24, .72);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, .12);
+    box-shadow: 0 36px 80px rgba(0, 0, 0, .5);
+    padding: clamp(20px, 3vw, 32px);
+    color: #fff;
+    overflow: hidden;
+  }
+
+  .gallery-lightbox__close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.24);
+    background: rgba(0,0,0,.55);
+    color: inherit;
+    font-size: 1.35rem;
+    line-height: 1;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: background .2s ease, border-color .2s ease, transform .2s ease;
+  }
+
+  .gallery-lightbox__close:hover,
+  .gallery-lightbox__close:focus-visible {
+    background: rgba(0,0,0,.8);
+    border-color: rgba(255,255,255,.45);
+    transform: scale(1.05);
+    outline: none;
+  }
+
+  .gallery-lightbox__nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 48px;
+    height: 48px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.2);
+    background: rgba(0,0,0,.5);
+    color: inherit;
+    font-size: 1.75rem;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: background .2s ease, border-color .2s ease, transform .2s ease;
+  }
+
+  .gallery-lightbox__nav:hover,
+  .gallery-lightbox__nav:focus-visible {
+    background: rgba(0,0,0,.78);
+    border-color: rgba(255,255,255,.36);
+    transform: translateY(-50%) scale(1.05);
+    outline: none;
+  }
+
+  .gallery-lightbox__nav--prev { left: clamp(-58px, -8vw, -36px); }
+  .gallery-lightbox__nav--next { right: clamp(-58px, -8vw, -36px); }
+
+  .gallery-lightbox__media {
+    flex: 1;
+    position: relative;
+    background: rgba(0,0,0,.6);
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(12px, 2.5vw, 24px);
+  }
+
+  .gallery-lightbox__media img {
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 12px;
+    box-shadow: 0 24px 60px rgba(0,0,0,.45);
+  }
+
+  .gallery-lightbox__meta {
+    text-align: center;
+  }
+
+  .gallery-lightbox__title {
+    font-family: var(--font-heading, "Cormorant Garamond", serif);
+    font-size: clamp(20px, 3vw, 28px);
+    font-weight: 600;
+    margin: 0 0 6px;
+  }
+
+  .gallery-lightbox__caption {
+    margin: 0;
+    color: rgba(255,255,255,.78);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 900px) {
+    .gallery-lightbox__nav--prev { left: 12px; }
+    .gallery-lightbox__nav--next { right: 12px; }
+  }
+
+  @media (max-width: 640px) {
+    #gallery-lightbox {
+      padding: 16px;
+    }
+    .gallery-lightbox__dialog {
+      width: 100%;
+      max-height: calc(100vh - 32px);
+      padding: 20px 16px 24px;
+    }
+    .gallery-lightbox__nav {
+      width: 42px;
+      height: 42px;
+      font-size: 1.5rem;
+    }
+  }
+
 #gallery {
   background-color: #F5F1E8 !important;
 }

@@ -45,3 +45,5 @@ local_settings.py
 /media/
 
 /backups/
+/backups/static-backup/
+/backups/temp-backup/
