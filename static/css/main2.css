@@ -4629,3 +4629,7 @@ body.gallery-lightbox--open {
   background: #4A7C9E;
   box-shadow: 0 0 0 2px rgba(74, 124, 158, 0.18);
 }
+
+.review-confirm {
+  color: white !important;
+}

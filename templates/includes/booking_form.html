@@ -142,9 +142,9 @@
       <button type="submit" name="action" value="book_only" class="inline-flex w-full items-center justify-center rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
         {% if booking_cart_count %}
         <span class="flex flex-col items-center leading-tight text-center">
-          <span>Review &amp; confirm</span>
+          <span class="review-confirm">Review &amp; confirm</span>
           {% with remaining=trip_cart_other_count %}
-          <span class="mt-0.5 text-[11px] font-medium text-primary-foreground/80">
+          <span class="review-confirm mt-0.5 text-[11px] font-medium text-primary-foreground/80">
             For this trip{% if remaining %} and {{ remaining }} more trip{{ remaining|pluralize }}{% endif %} on your booking list.
           </span>
           {% endwith %}

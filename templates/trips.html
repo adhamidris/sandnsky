@@ -399,6 +399,19 @@
         </div>
 
         <div class="space-y-2">
+          <label for="filter-search" class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Quick search</label>
+          <input id="filter-search"
+                 type="search"
+                 name="search"
+                 placeholder="Search by keyword"
+                 value="{{ active_filters.search }}"
+                 class="w-full rounded-md border border-border/70 bg-background px-3 py-2 text-sm text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                 data-filter-search
+                 autocomplete="off"
+                 spellcheck="false" />
+        </div>
+
+        <div class="space-y-2">
           <label for="filter-destination" class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Destination</label>
           <select id="filter-destination" name="destination" class="w-full rounded-md border border-border/70 bg-background px-3 py-2 text-sm text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
             <option value="">All destinations</option>
@@ -513,7 +526,6 @@
 
 
 {% block scripts %}
-<link rel="stylesheet" href="{% static 'css/main2.css' %}">
 <style>
 
   .why {
@@ -534,6 +546,34 @@
     border-color: rgba(17,17,17,.08);
     box-shadow: 0 6px 16px -12px rgba(24,24,24,0.45);
     transition: box-shadow .25s ease, transform .25s ease;
+  }
+
+  .trip-cardi.quick-add-active {
+    z-index: 50;
+    overflow: visible;
+    transform: none !important;
+  }
+
+  .trip-grid.trip-grid--list .trip-cardi {
+    overflow: visible;
+  }
+
+  .trip-grid.trip-grid--list [data-quick-add-container].quick-add-open {
+    z-index: 40;
+  }
+
+  .trip-grid.trip-grid--list [data-quick-add-container].quick-add-open .quick-add-popover {
+    left: auto;
+    right: 0;
+    min-width: 18rem;
+  }
+
+  @media (max-width: 767px) {
+    .trip-grid.trip-grid--list [data-quick-add-container].quick-add-open .quick-add-popover {
+      left: 0;
+      right: 0;
+      min-width: auto;
+    }
   }
 
   .trip-cardi:hover {
@@ -912,6 +952,22 @@
       });
     }
 
+    var searchInput = form.querySelector('[data-filter-search]');
+    if (searchInput) {
+      searchInput.addEventListener('input', function () {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(function () {
+          var params = new URLSearchParams(new FormData(form));
+          submitParams(params, true);
+        }, 200);
+      });
+      searchInput.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+        }
+      });
+    }
+
     if (!hasPopstateListener) {
       window.addEventListener('popstate', function () {
         var params = new URLSearchParams(window.location.search.replace(/^\?/, ''));
@@ -1076,6 +1132,7 @@
     var stepButtons = form.querySelectorAll('[data-quick-add-step]');
     var outsideHandler = null;
     var escHandler = null;
+    var card = form.closest('.trip-cardi');
 
     function setAriaExpanded(expanded) {
       if (toggleButton) {
@@ -1136,6 +1193,9 @@
       if (container) {
         container.classList.add('quick-add-open');
       }
+      if (card) {
+        card.classList.add('quick-add-active');
+      }
       outsideHandler = function (event) {
         if (!form.contains(event.target)) {
           closePopover();
@@ -1161,11 +1221,17 @@
       if (!popover) {
         setAriaExpanded(false);
         removeDocumentListeners();
+        if (card) {
+          card.classList.remove('quick-add-active');
+        }
         return;
       }
       if (popover.dataset.state !== 'open') {
         setAriaExpanded(false);
         removeDocumentListeners();
+        if (card) {
+          card.classList.remove('quick-add-active');
+        }
         return;
       }
       popover.classList.add('hidden');
@@ -1174,6 +1240,9 @@
       removeDocumentListeners();
       if (container) {
         container.classList.remove('quick-add-open');
+      }
+      if (card) {
+        card.classList.remove('quick-add-active');
       }
     }
 

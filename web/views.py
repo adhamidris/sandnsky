@@ -871,6 +871,7 @@ class TripListView(TemplateView):
         group_choices = {bucket["value"] for bucket in self.GROUP_SIZE_BUCKETS}
 
         return {
+            "search": (params.get("search") or "").strip(),
             "destination": params.get("destination", ""),
             "price_min": parse_decimal(params.get("price_min")),
             "price_max": parse_decimal(params.get("price_max")),
@@ -892,6 +893,7 @@ class TripListView(TemplateView):
         }
 
     def _apply_filters(self, queryset, filters):
+        needs_distinct = False
         price_min = filters.get("price_min")
         price_max = filters.get("price_max")
         if price_min is not None:
@@ -915,6 +917,7 @@ class TripListView(TemplateView):
         categories = filters.get("categories", [])
         if categories:
             queryset = queryset.filter(category_tags__slug__in=categories)
+            needs_distinct = True
 
         group_sizes = filters.get("group_sizes", [])
         if group_sizes:
@@ -929,7 +932,22 @@ class TripListView(TemplateView):
                     group_q |= condition
             queryset = queryset.filter(group_q)
 
-        if filters.get("categories"):
+        search = filters.get("search")
+        if search:
+            terms = [term for term in search.split() if term]
+            for term in terms:
+                term_condition = (
+                    Q(title__icontains=term)
+                    | Q(teaser__icontains=term)
+                    | Q(destination__name__icontains=term)
+                    | Q(additional_destinations__name__icontains=term)
+                    | Q(category_tags__name__icontains=term)
+                )
+                queryset = queryset.filter(term_condition)
+            if terms:
+                needs_distinct = True
+
+        if needs_distinct:
             queryset = queryset.distinct()
 
         return queryset
