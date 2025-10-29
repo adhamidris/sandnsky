@@ -65,6 +65,7 @@
         {% for item in row %}
           <span data-src="{{ item.image_url }}"
                 data-alt="{{ item.alt }}"
+                data-title="{{ item.title|default:item.destination }}"
                 data-caption="{{ item.caption|default:item.destination }}"></span>
         {% endfor %}
       {% endfor %}
@@ -73,6 +74,7 @@
         {% if item.image_url %}
           <span data-src="{{ item.image_url }}"
                 data-alt="{{ item.alt }}"
+                data-title="{{ item.title|default:item.destination }}"
                 data-caption="{{ item.caption|default:item.destination }}"></span>
         {% endif %}
       {% endfor %}
@@ -223,6 +225,7 @@
   const imgs = Array.from(nodes).map(n => ({
     src: n.dataset.src,
     alt: n.dataset.alt || "",
+    title: n.dataset.title || "",
     caption: n.dataset.caption || ""
   })).filter(x => !!x.src);
 
@@ -231,8 +234,8 @@
   const cards = Array.from(section.querySelectorAll('[data-gallery-card]'));
 
     const controllers = [];
-  const DURATION_MS = 900;     // must match CSS transition
-  const INTERVAL_MS = 6500;    // time each image is shown
+  const DURATION_MS = 1200;    // must match CSS transition
+  const INTERVAL_MS = 9500;    // time each image is shown
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Space out starting indices so cards don't duplicate the same image at once
@@ -250,8 +253,8 @@
     function setContent(el, item){
       el.src = item.src;
       el.alt = item.alt;
-      title.textContent = item.caption || '';
-      desc.textContent  = item.alt || '';
+      title.textContent = item.title || item.caption || '';
+      desc.textContent  = item.caption || '';
     }
 
     // Initial content

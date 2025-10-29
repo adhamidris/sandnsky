@@ -43,6 +43,7 @@ from .models import (
     BookingExtra,
     Destination,
     DestinationGalleryImage,
+    LandingGalleryImage,
     SiteConfiguration,
     Trip,
     TripCategory,
@@ -604,21 +605,44 @@ class HomePageView(TemplateView):
         return [build_blog_card(post) for post in posts]
 
     def _gallery_items(self):
-        images = (
-            DestinationGalleryImage.objects.select_related("destination")
+        landing_images = (
+            LandingGalleryImage.objects.filter(is_active=True)
             .order_by("position", "id")[:12]
         )
 
         items = []
-        for image in images:
+        for image in landing_images:
+            if not image.image:
+                continue
+            alt_text = image.alt_text or image.title or image.caption or "Gallery image"
+            items.append(
+                {
+                    "image_url": image.image.url,
+                    "alt": alt_text,
+                    "title": image.title or image.caption or "",
+                    "destination": image.title or image.caption or "",
+                    "caption": image.caption or "",
+                }
+            )
+
+        if items:
+            return items
+
+        fallback = (
+            DestinationGalleryImage.objects.select_related("destination")
+            .order_by("position", "id")[:12]
+        )
+
+        for image in fallback:
             if not image.image:
                 continue
             items.append(
                 {
                     "image_url": image.image.url,
                     "alt": image.caption or f"{image.destination.name} gallery image",
+                    "title": image.destination.name,
                     "destination": image.destination.name,
-                    "caption": image.caption,
+                    "caption": image.caption or "",
                 }
             )
         return items

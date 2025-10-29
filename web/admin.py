@@ -9,6 +9,7 @@ from .models import (
     BlogSection,
     Destination,
     DestinationGalleryImage,
+    LandingGalleryImage,
     SiteConfiguration,
     SiteHeroPair,
     TripCategory,
@@ -197,6 +198,25 @@ class RewardPhaseTripInline(admin.TabularInline):
     fields = ("trip", "position")
     ordering = ("position", "id")
     autocomplete_fields = ("trip",)
+
+
+@admin.register(LandingGalleryImage)
+class LandingGalleryImageAdmin(admin.ModelAdmin):
+    list_display = ("title_display", "position", "is_active", "updated_at")
+    list_editable = ("position", "is_active")
+    search_fields = ("title", "caption")
+    ordering = ("position", "id")
+    readonly_fields = ("created_at", "updated_at")
+    fieldsets = (
+        (None, {"fields": ("image", "title", "caption", "alt_text")}),
+        ("Display", {"fields": ("position", "is_active")}),
+        ("Timestamps", {"fields": ("created_at", "updated_at")}),
+    )
+
+    def title_display(self, obj):
+        return obj.title or obj.caption or obj.image.name
+
+    title_display.short_description = "Title"
 
 
 class BlogSectionInline(admin.StackedInline):

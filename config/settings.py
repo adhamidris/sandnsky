@@ -16,6 +16,16 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load simple key=value pairs from BASE_DIR/.env without overriding active env
+_env_file = BASE_DIR / ".env"
+if _env_file.exists():
+    for _line in _env_file.read_text().splitlines():
+        _line = _line.strip()
+        if not _line or _line.startswith("#") or "=" not in _line:
+            continue
+        _key, _value = _line.split("=", 1)
+        os.environ.setdefault(_key.strip(), _value.strip())
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -78,6 +88,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'storages',
     'web.apps.WebConfig',
 ]
 
@@ -161,9 +172,52 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = "/home/adhamidris/static"
 
+# Media storage defaults (local filesystem)
 MEDIA_URL = '/media/'
-
-# Default primary key field type
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# --- Cloudflare R2 media storage (S3-compatible) ---
+_r2_access_key = os.environ.get("CLOUDFLARE_R2_ACCESS_KEY_ID")
+_r2_secret_key = os.environ.get("CLOUDFLARE_R2_SECRET_ACCESS_KEY")
+_r2_bucket = os.environ.get("CLOUDFLARE_R2_BUCKET", "sandnsky")
+_r2_endpoint = os.environ.get("CLOUDFLARE_R2_ENDPOINT_URL")
+if not _r2_endpoint:
+    _r2_account = os.environ.get("CLOUDFLARE_R2_ACCOUNT_ID")
+    if _r2_account:
+        _r2_endpoint = f"https://{_r2_account}.r2.cloudflarestorage.com"
+
+_use_r2_media = all([_r2_access_key, _r2_secret_key, _r2_bucket, _r2_endpoint])
+
+if _use_r2_media:
+    AWS_ACCESS_KEY_ID = _r2_access_key
+    AWS_SECRET_ACCESS_KEY = _r2_secret_key
+    AWS_STORAGE_BUCKET_NAME = _r2_bucket
+    AWS_S3_ENDPOINT_URL = _r2_endpoint.rstrip("/")
+    AWS_S3_REGION_NAME = os.environ.get("CLOUDFLARE_R2_REGION", "auto")
+    AWS_S3_SIGNATURE_VERSION = os.environ.get("CLOUDFLARE_R2_SIGNATURE_VERSION", "s3v4")
+    AWS_S3_ADDRESSING_STYLE = os.environ.get("CLOUDFLARE_R2_ADDRESSING_STYLE", "path")
+    AWS_DEFAULT_ACL = None
+    AWS_QUERYSTRING_AUTH = os.environ.get("CLOUDFLARE_R2_SIGNED_URLS", "False").lower() in ("1", "true", "yes", "on")
+    _cache_control = os.environ.get("CLOUDFLARE_R2_CACHE_CONTROL", "max-age=86400")
+    if _cache_control:
+        AWS_S3_OBJECT_PARAMETERS = {"CacheControl": _cache_control}
+    AWS_S3_FILE_OVERWRITE = False
+
+    STORAGES = {
+        "default": {"BACKEND": "storages.backends.s3boto3.S3Boto3Storage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    }
+
+    _r2_public_domain = os.environ.get("CLOUDFLARE_R2_PUBLIC_DOMAIN")
+    if _r2_public_domain:
+        _r2_public_domain = _r2_public_domain.strip().rstrip("/")
+        if _r2_public_domain.startswith("http://") or _r2_public_domain.startswith("https://"):
+            _r2_public_domain = _r2_public_domain.split("://", 1)[1]
+        AWS_S3_CUSTOM_DOMAIN = _r2_public_domain
+        MEDIA_URL = f"https://{_r2_public_domain}/"
+    else:
+        MEDIA_URL = f"{AWS_S3_ENDPOINT_URL.rstrip('/')}/{_r2_bucket}/"
+
+    MEDIA_ROOT = None
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

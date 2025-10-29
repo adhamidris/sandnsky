@@ -90,6 +90,46 @@ class DestinationGalleryImage(models.Model):
         return f"{self.destination.name} · {base}"
 
 
+class LandingGalleryImage(models.Model):
+    title = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Optional heading shown in the homepage gallery.",
+    )
+    caption = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Short description displayed on the gallery cards.",
+    )
+    alt_text = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Describe the image for accessibility (leave empty if decorative).",
+    )
+    image = models.ImageField(upload_to="site/gallery/")
+    position = models.PositiveSmallIntegerField(
+        default=0,
+        help_text="Lower numbers appear first on the homepage gallery.",
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Disable to temporarily hide the image from the gallery.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["position", "id"]
+        verbose_name = "Landing gallery image"
+        verbose_name_plural = "Landing gallery images"
+
+    def __str__(self) -> str:
+        for value in (self.title, self.caption):
+            if value:
+                return value
+        return self.image.name
+
+
 class TripCategory(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=120, unique=True)

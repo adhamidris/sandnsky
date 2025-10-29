@@ -25,6 +25,7 @@ dist-ssr
 *.sw?
 __pycache__/
 .secret_key
+.env
 
 # Database
 db.sqlite3
