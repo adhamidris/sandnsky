@@ -40,6 +40,158 @@
   const APPLY_CLASS = "inline-flex items-center gap-1 rounded-full border border-primary/40 bg-background px-3 py-1 text-xs font-semibold text-primary transition hover:bg-primary/10";
   const LOCKED_CLASS = "inline-flex items-center gap-1 rounded-full border border-dashed border-muted px-3 py-1 text-xs font-semibold text-muted-foreground";
   const REMOVE_CLASS = "inline-flex items-center gap-1 rounded-full border border-destructive/40 px-3 py-1 text-xs font-semibold text-destructive transition hover:bg-destructive/10";
+  let activeQuickAddContainer = null;
+
+  function isoLocalDateString(date) {
+    if (!(date instanceof Date) || isNaN(date.getTime())) {
+      return "";
+    }
+    const offset = date.getTimezoneOffset() * 60000;
+    const local = new Date(date.getTime() - offset);
+    return local.toISOString().slice(0, 10);
+  }
+
+  function todayIsoDate() {
+    return isoLocalDateString(new Date());
+  }
+
+  function clampTravelerCount(value, minValue, maxValue) {
+    const min = typeof minValue === "number" && !Number.isNaN(minValue) ? minValue : 1;
+    const max = typeof maxValue === "number" && !Number.isNaN(maxValue) ? maxValue : null;
+    let parsed = parseInt(value, 10);
+    if (Number.isNaN(parsed)) {
+      parsed = min;
+    }
+    if (parsed < min) {
+      parsed = min;
+    }
+    if (max !== null && parsed > max) {
+      parsed = max;
+    }
+    return parsed;
+  }
+
+  function getQuickAddElements(container) {
+    if (!container) {
+      return {
+        container: null,
+        trigger: null,
+        popover: null,
+        dateInput: null,
+        countInput: null,
+      };
+    }
+    return {
+      container,
+      trigger: container.querySelector("[data-quick-add-trigger]"),
+      popover: container.querySelector("[data-quick-add-popover]"),
+      dateInput: container.querySelector("[data-quick-add-date]"),
+      countInput: container.querySelector("[data-quick-add-count]"),
+    };
+  }
+
+  function ensureQuickAddDefaults(container) {
+    const { dateInput, countInput } = getQuickAddElements(container);
+    if (dateInput) {
+      const today = todayIsoDate();
+      if (dateInput.min !== today) {
+        dateInput.min = today;
+      }
+      if (!dateInput.value || dateInput.value < today) {
+        dateInput.value = today;
+      }
+    }
+    if (countInput) {
+      const min = parseInt(countInput.getAttribute("min"), 10);
+      const max = parseInt(countInput.getAttribute("max"), 10);
+      const clamped = clampTravelerCount(countInput.value, min, max);
+      countInput.value = String(clamped);
+    }
+  }
+
+  function closeQuickAddPopover(container) {
+    const { popover, trigger } = getQuickAddElements(container);
+    if (!popover || popover.dataset.state !== "open") {
+      return;
+    }
+    popover.classList.add("hidden");
+    popover.dataset.state = "closed";
+    if (trigger) {
+      trigger.setAttribute("aria-expanded", "false");
+    }
+    if (container) {
+      container.classList.remove("quick-add-open");
+    }
+    if (activeQuickAddContainer === container) {
+      activeQuickAddContainer = null;
+    }
+  }
+
+  function closeAllQuickAddPopovers(exceptContainer) {
+    const openPopovers = document.querySelectorAll("[data-quick-add-popover][data-state='open']");
+    openPopovers.forEach((popover) => {
+      const host = popover.closest("[data-quick-add-container]");
+      if (host && host !== exceptContainer) {
+        closeQuickAddPopover(host);
+      }
+    });
+  }
+
+  function openQuickAddPopover(container) {
+    const { popover, trigger } = getQuickAddElements(container);
+    if (!popover) {
+      return;
+    }
+    if (popover.dataset.state === "open") {
+      return;
+    }
+    closeAllQuickAddPopovers(container);
+    ensureQuickAddDefaults(container);
+    popover.classList.remove("hidden");
+    popover.dataset.state = "open";
+    if (trigger) {
+      trigger.setAttribute("aria-expanded", "true");
+    }
+    if (container) {
+      container.classList.add("quick-add-open");
+    }
+    activeQuickAddContainer = container;
+    const { dateInput } = getQuickAddElements(container);
+    if (dateInput) {
+      window.requestAnimationFrame(() => {
+        dateInput.focus();
+      });
+    }
+  }
+
+  function stepTravelerCount(container, direction) {
+    const { countInput } = getQuickAddElements(container);
+    if (!countInput) {
+      return;
+    }
+    const min = parseInt(countInput.getAttribute("min"), 10);
+    const max = parseInt(countInput.getAttribute("max"), 10);
+    const current = clampTravelerCount(countInput.value, min, max);
+    const next = clampTravelerCount(current + direction, min, max);
+    countInput.value = String(next);
+  }
+
+  function extractQuickAddValues(container) {
+    ensureQuickAddDefaults(container);
+    const { dateInput, countInput } = getQuickAddElements(container);
+    const values = { date: "", adults: "" };
+    if (dateInput) {
+      values.date = dateInput.value || "";
+    }
+    if (countInput) {
+      const min = parseInt(countInput.getAttribute("min"), 10);
+      const max = parseInt(countInput.getAttribute("max"), 10);
+      const clamped = clampTravelerCount(countInput.value, min, max);
+      countInput.value = String(clamped);
+      values.adults = String(clamped);
+    }
+    return values;
+  }
 
   function fillSlug(template, slug) {
     if (!template || !slug) return "";
@@ -848,6 +1000,9 @@
         ? `<img src="${escapeHtml(trip.image_url)}" alt="" class="h-full w-full object-cover" loading="lazy" />`
         : `<div class="quick-add-card-placeholder flex h-full w-full items-center justify-center text-[0.65rem] font-semibold uppercase tracking-wide text-muted-foreground">No image</div>`;
       const tripUrl = tripUrlTemplate ? buildTripUrl(tripUrlTemplate, trip.slug || "") : "#";
+      const slugPlain = String(trip.slug || "");
+      const dateId = `checkout-quick-add-date-${slugPlain}`;
+      const countId = `checkout-quick-add-count-${slugPlain}`;
       return `
         <article class="quick-add-card flex items-stretch gap-4">
           <div class="quick-add-card-media h-24 w-28 flex-none overflow-hidden rounded-xl">
@@ -860,6 +1015,7 @@
             </div>
             <div class="quick-add-card-meta flex flex-wrap items-center gap-2 text-xs font-semibold">
               <span class="quick-add-card-price">${escapeHtml(trip.price || "")}</span>
+              <span class="quick-add-card-price-note text-[0.65rem] font-medium text-muted-foreground">Price per traveller</span>
               ${
                 trip.duration
                   ? `<span class="quick-add-card-duration inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[0.65rem] text-primary">${escapeHtml(
@@ -869,14 +1025,76 @@
               }
             </div>
             <div class="mt-auto flex flex-wrap items-center justify-end gap-2 text-xs">
-              <button
-                type="button"
-                class="quick-add-button inline-flex items-center gap-1 rounded-full px-3 py-1 font-semibold transition"
-                data-quick-add-trigger
-                data-trip-slug="${escapeHtml(trip.slug || "")}"
-              >
-                Quick add
-              </button>
+              <div class="relative" data-quick-add-container>
+                <button
+                  type="button"
+                  class="quick-add-button inline-flex items-center gap-1 rounded-full px-3 py-1 font-semibold transition"
+                  data-quick-add-trigger
+                  data-trip-slug="${escapeHtml(trip.slug || "")}"
+                  aria-haspopup="dialog"
+                  aria-expanded="false"
+                >
+                  Quick add
+                </button>
+                <div class="quick-add-popover absolute right-0 z-30 mt-2 hidden w-56 rounded-xl border border-border bg-card p-4 text-left shadow-subtle"
+                     data-quick-add-popover
+                     role="dialog"
+                     aria-label="Quick add trip details"
+                     data-state="closed">
+                  <div class="space-y-3">
+                    <div class="space-y-1">
+                      <label for="${escapeHtml(dateId)}" class="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Travel date</label>
+                      <input
+                        id="${escapeHtml(dateId)}"
+                        type="date"
+                        name="date"
+                        class="w-full rounded-md border border-border/70 bg-background px-2.5 py-2 text-xs font-medium text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                        data-quick-add-date
+                      />
+                    </div>
+                    <div class="space-y-1">
+                      <label for="${escapeHtml(countId)}" class="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Travellers</label>
+                      <div class="flex items-center gap-2">
+                        <button type="button"
+                                class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                data-quick-add-step="down"
+                                aria-label="Decrease travellers">
+                          -
+                        </button>
+                        <input
+                          id="${escapeHtml(countId)}"
+                          type="number"
+                          name="adults"
+                          min="1"
+                          max="16"
+                          value="2"
+                          class="h-8 w-12 rounded-md border border-border/70 bg-background text-center text-xs font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                          data-quick-add-count
+                        />
+                        <button type="button"
+                                class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                data-quick-add-step="up"
+                                aria-label="Increase travellers">
+                          +
+                        </button>
+                      </div>
+                    </div>
+                    <div class="flex items-center justify-end gap-2">
+                      <button type="button"
+                              class="inline-flex items-center rounded-md border border-border/60 px-2.5 py-1 text-[0.65rem] font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                              data-quick-add-cancel>
+                        Cancel
+                      </button>
+                      <button type="button"
+                              class="inline-flex items-center rounded-md bg-primary px-2.5 py-1 text-[0.65rem] font-semibold text-primary-foreground transition hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                              data-quick-add-confirm
+                              data-trip-slug="${escapeHtml(trip.slug || "")}">
+                        Add trip
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <a href="${tripUrl}"
                  class="quick-add-link inline-flex items-center gap-1 rounded-full px-3 py-1 font-semibold transition">
                 See details
@@ -891,6 +1109,8 @@
 
   function updateQuickAddPanels(payload = {}) {
     if (!quickAddRoot) return;
+    closeAllQuickAddPopovers();
+    activeQuickAddContainer = null;
     const servicesBody = quickAddRoot.querySelector("[data-quick-add-services-body]");
     const recommendationsBody = quickAddRoot.querySelector("[data-quick-add-recommendations-body]");
     if (servicesBody) {
@@ -1161,9 +1381,10 @@
     }
   }
 
-  async function handleQuickAdd(button) {
+  async function handleQuickAdd(button, options = {}) {
     if (!quickAddRoot) return;
-    const slug = button?.dataset?.tripSlug;
+    const opts = options || {};
+    const slug = button?.dataset?.tripSlug || opts.slug;
     if (!slug) return;
     if (!quickAddUrlTemplate) return;
 
@@ -1172,8 +1393,19 @@
 
     const formData = new URLSearchParams();
     formData.append("csrfmiddlewaretoken", getCsrfToken());
+    if (opts.date) {
+      formData.append("date", opts.date);
+    }
+    if (opts.adults) {
+      formData.append("adults", opts.adults);
+    }
 
+    const relatedTrigger =
+      opts.relatedTrigger && opts.relatedTrigger !== button ? opts.relatedTrigger : null;
     toggleBusy(button, true);
+    if (relatedTrigger) {
+      toggleBusy(relatedTrigger, true);
+    }
     clearAlert();
     try {
       const response = await fetch(url, {
@@ -1211,6 +1443,9 @@
       showAlert(error.message || "Unable to update your booking list right now.");
     } finally {
       toggleBusy(button, false);
+      if (relatedTrigger) {
+        toggleBusy(relatedTrigger, false);
+      }
     }
   }
 
@@ -1285,11 +1520,83 @@
   }
 
   document.addEventListener("click", (event) => {
+    const confirmBtn = event.target.closest("[data-quick-add-confirm]");
+    if (confirmBtn) {
+      event.preventDefault();
+      const container = confirmBtn.closest("[data-quick-add-container]");
+      const relatedTrigger = container?.querySelector("[data-quick-add-trigger]") || null;
+      const values = extractQuickAddValues(container);
+      closeQuickAddPopover(container);
+      handleQuickAdd(confirmBtn, {
+        date: values.date,
+        adults: values.adults,
+        relatedTrigger,
+      });
+      return;
+    }
+
+    const cancelBtn = event.target.closest("[data-quick-add-cancel]");
+    if (cancelBtn) {
+      event.preventDefault();
+      const container = cancelBtn.closest("[data-quick-add-container]");
+      if (container) {
+        closeQuickAddPopover(container);
+        const trigger = container.querySelector("[data-quick-add-trigger]");
+        if (trigger) {
+          trigger.focus();
+        }
+      }
+      return;
+    }
+
+    const stepBtn = event.target.closest("[data-quick-add-step]");
+    if (stepBtn) {
+      event.preventDefault();
+      const container = stepBtn.closest("[data-quick-add-container]");
+      if (container) {
+        const direction = stepBtn.dataset.quickAddStep === "down" ? -1 : 1;
+        stepTravelerCount(container, direction);
+      }
+      return;
+    }
+
     const quickAddBtn = event.target.closest("[data-quick-add-trigger]");
     if (quickAddBtn) {
       event.preventDefault();
-      handleQuickAdd(quickAddBtn);
+      const container = quickAddBtn.closest("[data-quick-add-container]");
+      const popover = container?.querySelector("[data-quick-add-popover]");
+      if (container && popover) {
+        if (popover.dataset.state === "open") {
+          closeQuickAddPopover(container);
+        } else {
+          openQuickAddPopover(container);
+        }
+      } else {
+        handleQuickAdd(quickAddBtn);
+      }
+      return;
     }
+
+    document.querySelectorAll("[data-quick-add-popover][data-state='open']").forEach((popover) => {
+      const container = popover.closest("[data-quick-add-container]");
+      if (container && !container.contains(event.target)) {
+        closeQuickAddPopover(container);
+      }
+    });
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    document.querySelectorAll("[data-quick-add-popover][data-state='open']").forEach((popover) => {
+      const container = popover.closest("[data-quick-add-container]");
+      if (container) {
+        closeQuickAddPopover(container);
+        const trigger = container.querySelector("[data-quick-add-trigger]");
+        if (trigger) {
+          trigger.focus();
+        }
+      }
+    });
   });
 
   updateRewardsUI(currentSummary);
