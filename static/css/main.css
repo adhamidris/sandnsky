@@ -2,7 +2,7 @@
    SAND & SKY — Global Stylesheet (Organized & Deduped)
    Notes:
    - Duplicated exact rules removed
-   - Conflicting duplicates resolved toward “Papyrus + premium dark” theme
+   - Conflicting duplicates resolved toward “Cormorant Garamond + premium dark” theme
    - Each section grouped with clear headers and mobile/desktop notes
    ========================================================= */
 
@@ -17,6 +17,8 @@
     --border:rgba(255,255,255,.18);
     --accent:#eadcc2;          /* sand/beige accent */
     --shadow:0 36px 70px rgba(17,24,39,.28);
+    --font-heading:"Cormorant Garamond","Times New Roman",serif;
+    --font-body:"Inter","Helvetica Neue",Arial,sans-serif;
   
     /* Nav */
     --nav-h: 64px;
@@ -26,17 +28,12 @@
     --nav-blur: 10px;
   }
   
-  @font-face {
-    font-family: "Papyrus";
-    src: url('/static/fonts/papyrus/papyrus.ttf');
-  }
-  
   /* Resets & Base */
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
     margin:0;
-    font-family: "Papyrus", fantasy !important;
+    font-family: var(--font-body, "Inter", "Helvetica Neue", Arial, sans-serif) !important;
     background:var(--bg);
     color:var(--text);
   }
@@ -289,7 +286,7 @@
   
   /* Brand */
   .nav .brand{
-    font-family:"Papyrus", fantasy;
+    font-family:var(--font-heading);
     letter-spacing:.06em;
     font-size:18px;
     line-height:1;
@@ -525,7 +522,7 @@
     }
     .hero-inner{ width:100% !important; margin-left:0 !important; margin-top:0 !important; }
     .hero-copy h1{
-      font-family:"Papyrus", fantasy !important;
+      font-family:var(--font-heading) !important;
       font-size: clamp(56px, 6.5vw, 110px);
       line-height:1.05; letter-spacing:.01em;
     }
@@ -552,7 +549,7 @@
       font-weight: 200;
       max-width: 75% !important;
       width: 100% !important;
-      font-family: "Papyrus", fantasy !important;
+      font-family: var(--font-heading) !important;
     }
   
     .hero-media, .hero-overlay { max-height: 70vh; }
@@ -612,7 +609,7 @@
   .badge{display:inline-flex; align-items:center; gap:8px; background:rgba(234,220,194,.12); border:1px solid var(--border); color:var(--accent); padding:8px 12px; border-radius:999px; font-weight:600; font-size:13px; letter-spacing:.06em; text-transform:uppercase}
   .countdown{display:inline-flex; gap:8px; align-items:center; background:rgba(15,15,15,.55); border:1px solid var(--border); padding:8px 12px; border-radius:999px; font-weight:600; font-size:12px; letter-spacing:.06em}
   
-  h1{font-family:"Papyrus", fantasy; font-size:clamp(32px,5vw,64px); line-height:1.08; margin:0 0 22px; text-shadow:0 10px 30px rgba(0,0,0,.35)}
+  h1{font-family:var(--font-heading); font-size:clamp(32px,5vw,64px); line-height:1.08; margin:0 0 22px; text-shadow:0 10px 30px rgba(0,0,0,.35)}
   .subcopy{max-width:62ch; color:var(--muted); font-size:16px;}
   .actions{display:flex; gap:14px; margin-top:28px}
   .btn{appearance:none; border:1px solid var(--border); background:#fff; color:#111; padding:14px 20px; border-radius:999px; font-weight:600; text-decoration:none; box-shadow:var(--shadow)}
@@ -677,7 +674,7 @@
   .destinations{background:#FFFFFF; color:#0d0d0d; border-top:1px solid rgba(0,0,0,.06)}
   .destinations .wrap{max-width:1200px; margin:0 auto; padding:64px 24px 84px}
   
-  .destinations h2{font-family:"Papyrus", fantasy; text-align:center; font-size:clamp(24px,3vw,30px); margin:6px 0 24px; color:#1A2B4A}
+  .destinations h2{font-family:var(--font-heading); text-align:center; font-size:clamp(24px,3vw,30px); margin:6px 0 24px; color:#1A2B4A}
   
   .tabs{display:flex; justify-content:center; gap:28px; border-bottom:1px solid rgba(0,0,0,.08); margin-bottom:36px; overflow:auto}
   .tabs button{position:relative; background:transparent; border:0; padding:14px 4px; font:600 14px/1 Inter,system-ui; letter-spacing:.02em; color:#6b6b6b; cursor:pointer; white-space:nowrap}
@@ -717,7 +714,7 @@
 
  .dest-caption{position:absolute; left:0; right:0; bottom:0; padding:22px; text-align:center; z-index:2; color:#fff; display:flex; flex-direction:column; gap:8px}
   .destinations .fallback-title{ display:none !important; }
-  .dest-caption h3{font-family:"Papyrus", fantasy; margin:0 0 6px; font-size:21px; text-shadow:0 10px 30px rgba(0,0,0,.4)}
+  .dest-caption h3{font-family:var(--font-heading); margin:0 0 6px; font-size:21px; text-shadow:0 10px 30px rgba(0,0,0,.4)}
   .dest-caption p{margin:0; margin-top:auto; font-size:12px; color:rgba(255,255,255,.85)}
   /* Destinations: CTA as simple text underline (override inline styles) */
   .destinations .inline-cta{
@@ -879,7 +876,7 @@
   
   /* title + copy */
   .about-title{
-    font-family:"Papyrus",fantasy;
+    font-family:var(--font-heading);
     font-size:clamp(22px,3.2vw,34px);
     line-height:1.3;
     color:#1A2B4A !important;
@@ -891,7 +888,7 @@
     line-height:1.75;
     max-width:78ch;
     margin:0 auto 22px;
-    font-family: "Papyrus", fantasy !important;
+    font-family: var(--font-body) !important;
   }
   
   /* features */
@@ -1155,7 +1152,7 @@
     margin-bottom: 8px;
   }
   #gallery .cta-title {
-    font-family: "Papyrus", fantasy !important;
+    font-family: var(--font-heading) !important;
     font-size: clamp(18px, 2.2vw, 24px);
     line-height: 1.25;
     margin: 0 0 8px;
@@ -1186,7 +1183,7 @@
 }
 
 .wrap h2 {
-  font-family: "Papyrus", fantasy !important;
+  font-family: var(--font-heading) !important;
 }
 
 .gallery-arrow {
@@ -1285,7 +1282,7 @@
 
 .tripsin1 {
   color: #1A2B4A !important;
-  font-family: "Papyrus", fantasy !important;
+  font-family: var(--font-heading) !important;
 }
 
 .tripsin2 {
@@ -1314,7 +1311,7 @@
 
 .desti2 h2 {
   color: #1A2B4A !important;
-  font-family: "Papyrus", fantasy !important; 
+  font-family: var(--font-heading) !important; 
 }
 
 .filter-form h3, p, label, span, legend {
