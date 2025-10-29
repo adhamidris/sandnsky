@@ -610,7 +610,7 @@
   .countdown{display:inline-flex; gap:8px; align-items:center; background:rgba(15,15,15,.55); border:1px solid var(--border); padding:8px 12px; border-radius:999px; font-weight:600; font-size:12px; letter-spacing:.06em}
   
   h1{font-family:var(--font-heading); font-size:clamp(32px,5vw,64px); line-height:1.08; margin:0 0 22px; text-shadow:0 10px 30px rgba(0,0,0,.35)}
-  .subcopy{max-width:62ch; color:var(--muted); font-size:16px;}
+  .subcopy{max-width:62ch; color:white !important; font-size:16px;}
   .actions{display:flex; gap:14px; margin-top:28px}
   .btn{appearance:none; border:1px solid var(--border); background:#fff; color:#111; padding:14px 20px; border-radius:999px; font-weight:600; text-decoration:none; box-shadow:var(--shadow)}
   .btn.ghost{background:transparent; color:var(--text)}
@@ -1377,23 +1377,23 @@
 }
 
 .text-bluish {
-  color:  #2A2A2A !important;
+  color:  white !important;
 }
 
 .text-charo {
-  color: #6B5E4F !important;
+  color: white !important;
 }
 
 .small-booking-dl .small-booking dt {
-  color: #6B5E4F !important;
+  color: white !important;
 }
 
 .small-booking-dl .small-booking dd {
-  color: #2A2A2A !important;
+  color: white !important;
 }
 
 .already-in-cart {
-  color: #6B5E4F !important;
+  color: white !important;
 }
 
 .already-in-cart-2 {
@@ -1410,11 +1410,11 @@
 }
 
 .no-payment {
-  color: #6B5E4F !important;
+  color: white !important;
 }
 
 .small-booking-main {
-  background-color: #F5F1E8 !important;
+  background-color: #1A2B4A !important;
 }
 
 .trip-highlights h2 {

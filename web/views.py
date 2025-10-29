@@ -1433,6 +1433,41 @@ class CartQuickAddView(View):
                 "message": "",
             }
 
+            date_raw = request.POST.get("date")
+            if date_raw:
+                try:
+                    parsed_date = dt.datetime.strptime(date_raw, "%Y-%m-%d").date()
+                except (TypeError, ValueError):
+                    parsed_date = timezone.localdate()
+                else:
+                    today = timezone.localdate()
+                    if parsed_date < today:
+                        parsed_date = today
+                cleaned_data["date"] = parsed_date
+
+            adults_raw = request.POST.get("adults")
+            if adults_raw is not None:
+                try:
+                    adults_count = int(adults_raw)
+                except (TypeError, ValueError):
+                    adults_count = self.DEFAULT_ADULTS
+                else:
+                    if adults_count < 1:
+                        adults_count = 1
+                    max_group_size = getattr(trip, "group_size_max", None)
+                    if max_group_size:
+                        try:
+                            max_group_size_int = int(max_group_size)
+                        except (TypeError, ValueError):
+                            max_group_size_int = None
+                    else:
+                        max_group_size_int = None
+                    if max_group_size_int and max_group_size_int > 0:
+                        adults_count = min(adults_count, max_group_size_int)
+                    else:
+                        adults_count = min(adults_count, 16)
+                cleaned_data["adults"] = adults_count
+
             # ensure unique by clearing any lingering duplicates
             remove_trip_entries(request.session, trip.pk)
 
