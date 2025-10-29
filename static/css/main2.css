@@ -4329,6 +4329,18 @@ body.gallery-lightbox--open {
   border-color: rgba(74, 124, 158, 0.2) !important;
 }
 
+.quick-add-card.quick-add-active,
+.quick-add-card.quick-add-active:hover {
+  transform: none !important;
+  box-shadow: 0 2px 8px rgba(74, 124, 158, 0.06) !important;
+  border-color: rgba(74, 124, 158, 0.1) !important;
+}
+
+[data-reward-trip-card].quick-add-active,
+[data-reward-trip-card].quick-add-active:hover {
+  transform: none !important;
+}
+
 .quick-add-card-media {
   background: rgba(232, 220, 200, 0.3) !important;
   border-radius: 12px !important;

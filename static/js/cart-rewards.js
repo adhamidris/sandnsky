@@ -109,6 +109,18 @@
     }
   }
 
+  function setQuickAddCardActive(container, active) {
+    if (!container) return;
+    const quickAddCard = container.closest(".quick-add-card");
+    if (quickAddCard) {
+      quickAddCard.classList.toggle("quick-add-active", !!active);
+    }
+    const rewardCard = container.closest("[data-reward-trip-card]");
+    if (rewardCard) {
+      rewardCard.classList.toggle("quick-add-active", !!active);
+    }
+  }
+
   function closeQuickAddPopover(container) {
     const { popover, trigger } = getQuickAddElements(container);
     if (!popover || popover.dataset.state !== "open") {
@@ -122,6 +134,7 @@
     if (container) {
       container.classList.remove("quick-add-open");
     }
+    setQuickAddCardActive(container, false);
     if (activeQuickAddContainer === container) {
       activeQuickAddContainer = null;
     }
@@ -155,6 +168,7 @@
     if (container) {
       container.classList.add("quick-add-open");
     }
+    setQuickAddCardActive(container, true);
     activeQuickAddContainer = container;
     const { dateInput } = getQuickAddElements(container);
     if (dateInput) {
@@ -606,22 +620,119 @@
                 let quickAddIcon = plusIcon;
                 let quickAddClasses =
                   "inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90";
-                let quickAddAttributes = `data-reward-trip-action data-trip-state="${escapeHtml(quickAddState)}"`;
-                if (quickAddState === "redeemed") {
-                  quickAddLabel = "Remove reward";
-                  quickAddIcon = minusIcon;
-                } else if (quickAddState === "replace") {
-                  quickAddLabel = "Redeem instead";
-                  quickAddIcon = checkIcon;
-                } else if (quickAddState === "locked") {
+                let quickAddControl = "";
+                if (quickAddState === "locked") {
                   quickAddLabel = "Locked";
                   quickAddIcon = lockIcon;
                   quickAddClasses =
                     "inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground cursor-not-allowed";
-                  quickAddAttributes += " disabled";
-                }
-                if (quickAddState !== "locked") {
-                  quickAddAttributes += ` data-quick-add-trigger data-trip-slug="${escapeHtml(trip.slug || "")}"`;
+                  quickAddControl = `
+                    <button type="button"
+                            class="${quickAddClasses}"
+                            data-reward-trip-action
+                            data-trip-state="${escapeHtml(quickAddState)}"
+                            disabled>
+                      ${quickAddIcon}
+                      ${escapeHtml(quickAddLabel)}
+                    </button>
+                  `;
+                } else if (quickAddState === "redeemed") {
+                  quickAddLabel = "Remove reward";
+                  quickAddIcon = minusIcon;
+                  quickAddControl = `
+                    <button type="button"
+                            class="${quickAddClasses}"
+                            data-reward-trip-action
+                            data-trip-state="${escapeHtml(quickAddState)}"
+                            data-quick-add-trigger
+                            data-trip-slug="${escapeHtml(trip.slug || "")}">
+                      ${quickAddIcon}
+                      ${escapeHtml(quickAddLabel)}
+                    </button>
+                  `;
+                } else {
+                  if (quickAddState === "replace") {
+                    quickAddLabel = "Redeem instead";
+                    quickAddIcon = checkIcon;
+                  }
+                  const slugPlain = String(trip.slug || `trip-${trip.trip_id || ""}`);
+                  const idSuffixRaw = `${slugPlain}-${phase.id || "phase"}`;
+                  const idSuffix = idSuffixRaw.replace(/[^a-zA-Z0-9_-]/g, "-");
+                  const dateId = `reward-quick-add-date-${idSuffix}`;
+                  const countId = `reward-quick-add-count-${idSuffix}`;
+                  quickAddControl = `
+                    <div class="relative" data-quick-add-container>
+                      <button type="button"
+                              class="${quickAddClasses}"
+                              data-reward-trip-action
+                              data-trip-state="${escapeHtml(quickAddState)}"
+                              data-quick-add-trigger
+                              data-trip-slug="${escapeHtml(trip.slug || "")}"
+                              aria-haspopup="dialog"
+                              aria-expanded="false">
+                        ${quickAddIcon}
+                        ${escapeHtml(quickAddLabel)}
+                      </button>
+                      <div class="quick-add-popover absolute right-0 z-30 mt-2 hidden w-56 rounded-xl border border-border bg-card p-4 text-left shadow-subtle"
+                           data-quick-add-popover
+                           role="dialog"
+                           aria-label="Quick add trip details"
+                           data-state="closed">
+                        <div class="space-y-3">
+                          <div class="space-y-1">
+                            <label for="${escapeHtml(dateId)}" class="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Travel date</label>
+                            <input
+                              id="${escapeHtml(dateId)}"
+                              type="date"
+                              name="date"
+                              class="w-full rounded-md border border-border/70 bg-background px-2.5 py-2 text-xs font-medium text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                              data-quick-add-date
+                            />
+                          </div>
+                          <div class="space-y-1">
+                            <label for="${escapeHtml(countId)}" class="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Travellers</label>
+                            <div class="flex items-center gap-2">
+                              <button type="button"
+                                      class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                      data-quick-add-step="down"
+                                      aria-label="Decrease travellers">
+                                -
+                              </button>
+                              <input
+                                id="${escapeHtml(countId)}"
+                                type="number"
+                                name="adults"
+                                min="1"
+                                max="16"
+                                value="2"
+                                class="h-8 w-12 rounded-md border border-border/70 bg-background text-center text-xs font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                data-quick-add-count
+                              />
+                              <button type="button"
+                                      class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                      data-quick-add-step="up"
+                                      aria-label="Increase travellers">
+                                +
+                              </button>
+                            </div>
+                          </div>
+                          <div class="flex items-center justify-end gap-2">
+                            <button type="button"
+                                    class="inline-flex items-center rounded-md border border-border/60 px-2.5 py-1 text-[0.65rem] font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                    data-quick-add-cancel>
+                              Cancel
+                            </button>
+                            <button type="button"
+                                    class="inline-flex items-center rounded-md bg-primary px-2.5 py-1 text-[0.65rem] font-semibold text-primary-foreground transition hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                    data-quick-add-confirm
+                                    data-trip-slug="${escapeHtml(trip.slug || "")}">
+                              Redeem trip
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  `;
                 }
                 const viewControl = tripUrl
                   ? `<a href="${escapeHtml(tripUrl)}"
@@ -660,12 +771,7 @@
                       </span>
                       <div class="flex flex-wrap items-center gap-2">
                         ${viewControl}
-                        <button type="button"
-                                class="${quickAddClasses}"
-                                ${quickAddAttributes}>
-                          ${quickAddIcon}
-                          ${escapeHtml(quickAddLabel)}
-                        </button>
+                        ${quickAddControl}
                       </div>
                     </div>
                   </div>
@@ -1111,6 +1217,12 @@
     if (!quickAddRoot) return;
     closeAllQuickAddPopovers();
     activeQuickAddContainer = null;
+    quickAddRoot.querySelectorAll(".quick-add-card.quick-add-active").forEach((card) => {
+      card.classList.remove("quick-add-active");
+    });
+    quickAddRoot.querySelectorAll("[data-reward-trip-card].quick-add-active").forEach((card) => {
+      card.classList.remove("quick-add-active");
+    });
     const servicesBody = quickAddRoot.querySelector("[data-quick-add-services-body]");
     const recommendationsBody = quickAddRoot.querySelector("[data-quick-add-recommendations-body]");
     if (servicesBody) {
