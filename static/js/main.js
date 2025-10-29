@@ -15,6 +15,51 @@
     tick(); setInterval(tick, 1000);
   })();
 
+  // ===== Hero mini-frame auto rotation =====
+  (function () {
+    const container = document.querySelector('[data-hero-overlays]');
+    if (!container) return;
+    const frames = container.querySelectorAll('[data-hero-overlay]');
+    if (frames.length <= 1) return;
+
+    let index = 0;
+    const minInterval = 2000;
+    const attr = parseInt(container.getAttribute('data-hero-overlay-interval') || '', 10);
+    const interval = Number.isNaN(attr) ? 6000 : Math.max(attr, minInterval);
+    let timerId = null;
+
+    const setActive = (nextIndex) => {
+      frames.forEach((frame, i) => {
+        frame.classList.toggle('is-active', i === nextIndex);
+      });
+      index = nextIndex;
+    };
+
+    const tick = () => {
+      const next = (index + 1) % frames.length;
+      setActive(next);
+    };
+
+    const start = () => {
+      stop();
+      timerId = window.setInterval(tick, interval);
+    };
+
+    const stop = () => {
+      if (timerId !== null) {
+        window.clearInterval(timerId);
+        timerId = null;
+      }
+    };
+
+    container.addEventListener('mouseenter', stop);
+    container.addEventListener('mouseleave', start);
+    container.addEventListener('focusin', stop);
+    container.addEventListener('focusout', start);
+
+    start();
+  })();
+
   // ===== Navigation Cart interactions =====
   (function() {
     const cart = document.querySelector('[data-navcart]');

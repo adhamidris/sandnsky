@@ -401,68 +401,58 @@ class HomePageView(TemplateView):
         if site_config.hero_video:
             fallback_video_type, _ = mimetypes.guess_type(site_config.hero_video.name)
 
-        hero_pairs = []
-        for pair in site_config.hero_pairs.all():
-            if not pair.has_media:
-                continue
+        hero_pairs = list(site_config.hero_pairs.all())
 
-            pair_video = pair.hero_video.url if pair.hero_video else ""
-            pair_video_is_media = bool(pair.hero_video)
-            pair_video_type = ""
-            if pair.hero_video:
-                pair_video_type, _ = mimetypes.guess_type(pair.hero_video.name)
+        background_image = fallback_image
+        background_image_is_media = fallback_image_is_media
+        background_video = fallback_video
+        background_video_is_media = fallback_video_is_media
+        background_video_type = fallback_video_type or "video/mp4"
 
-            pair_image = ""
-            pair_image_is_media = False
-            if pair.hero_image:
-                pair_image = pair.hero_image.url
-                pair_image_is_media = True
-            elif fallback_image:
-                pair_image = fallback_image
-                pair_image_is_media = fallback_image_is_media
+        overlays: list[dict[str, str | int | bool]] = []
 
-            overlay = ""
+        for pair in hero_pairs:
+            if pair.hero_image and not background_image:
+                background_image = pair.hero_image.url
+                background_image_is_media = True
+
+            if pair.hero_video and not background_video:
+                background_video = pair.hero_video.url
+                background_video_is_media = True
+                guessed_type, _ = mimetypes.guess_type(pair.hero_video.name)
+                if guessed_type:
+                    background_video_type = guessed_type
+
+            overlay_image = ""
             overlay_is_media = False
             if pair.overlay_image:
-                overlay = pair.overlay_image.url
+                overlay_image = pair.overlay_image.url
+                overlay_is_media = True
+            elif pair.hero_image:
+                overlay_image = pair.hero_image.url
                 overlay_is_media = True
 
-            hero_pairs.append(
-                {
-                    "id": pair.pk,
-                    "label": pair.label,
-                    "image": pair_image,
-                    "image_is_media": pair_image_is_media,
-                    "video": pair_video,
-                    "video_is_media": pair_video_is_media,
-                    "video_type": pair_video_type or "video/mp4",
-                    "overlay": overlay,
-                    "overlay_is_media": overlay_is_media,
-                    "overlay_alt": pair.overlay_alt,
-                }
-            )
+            if overlay_image:
+                overlays.append(
+                    {
+                        "id": pair.pk,
+                        "label": pair.label,
+                        "image": overlay_image,
+                        "image_is_media": overlay_is_media,
+                        "alt": pair.overlay_alt,
+                    }
+                )
 
-        if not hero_pairs:
-            hero_pairs.append(
+        if not overlays and background_image:
+            overlays.append(
                 {
                     "id": None,
                     "label": "",
-                    "image": fallback_image,
-                    "image_is_media": fallback_image_is_media,
-                    "video": fallback_video,
-                    "video_is_media": fallback_video_is_media,
-                    "video_type": fallback_video_type or "video/mp4",
-                    "overlay": "",
-                    "overlay_is_media": False,
-                    "overlay_alt": "",
+                    "image": background_image,
+                    "image_is_media": background_image_is_media,
+                    "alt": "",
                 }
             )
-
-        first_overlay_index = None
-        for idx, pair in enumerate(hero_pairs):
-            if pair["overlay"]:
-                first_overlay_index = idx
-                break
 
         context["hero"] = {
             "title": site_config.hero_title,
@@ -475,11 +465,16 @@ class HomePageView(TemplateView):
                 "label": site_config.hero_secondary_cta_label,
                 "href": site_config.hero_secondary_cta_href,
             },
-            "pairs": hero_pairs,
-            "has_multiple_pairs": len(hero_pairs) > 1,
-            "has_overlay": first_overlay_index is not None,
-            "active_index": 0,
-            "first_overlay_index": first_overlay_index,
+            "background": {
+                "image": background_image,
+                "image_is_media": background_image_is_media,
+                "video": background_video,
+                "video_is_media": background_video_is_media,
+                "video_type": background_video_type or "video/mp4",
+            },
+            "overlays": overlays,
+            "has_overlay": bool(overlays),
+            "overlay_interval": 6000,
         }
 
         context["destinations_section"] = {

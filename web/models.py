@@ -312,7 +312,7 @@ class SiteHeroPair(models.Model):
 
     @property
     def has_media(self) -> bool:
-        return bool(self.hero_image or self.hero_video)
+        return bool(self.hero_image or self.hero_video or self.overlay_image)
 
     @property
     def has_overlay(self) -> bool:

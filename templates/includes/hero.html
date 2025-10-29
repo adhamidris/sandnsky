@@ -1,32 +1,30 @@
 {% load static %}
 <section id="hero" class="hero relative min-h-[calc(100vh-4rem)]" aria-label="Promo">
   <!-- Media layer -->
-  <div class="hero-media" aria-hidden="true" data-hero-slides>
-    {% for pair in hero.pairs %}
-      <div class="hero-slide{% if forloop.counter0 == hero.active_index %} is-active{% endif %}" data-hero-slide="{{ forloop.counter0 }}">
-        {% if pair.image %}
-          <img
-            src="{% if pair.image_is_media %}{{ pair.image }}{% else %}{% static pair.image %}{% endif %}"
-            alt=""
-            class="w-full h-full object-cover"
-            loading="{% if forloop.counter0 == hero.active_index %}eager{% else %}lazy{% endif %}"
-            decoding="async"
-          />
-        {% endif %}
-        {% if pair.video %}
-          <video
-            class="absolute inset-0 hidden h-full w-full object-cover md:block"
-            autoplay loop muted playsinline
-            preload="{% if forloop.counter0 == hero.active_index %}auto{% else %}metadata{% endif %}"
-            {% if pair.image %}poster="{% if pair.image_is_media %}{{ pair.image }}{% else %}{% static pair.image %}{% endif %}"{% endif %}
-            data-hero-video
-            aria-hidden="true">
-            <source src="{% if pair.video_is_media %}{{ pair.video }}{% else %}{% static pair.video %}{% endif %}" type="{{ pair.video_type }}" />
-            Your browser does not support the background video.
-          </video>
-        {% endif %}
-      </div>
-    {% endfor %}
+  <div class="hero-media" aria-hidden="true">
+    <div class="hero-slide is-active">
+      {% if hero.background.image %}
+        <img
+          src="{% if hero.background.image_is_media %}{{ hero.background.image }}{% else %}{% static hero.background.image %}{% endif %}"
+          alt=""
+          class="w-full h-full object-cover"
+          loading="eager"
+          decoding="async"
+        />
+      {% endif %}
+      {% if hero.background.video %}
+        <video
+          class="absolute inset-0 hidden h-full w-full object-cover md:block"
+          autoplay loop muted playsinline
+          preload="auto"
+          {% if hero.background.image %}poster="{% if hero.background.image_is_media %}{{ hero.background.image }}{% else %}{% static hero.background.image %}{% endif %}"{% endif %}
+          data-hero-video
+          aria-hidden="true">
+          <source src="{% if hero.background.video_is_media %}{{ hero.background.video }}{% else %}{% static hero.background.video %}{% endif %}" type="{{ hero.background.video_type }}" />
+          Your browser does not support the background video.
+        </video>
+      {% endif %}
+    </div>
   </div>
 
   <!-- Overlays (theme overlay + depth layers) -->
@@ -56,33 +54,19 @@
 
     {% if hero.has_overlay %}
       <!-- Sub image: now vertical rectangle & top-aligned to content -->
-      <aside class="mini-frame portrait" aria-label="Featured image" data-hero-overlays>
-        {% for pair in hero.pairs %}
+      <aside class="mini-frame portrait" aria-label="Featured image" data-hero-overlays data-hero-overlay-interval="{{ hero.overlay_interval }}">
+        {% for overlay in hero.overlays %}
           <div
-            class="mini-frame-media{% if forloop.counter0 == hero.first_overlay_index %} is-active{% endif %}{% if not pair.overlay %} is-empty{% endif %}"
-            data-hero-overlay="{{ forloop.counter0 }}">
-            {% if pair.overlay %}
-              <img
-                src="{% if pair.overlay_is_media %}{{ pair.overlay }}{% else %}{% static pair.overlay %}{% endif %}"
-                alt="{{ pair.overlay_alt|default:'' }}"
-                loading="{% if forloop.counter0 == hero.first_overlay_index %}eager{% else %}lazy{% endif %}"
-                decoding="async" />
-            {% endif %}
+            class="mini-frame-media{% if forloop.first %} is-active{% endif %}"
+            data-hero-overlay>
+            <img
+              src="{% if overlay.image_is_media %}{{ overlay.image }}{% else %}{% static overlay.image %}{% endif %}"
+              alt="{{ overlay.alt|default:'' }}"
+              loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
+              decoding="async" />
           </div>
         {% endfor %}
       </aside>
-    {% endif %}
-
-    {% if hero.pairs|length > 1 %}
-    <!-- Carousel arrows (auto-hidden if only 1 pair; wired in JS) -->
-    <div class="arrows" data-hero-arrows>
-      <button class="circle-btn" aria-label="Previous slide" data-hero-prev>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-      <button class="circle-btn" aria-label="Next slide" data-hero-next>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-    </div>
     {% endif %}
 
     <div class="actions mobile-hero-cta">
