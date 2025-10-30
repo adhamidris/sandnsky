@@ -495,6 +495,7 @@ class HomePageView(TemplateView):
             "subtitle": "Explore the most captivating experiences Egypt has to offer",
             "items": self._featured_destinations(),
         }
+        context["trip_picks_section"] = self._trip_picks_section()
 
         gallery_items = self._gallery_items()
         primary_row = gallery_items[::2]
@@ -609,8 +610,68 @@ class HomePageView(TemplateView):
                     "image_url": destination.card_image.url if destination.card_image else "",
                     "cta": {"label": destination.cta_label, "href": cta_href},
                 }
-            )
+        )
         return items
+
+    def _trip_picks_section(self):
+        base_queryset = (
+            Trip.objects.filter(is_service=False)
+            .select_related("destination")
+            .prefetch_related("category_tags", "additional_destinations")
+        )
+
+        limit_per_toggle = 9
+        toggles_config = [
+            (
+                "recommended",
+                "Recommended",
+                base_queryset.order_by("-created_at"),
+            ),
+            (
+                "one-day",
+                "1Day Tours",
+                base_queryset.filter(duration_days=1).order_by("title"),
+            ),
+            (
+                "multi-day",
+                "Multi-Days Tours",
+                base_queryset.filter(duration_days__gte=2).order_by(
+                    "duration_days", "title"
+                ),
+            ),
+            (
+                "luxury",
+                "Luxury Tours",
+                base_queryset.filter(category_tags__slug="luxury")
+                .distinct()
+                .order_by("-base_price_per_person"),
+            ),
+        ]
+
+        toggles = []
+        seen_slugs = set()
+        for slug, label, queryset in toggles_config:
+            if slug in seen_slugs:
+                continue
+            seen_slugs.add(slug)
+            trips = [build_trip_card(trip) for trip in queryset[:limit_per_toggle]]
+            toggles.append(
+                {
+                    "slug": slug,
+                    "label": label,
+                    "cards": trips,
+                }
+            )
+
+        return {
+            "eyebrow": "Trips",
+            "title": "Our Picks for Every Kind of Traveler",
+            "subtitle": (
+                "Switch between curated collections to find the perfect rhythm—from quick escapes to indulgent journeys."
+            ),
+            "toggles": toggles,
+            "view_all_href": reverse("web:trips"),
+        }
 
     def _recent_blog_posts(self):
         posts = published_blog_queryset().order_by("-published_at", "-created_at")[:3]

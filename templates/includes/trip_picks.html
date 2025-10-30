@@ -1,0 +1,183 @@
+{% load static %}
+{% if trip_picks_section.toggles %}
+<section id="trip-picks" class="trip-picks" aria-labelledby="trip-picks-title" data-trip-picks>
+  <div class="wrap">
+    <div class="trip-picks__head">
+      <div class="trip-picks__intro">
+        {% if trip_picks_section.eyebrow %}
+        <span class="trip-picks__eyebrow">{{ trip_picks_section.eyebrow }}</span>
+        {% endif %}
+        <h2 id="trip-picks-title">{{ trip_picks_section.title }}</h2>
+        {% if trip_picks_section.subtitle %}
+        <p class="trip-picks__subtitle">{{ trip_picks_section.subtitle }}</p>
+        {% endif %}
+      </div>
+      <div class="trip-picks__toggle-group" role="tablist" aria-label="Trip collections">
+        {% for toggle in trip_picks_section.toggles %}
+        {% with button_id="trip-toggle-"|add:toggle.slug panel_id="trip-panel-"|add:toggle.slug %}
+        <button
+          type="button"
+          id="{{ button_id }}"
+          class="trip-picks__toggle{% if forloop.first %} is-active{% endif %}"
+          role="tab"
+          aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+          aria-controls="{{ panel_id }}"
+          data-trip-toggle="{{ toggle.slug }}"
+        >
+          {{ toggle.label }}
+        </button>
+        {% endwith %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="trip-picks__panels">
+      {% for toggle in trip_picks_section.toggles %}
+      {% with panel_id="trip-panel-"|add:toggle.slug %}
+      <div
+        id="{{ panel_id }}"
+        class="trip-picks__panel{% if not forloop.first %} is-hidden{% endif %}"
+        role="tabpanel"
+        aria-labelledby="trip-toggle-{{ toggle.slug }}"
+        {% if not forloop.first %}hidden{% endif %}
+        data-trip-panel="{{ toggle.slug }}"
+      >
+        {% if toggle.cards %}
+        <div class="trip-picks__carousel" data-trip-carousel>
+          <button class="trip-picks__arrow" type="button" aria-label="Previous trips" data-trip-arrow="prev">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m14.5 18-5-6 5-6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <div class="trip-picks__viewport" data-trip-viewport>
+            <div class="trip-picks__track" data-trip-track>
+              {% for trip in toggle.cards %}
+              <article class="trip-picks__card">
+                <a href="{% url 'web:trip-detail' trip.slug %}" class="trip-picks__link">
+                  {% if trip.image_url %}
+                  <img src="{{ trip.image_url }}" alt="{{ trip.title }}" loading="lazy" class="trip-picks__image" />
+                  {% else %}
+                  <div class="trip-picks__image trip-picks__image--fallback">
+                    <span>Image coming soon</span>
+                  </div>
+                  {% endif %}
+                  <div class="trip-picks__body">
+                    {% if trip.category %}
+                    <span class="trip-picks__badge">{{ trip.category }}</span>
+                    {% endif %}
+                    <h3 class="trip-picks__title">{{ trip.title }}</h3>
+                    {% if trip.description %}
+                    <p class="trip-picks__description">{{ trip.description }}</p>
+                    {% endif %}
+                    <div class="trip-picks__meta">
+                      <span>{{ trip.duration }}</span>
+                      <span>{{ trip.group_size }}</span>
+                    </div>
+                    <div class="trip-picks__footer">
+                      <span>{{ trip.location }}</span>
+                      <span class="trip-picks__price">{{ trip.price }}</span>
+                    </div>
+                  </div>
+                </a>
+              </article>
+              {% endfor %}
+            </div>
+          </div>
+          <button class="trip-picks__arrow" type="button" aria-label="Next trips" data-trip-arrow="next">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m9.5 6 5 6-5 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+        <a href="{{ trip_picks_section.view_all_href }}" class="trip-picks__cta">View all tours</a>
+        {% else %}
+        <div class="trip-picks__empty">
+          <p>No trips available in this collection yet. Check back soon.</p>
+          <a href="{{ trip_picks_section.view_all_href }}" class="trip-picks__cta">View all tours</a>
+        </div>
+        {% endif %}
+      </div>
+      {% endwith %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% block script %}
+<script>
+(() => {
+  const section = document.querySelector('[data-trip-picks]');
+  if (!section) return;
+
+  const toggles = Array.from(section.querySelectorAll('[data-trip-toggle]'));
+  const panels = Array.from(section.querySelectorAll('[data-trip-panel]'));
+
+  const activate = (slug) => {
+    if (!slug) return;
+    toggles.forEach((button) => {
+      const isActive = button.dataset.tripToggle === slug;
+      button.classList.toggle('is-active', isActive);
+      button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+    panels.forEach((panel) => {
+      const isActive = panel.dataset.tripPanel === slug;
+      panel.classList.toggle('is-hidden', !isActive);
+      panel.hidden = !isActive;
+    });
+  };
+
+  if (toggles.length) {
+    activate(toggles[0].dataset.tripToggle);
+  }
+
+  toggles.forEach((button) => {
+    button.addEventListener('click', () => activate(button.dataset.tripToggle));
+    button.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        activate(button.dataset.tripToggle);
+      }
+    });
+  });
+
+  const initCarousel = (carousel) => {
+    if (!carousel || carousel.dataset.tripCarouselBound === 'true') {
+      return;
+    }
+    carousel.dataset.tripCarouselBound = 'true';
+    const viewport = carousel.querySelector('[data-trip-viewport]');
+    if (!viewport) return;
+    const prev = carousel.querySelector('[data-trip-arrow="prev"]');
+    const next = carousel.querySelector('[data-trip-arrow="next"]');
+
+    const update = () => {
+      const maxScroll = viewport.scrollWidth - viewport.clientWidth;
+      if (prev) {
+        prev.disabled = viewport.scrollLeft <= 4;
+      }
+      if (next) {
+        next.disabled = viewport.scrollLeft >= maxScroll - 4;
+      }
+    };
+
+    if (prev) {
+      prev.addEventListener('click', () => {
+        viewport.scrollBy({ left: -viewport.clientWidth, behavior: 'smooth' });
+      });
+    }
+    if (next) {
+      next.addEventListener('click', () => {
+        viewport.scrollBy({ left: viewport.clientWidth, behavior: 'smooth' });
+      });
+    }
+
+    viewport.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update, { passive: true });
+    update();
+  };
+
+  section.querySelectorAll('[data-trip-carousel]').forEach(initCarousel);
+})();
+</script>
+{% endblock %}
