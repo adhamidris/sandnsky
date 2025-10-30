@@ -922,7 +922,7 @@
     color:#1a2b4a;
   }
   .trip-picks__cta{
-    display:inline-flex;
+    display:flex;
     align-items:center;
     justify-content:center;
     gap:8px;
