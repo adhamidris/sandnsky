@@ -953,21 +953,22 @@
     display:grid;
     gap:18px;
   }
-  .trip-picks__viewport{
-    overflow:hidden;
-    position:relative;
-  }
-  .trip-picks__track{
-    display:flex;
-    gap:20px;
-    padding:12px 4px;
-    overflow-x:auto;
-    scroll-behavior:smooth;
-    scroll-snap-type:x mandatory;
-    scroll-padding:0 16px;
-  }
-  .trip-picks__track::-webkit-scrollbar{display:none;}
-  .trip-picks__track{scrollbar-width:none;}
+.trip-picks__viewport{
+  overflow-x:auto;
+  overflow-y:hidden;
+  position:relative;
+  scroll-snap-type:x mandatory;
+  scroll-padding:0 16px;
+  scroll-behavior:smooth;
+}
+.trip-picks__viewport::-webkit-scrollbar{display:none;}
+.trip-picks__viewport{scrollbar-width:none;}
+.trip-picks__track{
+  display:flex;
+  gap:20px;
+  padding:12px 4px;
+  flex:1;
+}
   .trip-picks__card{
     min-width:clamp(260px,75vw,320px);
     max-width:360px;
