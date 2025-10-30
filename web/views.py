@@ -240,6 +240,7 @@ def build_trip_card(trip):
     primary_category = next((category.name for category in trip.category_tags.all()), "")
     image_url = trip.card_image.url if trip.card_image else ""
     destination_names = _all_destination_names(trip)
+    languages = [language.code.upper() for language in trip.languages.all() if language.code]
     if not destination_names:
         destinations_label = ""
     elif len(destination_names) == 1:
@@ -256,6 +257,7 @@ def build_trip_card(trip):
         "group_size": f"Up to {trip.group_size_max} guests",
         "location": destinations_label,
         "price": format_currency(trip.base_price_per_person),
+        "languages": languages,
     }
 
 
@@ -296,7 +298,7 @@ def list_quick_add_services(exclude_trip_ids, limit=QUICK_ADD_SERVICES_LIMIT):
         Trip.objects.filter(is_service=True)
         .exclude(pk__in=exclude_trip_ids)
         .select_related("destination")
-        .prefetch_related("category_tags", "additional_destinations")
+        .prefetch_related("category_tags", "additional_destinations", "languages")
         .order_by("title")
     )
     services = []
@@ -313,7 +315,11 @@ def list_quick_add_recommendations(cart_trip_ids, limit=QUICK_ADD_RECOMMENDATION
         relations = (
             TripRelation.objects.filter(from_trip__in=cart_trip_ids)
             .select_related("to_trip", "to_trip__destination")
-            .prefetch_related("to_trip__category_tags", "to_trip__additional_destinations")
+            .prefetch_related(
+                "to_trip__category_tags",
+                "to_trip__additional_destinations",
+                "to_trip__languages",
+            )
             .order_by("position", "id")
         )
         for relation in relations:
@@ -331,7 +337,7 @@ def list_quick_add_recommendations(cart_trip_ids, limit=QUICK_ADD_RECOMMENDATION
             Trip.objects.filter(is_service=False)
             .exclude(pk__in=seen_trip_ids)
             .select_related("destination")
-            .prefetch_related("category_tags", "additional_destinations")
+            .prefetch_related("category_tags", "additional_destinations", "languages")
             .order_by("-created_at")[:remaining]
         )
         for trip in fallback_queryset:
@@ -617,7 +623,7 @@ class HomePageView(TemplateView):
         base_queryset = (
             Trip.objects.filter(is_service=False)
             .select_related("destination")
-            .prefetch_related("category_tags", "additional_destinations")
+            .prefetch_related("category_tags", "additional_destinations", "languages")
         )
 
         limit_per_toggle = 9
@@ -838,7 +844,7 @@ class BlogDetailView(TemplateView):
     def _recommended_trips(self):
         trips = (
             Trip.objects.select_related("destination")
-            .prefetch_related("category_tags", "additional_destinations")
+            .prefetch_related("category_tags", "additional_destinations", "languages")
             .order_by("-created_at")[:3]
         )
         return [build_trip_card(trip) for trip in trips]
@@ -929,7 +935,7 @@ class TripListView(TemplateView):
     def _base_queryset(self):
         return (
             Trip.objects.select_related("destination")
-            .prefetch_related("category_tags", "additional_destinations")
+            .prefetch_related("category_tags", "additional_destinations", "languages")
             .order_by("title")
         )
 
@@ -1361,7 +1367,7 @@ class TripDetailView(TemplateView):
         fallback_trips = (
             Trip.objects.exclude(pk=trip.pk)
             .select_related("destination")
-            .prefetch_related("category_tags", "additional_destinations")
+            .prefetch_related("category_tags", "additional_destinations", "languages")
             .order_by("title")[:3]
         )
         return [build_trip_card(item) for item in fallback_trips]
@@ -1387,7 +1393,7 @@ class TripDetailView(TemplateView):
         return days
 
     def _languages_label(self, trip):
-        languages = [language.name for language in trip.languages.all()]
+        languages = [language.code.upper() for language in trip.languages.all() if language.code]
         return " • ".join(languages)
 
     def _overview_paragraphs(self, trip):

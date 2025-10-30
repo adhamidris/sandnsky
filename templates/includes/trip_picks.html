@@ -59,6 +59,13 @@
                   </div>
                   {% endif %}
                   <div class="trip-picks__body">
+                    {% if trip.languages %}
+                    <ul class="trip-picks__languages" aria-label="Available languages">
+                      {% for language in trip.languages %}
+                      <li class="trip-picks__language-chip">{{ language }}</li>
+                      {% endfor %}
+                    </ul>
+                    {% endif %}
                     {% if trip.category %}
                     <span class="trip-picks__badge">{{ trip.category }}</span>
                     {% endif %}

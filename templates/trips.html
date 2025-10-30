@@ -242,6 +242,13 @@
           </div>
 
           <div class="flex flex-1 flex-col gap-4 p-4">
+            {% if trip.languages %}
+            <ul class="trip-card__languages" aria-label="Available languages">
+              {% for language in trip.languages %}
+              <li class="trip-card__language-chip">{{ language }}</li>
+              {% endfor %}
+            </ul>
+            {% endif %}
             <header class="rounded-md px-2 py-1">
               <h3 class="font-serif text-lg leading-tight text-foreground">{{ trip.title }}</h3>
             </header>
@@ -621,6 +628,29 @@
   .trip-cardi:hover {
     box-shadow: 0 10px 24px -12px rgba(24,24,24,0.55);
     transform: translateY(-2px);
+  }
+
+  .trip-card__languages{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    margin:0;
+    padding:0 0 4px;
+    list-style:none;
+  }
+
+  .trip-card__language-chip{
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    padding:4px 10px;
+    border-radius:999px;
+    background:rgba(201,169,97,0.18);
+    color:#5a4727;
+    font:600 10px/1 Inter,system-ui;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    border:1px solid rgba(201,169,97,0.36);
   }
 
   .trip-cardi .trip-card__price {
