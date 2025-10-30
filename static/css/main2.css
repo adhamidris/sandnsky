@@ -1047,10 +1047,6 @@ body {
   border-color: hsl(var(--primary) / 0.5);
 }
 
-.testo {
-  background-color: #ebe2d3;
-}
-
 .testi-inner {
   position: relative;
   z-index: 1;
