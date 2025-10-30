@@ -763,6 +763,18 @@
     gap:24px;
     align-items:flex-start;
   }
+  @media (max-width:899px){
+    .trip-picks__head{
+      align-items:center;
+      text-align:center;
+    }
+    .trip-picks__intro{
+      text-align:center;
+    }
+    .trip-picks__toggle-group{
+      justify-content:center;
+    }
+  }
   @media (min-width:900px){
     .trip-picks__head{
       flex-direction:row;
@@ -1236,7 +1248,7 @@
   /* ==============================
      11) Section: Blogs (3-up)
      ============================== */
-  .blogs{background:white; color:#1A2B4A !important; border-top:1px solid rgba(0,0,0,.06)}
+  .blogs{background:#F5F1E8; color:#1A2B4A !important; border-top:1px solid rgba(0,0,0,.06)}
   .blogs .wrap{max-width:1200px; margin:0 auto; padding:72px 24px}
   .blogs h2{font-family:"Libre Baskerville",serif; text-align:center; font-size:clamp(26px,3.2vw,34px); margin:0 0 10px}
   .blogs p.sub{max-width:70ch; margin:0 auto 32px; text-align:center; color:#2A2A2A !important}
@@ -1628,7 +1640,7 @@
   }
 
 #gallery {
-  background-color: #F5F1E8 !important;
+  background-color: white !important;
 }
 
 #gallery .eyebrow {

@@ -8,9 +8,6 @@
         <span class="trip-picks__eyebrow">{{ trip_picks_section.eyebrow }}</span>
         {% endif %}
         <h2 id="trip-picks-title">{{ trip_picks_section.title }}</h2>
-        {% if trip_picks_section.subtitle %}
-        <p class="trip-picks__subtitle">{{ trip_picks_section.subtitle }}</p>
-        {% endif %}
       </div>
       <div class="trip-picks__toggle-group" role="tablist" aria-label="Trip collections">
         {% for toggle in trip_picks_section.toggles %}
