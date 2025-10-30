@@ -1193,9 +1193,8 @@
     display: none;
     align-items: center;
     justify-content: center;
-    padding: clamp(24px, 6vw, 48px);
-    background: rgba(6, 8, 14, .78);
-    backdrop-filter: blur(8px);
+    padding: clamp(16px, 4vw, 28px);
+    background: rgba(10, 13, 18, .72);
   }
 
   #gallery-lightbox.is-visible {
@@ -1211,16 +1210,15 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    gap: clamp(16px, 3vw, 28px);
-    width: min(1100px, 90vw);
+    gap: clamp(12px, 2vw, 18px);
+    width: min(1200px, 96vw);
     max-height: 90vh;
-    background: rgba(12, 16, 24, .72);
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, .12);
-    box-shadow: 0 36px 80px rgba(0, 0, 0, .5);
-    padding: clamp(20px, 3vw, 32px);
+    background: transparent;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+    padding: 0;
     color: #fff;
-    overflow: hidden;
   }
 
   .gallery-lightbox__close {
@@ -1230,8 +1228,8 @@
     width: 38px;
     height: 38px;
     border-radius: 999px;
-    border: 1px solid rgba(255,255,255,.24);
-    background: rgba(0,0,0,.55);
+    border: 1px solid rgba(255,255,255,.35);
+    background: rgba(0,0,0,.45);
     color: inherit;
     font-size: 1.35rem;
     line-height: 1;
@@ -1239,12 +1237,13 @@
     place-items: center;
     cursor: pointer;
     transition: background .2s ease, border-color .2s ease, transform .2s ease;
+    z-index: 5;
   }
 
   .gallery-lightbox__close:hover,
   .gallery-lightbox__close:focus-visible {
-    background: rgba(0,0,0,.8);
-    border-color: rgba(255,255,255,.45);
+    background: rgba(0,0,0,.65);
+    border-color: rgba(255,255,255,.55);
     transform: scale(1.05);
     outline: none;
   }
@@ -1253,23 +1252,24 @@
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    width: 48px;
-    height: 48px;
+    width: 46px;
+    height: 46px;
     border-radius: 999px;
-    border: 1px solid rgba(255,255,255,.2);
-    background: rgba(0,0,0,.5);
+    border: 1px solid rgba(255,255,255,.25);
+    background: rgba(0,0,0,.35);
     color: inherit;
-    font-size: 1.75rem;
+    font-size: 1.55rem;
     display: grid;
     place-items: center;
     cursor: pointer;
     transition: background .2s ease, border-color .2s ease, transform .2s ease;
+    z-index: 5;
   }
 
   .gallery-lightbox__nav:hover,
   .gallery-lightbox__nav:focus-visible {
-    background: rgba(0,0,0,.78);
-    border-color: rgba(255,255,255,.36);
+    background: rgba(0,0,0,.6);
+    border-color: rgba(255,255,255,.45);
     transform: translateY(-50%) scale(1.05);
     outline: none;
   }
@@ -1280,38 +1280,40 @@
   .gallery-lightbox__media {
     flex: 1;
     position: relative;
-    background: rgba(0,0,0,.6);
-    border-radius: 16px;
+    background: transparent;
+    border-radius: 0;
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: clamp(12px, 2.5vw, 24px);
   }
 
   .gallery-lightbox__media img {
-    max-width: 100%;
-    max-height: 100%;
+    max-width: min(96vw, 1100px);
+    max-height: 80vh;
+    width: auto;
+    height: auto;
     border-radius: 12px;
-    box-shadow: 0 24px 60px rgba(0,0,0,.45);
+    box-shadow: none;
   }
 
   .gallery-lightbox__meta {
     text-align: center;
+    padding: 0 12px;
   }
 
   .gallery-lightbox__title {
     font-family: var(--font-heading, "Cormorant Garamond", serif);
-    font-size: clamp(20px, 3vw, 28px);
+    font-size: clamp(18px, 2.5vw, 26px);
     font-weight: 600;
     margin: 0 0 6px;
   }
 
   .gallery-lightbox__caption {
     margin: 0;
-    color: rgba(255,255,255,.78);
-    font-size: 15px;
-    line-height: 1.6;
+    color: rgba(255,255,255,.82);
+    font-size: 14px;
+    line-height: 1.5;
   }
 
   @media (max-width: 900px) {
@@ -1321,17 +1323,19 @@
 
   @media (max-width: 640px) {
     #gallery-lightbox {
-      padding: 16px;
+      padding: 12px;
     }
     .gallery-lightbox__dialog {
       width: 100%;
-      max-height: calc(100vh - 32px);
-      padding: 20px 16px 24px;
+      max-height: calc(100vh - 24px);
+    }
+    .gallery-lightbox__media img {
+      max-height: 70vh;
     }
     .gallery-lightbox__nav {
-      width: 42px;
-      height: 42px;
-      font-size: 1.5rem;
+      width: 40px;
+      height: 40px;
+      font-size: 1.4rem;
     }
   }
 
