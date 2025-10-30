@@ -420,6 +420,24 @@ class Trip(models.Model):
         super().save(*args, **kwargs)
 
 
+class TripGalleryImage(models.Model):
+    trip = models.ForeignKey(
+        Trip, on_delete=models.CASCADE, related_name="gallery_images"
+    )
+    image = models.ImageField(upload_to="trips/gallery/")
+    caption = models.CharField(max_length=200, blank=True)
+    position = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ["position", "id"]
+        verbose_name = "Trip gallery image"
+        verbose_name_plural = "Trip gallery images"
+
+    def __str__(self) -> str:
+        base = self.caption or self.image.name
+        return f"{self.trip.title} · {base}"
+
+
 def _generate_unique_slug(instance, value, slug_field_name="slug"):
     base_slug = slugify(value) or "item"
     slug = base_slug

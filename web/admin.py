@@ -23,6 +23,7 @@ from .models import (
     TripExclusion,
     TripFAQ,
     TripExtra,
+    TripGalleryImage,
     TripRelation,
     RewardPhase,
     RewardPhaseTrip,
@@ -116,6 +117,12 @@ class TripHighlightInline(admin.TabularInline):
     extra = 0
     fields = ("text", "position")
     ordering = ("position",)
+
+class TripGalleryImageInline(admin.TabularInline):
+    model = TripGalleryImage
+    extra = 1
+    fields = ("image", "caption", "position")
+    ordering = ("position", "id")
 
 
 class TripInclusionInline(admin.TabularInline):
@@ -415,6 +422,7 @@ class TripAdmin(admin.ModelAdmin):
     inlines = [
         TripAboutInline,
         TripHighlightInline,
+        TripGalleryImageInline,
         TripInclusionInline,
         TripExclusionInline,
         TripFAQInline,

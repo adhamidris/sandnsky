@@ -203,6 +203,20 @@
         </p>
       </div>
 
+      <div class="mt-6 flex items-center justify-between gap-3 lg:hidden">
+        <button type="button"
+                class="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition hover:border-primary/40 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                data-filter-open
+                aria-controls="trip-filter-panel"
+                aria-expanded="false"
+                aria-haspopup="dialog">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 5h18M6 12h12M10 19h4" />
+          </svg>
+          <span>Filters</span>
+        </button>
+      </div>
+
       {% if trips %}
       <div class="flex flex-wrap items-center justify-center gap-3 md:justify-end">
         <span class="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">View</span>
@@ -391,7 +405,22 @@
       {% endif %}
     </div>
 
-    <aside class="filter-bar mb-12 space-y-6 rounded-2xl border border-border bg-card p-6 shadow-subtle lg:mb-0 lg:self-start lg:sticky lg:top-32">
+    <aside id="trip-filter-panel"
+           class="filter-bar mb-12 hidden space-y-6 rounded-2xl border border-border bg-card p-6 shadow-subtle lg:mb-0 lg:block lg:self-start lg:sticky lg:top-32"
+           data-filter-panel
+           data-mobile-state="closed"
+           tabindex="-1"
+           aria-hidden="true"
+           aria-label="Trip filters">
+      <div class="mobile-filter-header mb-4 flex items-center justify-between lg:hidden">
+        <span class="text-sm font-semibold uppercase tracking-[0.25em] text-muted-foreground">Filters</span>
+        <button type="button" class="inline-flex items-center gap-1 rounded-full border border-border/60 px-3 py-1 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-filter-close>
+          <span>Close</span>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-3.5 w-3.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m6 6 12 12M18 6 6 18" />
+          </svg>
+        </button>
+      </div>
       <form action="{% url 'web:trips' %}" method="get" class="filter-form space-y-6" data-live-filter>
         <div class="space-y-1">
           <h3 class="text-sm font-semibold uppercase tracking-[0.25em] text-muted-foreground">Refine tours</h3>
@@ -465,6 +494,7 @@
         </div>
       </form>
     </aside>
+    <div class="fixed inset-0 z-40 hidden bg-black/40 backdrop-blur-sm" data-filter-overlay></div>
   </div>
 </section>
 {% if destination_gallery %}
@@ -530,6 +560,67 @@
 
   .why {
     background-color: #EBE2D3;
+  }
+
+  body.filter-panel-open {
+    overflow: hidden;
+  }
+
+  [data-filter-overlay] {
+    opacity: 0;
+    transition: opacity .2s ease;
+  }
+
+  [data-filter-overlay].is-visible {
+    opacity: 1;
+  }
+
+  @media (max-width: 1023px) {
+    .filter-bar[data-mobile-state="open"] {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 50;
+      display: block;
+      max-width: none;
+      border-radius: 0;
+      height: 100vh;
+      overflow-y: auto;
+      padding: calc(1.5rem + env(safe-area-inset-top, 0px)) 1.5rem calc(2.5rem + env(safe-area-inset-bottom, 0px));
+      -webkit-overflow-scrolling: touch;
+      background: rgba(247, 240, 230, 0.98);
+    }
+
+    .filter-bar[data-mobile-state="open"] .filter-form {
+      max-width: 32rem;
+      margin: 0 auto;
+    }
+
+    .filter-bar[data-mobile-state="open"] .mobile-filter-header {
+      position: sticky;
+      top: calc(-1.5rem - env(safe-area-inset-top, 0px));
+      margin: calc(-1.5rem - env(safe-area-inset-top, 0px)) -1.5rem 1.5rem;
+      padding: calc(1.5rem + env(safe-area-inset-top, 0px)) 1.5rem 1rem;
+      background: rgba(247, 240, 230, 0.96);
+      backdrop-filter: blur(12px);
+      z-index: 1;
+    }
+  }
+
+  @media (min-width: 640px) and (max-width: 1023px) {
+    .filter-bar[data-mobile-state="open"] {
+      left: auto;
+      width: min(26rem, 90vw);
+      border-radius: 1.5rem 0 0 1.5rem;
+      box-shadow: 0 24px 48px rgba(17, 17, 17, 0.28);
+    }
+
+    .filter-bar[data-mobile-state="open"] .mobile-filter-header {
+      margin-left: 0;
+      margin-right: 0;
+    }
   }
 
   @media (min-width: 1024px) {
@@ -699,6 +790,11 @@
   var hasPopstateListener = false;
   var BASE_SCROLL_OFFSET = 24;
   var TRIP_VIEW_STORAGE_KEY = 'trip-view-mode';
+  var desktopMediaQuery = typeof window.matchMedia === 'function' ? window.matchMedia('(min-width: 1024px)') : null;
+  var mobileFilterKeydownBound = false;
+  var mobileFilterMediaBound = false;
+  var mobileFilterMediaHandler = null;
+  var previousMobileFilterFocus = null;
 
   function calculateScrollOffset(target) {
     var offset = BASE_SCROLL_OFFSET;
@@ -736,6 +832,169 @@
 
   function smoothScrollToResults() {
     scrollToSection('trip-list');
+  }
+
+  function isDesktopView() {
+    if (!desktopMediaQuery) {
+      return window.innerWidth >= 1024;
+    }
+    return desktopMediaQuery.matches;
+  }
+
+  function openMobileFilterPanel() {
+    if (isDesktopView()) {
+      return;
+    }
+    var panel = document.querySelector('[data-filter-panel]');
+    if (!panel || panel.dataset.mobileState === 'open') {
+      return;
+    }
+    var overlay = document.querySelector('[data-filter-overlay]');
+    previousMobileFilterFocus = document.activeElement;
+    panel.dataset.mobileState = 'open';
+    panel.classList.remove('hidden');
+    panel.setAttribute('aria-hidden', 'false');
+    panel.scrollTop = 0;
+    if (overlay) {
+      overlay.classList.remove('hidden');
+      overlay.classList.add('is-visible');
+    }
+    var openButton = document.querySelector('[data-filter-open]');
+    if (openButton) {
+      openButton.setAttribute('aria-expanded', 'true');
+    }
+    document.body.classList.add('filter-panel-open');
+    window.requestAnimationFrame(function () {
+      panel.focus({ preventScroll: true });
+    });
+  }
+
+  function closeMobileFilterPanel() {
+    var panel = document.querySelector('[data-filter-panel]');
+    if (!panel) {
+      return;
+    }
+    panel.dataset.mobileState = 'closed';
+    if (isDesktopView()) {
+      panel.classList.remove('hidden');
+      panel.setAttribute('aria-hidden', 'false');
+    } else {
+      panel.classList.add('hidden');
+      panel.setAttribute('aria-hidden', 'true');
+    }
+    var overlay = document.querySelector('[data-filter-overlay]');
+    if (overlay) {
+      overlay.classList.add('hidden');
+      overlay.classList.remove('is-visible');
+    }
+    var openButton = document.querySelector('[data-filter-open]');
+    if (openButton) {
+      openButton.setAttribute('aria-expanded', 'false');
+    }
+    document.body.classList.remove('filter-panel-open');
+    if (previousMobileFilterFocus && typeof previousMobileFilterFocus.focus === 'function') {
+      previousMobileFilterFocus.focus({ preventScroll: true });
+    }
+    previousMobileFilterFocus = null;
+  }
+
+  function initMobileFilters() {
+    var panel = document.querySelector('[data-filter-panel]');
+    var openButton = document.querySelector('[data-filter-open]');
+    var overlay = document.querySelector('[data-filter-overlay]');
+    if (!panel) {
+      return;
+    }
+
+    if (!panel.dataset.mobileState) {
+      panel.dataset.mobileState = 'closed';
+    }
+
+    if (isDesktopView()) {
+      panel.classList.remove('hidden');
+      panel.setAttribute('aria-hidden', 'false');
+      panel.dataset.mobileState = 'closed';
+      if (overlay) {
+        overlay.classList.add('hidden');
+        overlay.classList.remove('is-visible');
+      }
+    } else if (panel.dataset.mobileState !== 'open') {
+      panel.classList.add('hidden');
+      panel.setAttribute('aria-hidden', 'true');
+    }
+
+    if (openButton) {
+      openButton.setAttribute('aria-expanded', panel.dataset.mobileState === 'open' ? 'true' : 'false');
+      if (!openButton.dataset.filterMobileBound) {
+        openButton.dataset.filterMobileBound = 'true';
+        openButton.addEventListener('click', function () {
+          if (panel.dataset.mobileState === 'open') {
+            closeMobileFilterPanel();
+          } else {
+            openMobileFilterPanel();
+          }
+        });
+      }
+    }
+
+    panel.querySelectorAll('[data-filter-close]').forEach(function (button) {
+      if (!button.dataset.filterMobileBound) {
+        button.dataset.filterMobileBound = 'true';
+        button.addEventListener('click', closeMobileFilterPanel);
+      }
+    });
+
+    if (overlay && !overlay.dataset.filterMobileBound) {
+      overlay.dataset.filterMobileBound = 'true';
+      overlay.addEventListener('click', closeMobileFilterPanel);
+    }
+
+    if (!mobileFilterKeydownBound) {
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+          var activePanel = document.querySelector('[data-filter-panel]');
+          if (activePanel && activePanel.dataset.mobileState === 'open') {
+            closeMobileFilterPanel();
+          }
+        }
+      });
+      mobileFilterKeydownBound = true;
+    }
+
+    if (!mobileFilterMediaBound) {
+      mobileFilterMediaHandler = function (event) {
+        var matches = typeof event.matches === 'boolean' ? event.matches : isDesktopView();
+        var currentPanel = document.querySelector('[data-filter-panel]');
+        var overlayEl = document.querySelector('[data-filter-overlay]');
+        if (!currentPanel) {
+          return;
+        }
+        if (matches) {
+          currentPanel.classList.remove('hidden');
+          currentPanel.setAttribute('aria-hidden', 'false');
+          currentPanel.dataset.mobileState = 'closed';
+          document.body.classList.remove('filter-panel-open');
+          if (overlayEl) {
+            overlayEl.classList.add('hidden');
+            overlayEl.classList.remove('is-visible');
+          }
+          previousMobileFilterFocus = null;
+        } else if (currentPanel.dataset.mobileState !== 'open') {
+          currentPanel.classList.add('hidden');
+          currentPanel.setAttribute('aria-hidden', 'true');
+        }
+      };
+
+      if (desktopMediaQuery && typeof desktopMediaQuery.addEventListener === 'function') {
+        desktopMediaQuery.addEventListener('change', mobileFilterMediaHandler);
+        mobileFilterMediaBound = true;
+      } else if (desktopMediaQuery && typeof desktopMediaQuery.addListener === 'function') {
+        desktopMediaQuery.addListener(mobileFilterMediaHandler);
+        mobileFilterMediaBound = true;
+      } else {
+        mobileFilterMediaBound = true;
+      }
+    }
   }
 
   function getStoredTripView() {
@@ -866,6 +1125,25 @@
     var queryString = query.toString();
     var fetchUrl = window.location.pathname + (queryString ? '?' + queryString : '');
     var tripList = document.getElementById('trip-list');
+    var activeElement = document.activeElement;
+    var restoreSearchFocus = false;
+    var searchSelectionStart = null;
+    var searchSelectionEnd = null;
+    var reopenFilterPanel = false;
+    var filterPanel = document.querySelector('[data-filter-panel]');
+
+    if (activeElement && typeof activeElement.matches === 'function' && activeElement.matches('[data-filter-search]')) {
+      restoreSearchFocus = true;
+      if (typeof activeElement.selectionStart === 'number' && typeof activeElement.selectionEnd === 'number') {
+        searchSelectionStart = activeElement.selectionStart;
+        searchSelectionEnd = activeElement.selectionEnd;
+      }
+    }
+
+    if (filterPanel && filterPanel.dataset.mobileState === 'open') {
+      reopenFilterPanel = true;
+    }
+
     if (tripList) {
       tripList.setAttribute('aria-busy', 'true');
     }
@@ -901,8 +1179,12 @@
         }
 
         initTripFilters();
+        initMobileFilters();
         initTripViewToggle();
         initCartToggleButtons();
+        if (reopenFilterPanel && !isDesktopView()) {
+          openMobileFilterPanel();
+        }
       })
       .catch(function (error) {
         console.error('Trip filter update failed:', error);
@@ -912,6 +1194,18 @@
         var updatedTripList = document.getElementById('trip-list');
         if (updatedTripList) {
           updatedTripList.removeAttribute('aria-busy');
+        }
+        if (restoreSearchFocus) {
+          var searchInput = document.querySelector('[data-filter-search]');
+          if (searchInput) {
+            searchInput.focus({ preventScroll: true });
+            if (typeof searchSelectionStart === 'number' && typeof searchSelectionEnd === 'number' && typeof searchInput.setSelectionRange === 'function') {
+              var length = searchInput.value.length;
+              var start = Math.min(searchSelectionStart, length);
+              var end = Math.min(searchSelectionEnd, length);
+              searchInput.setSelectionRange(start, end);
+            }
+          }
         }
       });
   }
@@ -923,20 +1217,24 @@
     }
     form.dataset.liveFilterBound = 'true';
 
-    var debounceTimer = null;
+    var changeDebounceTimer = null;
+    var searchDebounceTimer = null;
 
     form.addEventListener('submit', function (event) {
       event.preventDefault();
       var params = new URLSearchParams(new FormData(form));
       submitParams(params, true);
+      if (!isDesktopView()) {
+        closeMobileFilterPanel();
+      }
     });
 
     form.addEventListener('change', function (event) {
       if (!(event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement)) {
         return;
       }
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(function () {
+      clearTimeout(changeDebounceTimer);
+      changeDebounceTimer = setTimeout(function () {
         var params = new URLSearchParams(new FormData(form));
         submitParams(params, true);
       }, 200);
@@ -955,11 +1253,11 @@
     var searchInput = form.querySelector('[data-filter-search]');
     if (searchInput) {
       searchInput.addEventListener('input', function () {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(function () {
+        clearTimeout(searchDebounceTimer);
+        searchDebounceTimer = setTimeout(function () {
           var params = new URLSearchParams(new FormData(form));
           submitParams(params, true);
-        }, 200);
+        }, 700);
       });
       searchInput.addEventListener('keydown', function (event) {
         if (event.key === 'Enter') {
@@ -1368,6 +1666,7 @@
   function initPageEnhancements() {
     initTripFilters();
     initDestinationNav();
+    initMobileFilters();
     initTripViewToggle();
     initCartToggleButtons();
   }

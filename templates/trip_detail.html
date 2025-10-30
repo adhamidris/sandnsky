@@ -297,7 +297,7 @@
 
 {% if trip.anchor_nav %}
 <nav class="sticky top-16 z-20 hidden bg-background border-b border-border/60 shadow-sm backdrop-blur lg:block tailwind-subnav" aria-label="Section navigation">
-  <div class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 py-3 text-sm text-muted-foreground">
+  <div class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-3 text-sm text-muted-foreground">
     <div class="flex flex-1 items-center gap-3 overflow-x-auto">
       {% for anchor in trip.anchor_nav %}
       <a href="#{{ anchor.target }}" class="whitespace-nowrap rounded-full px-3 py-1 text-muted-foreground transition-colors hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">{{ anchor.label }}</a>
@@ -364,6 +364,55 @@
     </div>
   </div>
 </section>
+
+{% if trip.gallery %}
+<section id="gallery" class="bg-muted px-4 py-16 sm:px-6 lg:px-8 scroll-mt-32">
+  <div class="mx-auto max-w-7xl space-y-6">
+    <div class="space-y-3 text-left">
+      <h2 class="font-serif text-3xl text-foreground">Trip gallery</h2>
+      <p class="text-sm text-muted-foreground">A glimpse into the moments guests experience on {{ trip.title }}.</p>
+    </div>
+    <div class="gallery-grid grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3" data-gallery>
+      {% for item in trip.gallery %}
+      <figure class="gallery-card group relative overflow-hidden rounded-2xl border border-border/60 bg-card/80 shadow-subtle {% if item.is_landscape %}gallery-card--landscape{% endif %}" data-gallery-item data-gallery-full="{{ item.image_url }}" data-gallery-caption="{{ item.caption|default:''|escape }}">
+        <button type="button" class="gallery-card__button" data-gallery-trigger aria-label="View larger image {{ forloop.counter }}">
+          <img src="{{ item.image_url }}" alt="{{ trip.title }} gallery image {{ forloop.counter }}" class="gallery-card__image transition-transform duration-500 group-hover:scale-110" loading="lazy" />
+          <span class="gallery-card__scrim" aria-hidden="true"></span>
+          {% if item.caption %}
+          <span class="gallery-card__caption">{{ item.caption }}</span>
+          {% else %}
+          <span class="gallery-card__caption">View photo</span>
+          {% endif %}
+        </button>
+      </figure>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<div class="gallery-lightbox" data-gallery-overlay hidden>
+  <div class="gallery-lightbox__backdrop" data-gallery-close></div>
+  <div class="gallery-lightbox__dialog" role="dialog" aria-modal="true" aria-label="Trip gallery viewer" tabindex="-1">
+    <button type="button" class="gallery-lightbox__close" data-gallery-close aria-label="Close gallery">
+      <span aria-hidden="true">&times;</span>
+    </button>
+    <figure class="gallery-lightbox__figure">
+      <div class="gallery-lightbox__media">
+        <img src="" alt="Expanded gallery image" class="gallery-lightbox__image" data-gallery-active-image />
+        <div class="gallery-lightbox__controls">
+          <button type="button" class="gallery-lightbox__nav gallery-lightbox__nav--prev" data-gallery-prev aria-label="View previous image">
+            <span aria-hidden="true">&#8592;</span>
+          </button>
+          <button type="button" class="gallery-lightbox__nav gallery-lightbox__nav--next" data-gallery-next aria-label="View next image">
+            <span aria-hidden="true">&#8594;</span>
+          </button>
+        </div>
+      </div>
+      <figcaption class="gallery-lightbox__caption" data-gallery-active-caption></figcaption>
+    </figure>
+  </div>
+</div>
+{% endif %}
 
 {% if trip.overview_paragraphs %}
 <section id="about" class="bg-muted px-4 py-16 sm:px-6 lg:px-8 scroll-mt-32">
@@ -591,5 +640,17 @@
     </div>
   </div>
 </section>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+{% if trip.gallery %}
+<script src="{% static 'js/gallery-lightbox.js' %}"></script>
+<script>
+  if (window.initGalleryLightbox) {
+    window.initGalleryLightbox();
+  }
+</script>
 {% endif %}
 {% endblock %}

@@ -50,6 +50,7 @@ from .models import (
     TripItineraryDay,
     TripRelation,
     TripExtra,
+    TripGalleryImage,
 )
 from .rewards import (
     RewardComputationError,
@@ -129,15 +130,14 @@ def _destination_hero_context(destination):
     }
 
 
-def _destination_gallery_context(destination):
-    if not destination:
-        return []
+def _serialize_gallery_images(images):
     gallery = []
-    for image in destination.gallery_images.all():
-        if not image.image:
+    for item in images:
+        file_field = getattr(item, "image", None)
+        if not file_field:
             continue
-        width = getattr(image.image, "width", None)
-        height = getattr(image.image, "height", None)
+        width = getattr(file_field, "width", None)
+        height = getattr(file_field, "height", None)
         is_landscape = False
         if width and height:
             try:
@@ -146,12 +146,24 @@ def _destination_gallery_context(destination):
                 is_landscape = False
         gallery.append(
             {
-                "image_url": image.image.url,
-                "caption": image.caption,
+                "image_url": file_field.url,
+                "caption": getattr(item, "caption", ""),
                 "is_landscape": is_landscape,
             }
         )
     return gallery
+
+
+def _destination_gallery_context(destination):
+    if not destination:
+        return []
+    return _serialize_gallery_images(destination.gallery_images.all())
+
+
+def _trip_gallery_context(trip):
+    if not trip:
+        return []
+    return _serialize_gallery_images(trip.gallery_images.all())
 
 
 def load_booking_from_token(token, *, max_age=BOOKING_REFERENCE_MAX_AGE):
@@ -1020,6 +1032,10 @@ class TripDetailView(TemplateView):
                     .prefetch_related("to_trip__category_tags", "to_trip__additional_destinations")
                     .order_by("position", "id"),
                 ),
+                Prefetch(
+                    "gallery_images",
+                    queryset=TripGalleryImage.objects.order_by("position", "id"),
+                ),
             )
         )
 
@@ -1237,6 +1253,7 @@ class TripDetailView(TemplateView):
         review_summary, has_reviews = self._review_summary(reviews)
 
         destinations_label = " • ".join(_all_destination_names(trip))
+        gallery_items = _trip_gallery_context(trip)
 
         trip_data = {
             "title": trip.title,
@@ -1258,6 +1275,7 @@ class TripDetailView(TemplateView):
             "has_reviews": has_reviews,
             "contact_actions": contact_actions(),
             "destinations": destinations_label,
+            "gallery": gallery_items,
         }
         trip_data["anchor_nav"] = self._anchor_nav(trip_data, other_trips)
         return trip_data
@@ -1341,6 +1359,8 @@ class TripDetailView(TemplateView):
         nav = []
         if trip_data.get("highlights"):
             nav.append({"label": "Highlights", "target": "highlights"})
+        if trip_data.get("gallery"):
+            nav.append({"label": "Gallery", "target": "gallery"})
         if trip_data.get("overview_paragraphs"):
             nav.append({"label": "About", "target": "about"})
         if trip_data.get("itinerary_days"):
