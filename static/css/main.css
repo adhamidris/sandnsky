@@ -1428,7 +1428,7 @@
   /* ==============================
      11) Section: Blogs (3-up)
      ============================== */
-  .blogs{background:#F5F1E8; color:#1A2B4A !important; border-top:1px solid rgba(0,0,0,.06)}
+  .blogs{background:white !important; color:#1A2B4A !important; border-top:1px solid rgba(0,0,0,.06)}
   .blogs .wrap{max-width:1200px; margin:0 auto; padding:72px 24px}
   .blogs h2{font-family:"Libre Baskerville",serif; text-align:center; font-size:clamp(26px,3.2vw,34px); margin:0 0 10px}
   .blogs p.sub{max-width:70ch; margin:0 auto 32px; text-align:center; color:#2A2A2A !important}
@@ -1820,7 +1820,7 @@
   }
 
 #gallery {
-  background-color: white !important;
+  background-color: #F5F1E8 !important;
 }
 
 #gallery .eyebrow {
@@ -2195,4 +2195,8 @@
 
 .floating-mob-btn {
   background-color: #B8945A !important;
+}
+
+#testimonials {
+   background-color: white !important;
 }
