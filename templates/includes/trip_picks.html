@@ -76,6 +76,83 @@
                     </div>
                   </div>
                 </a>
+                <div class="trip-picks__actions">
+                  <a
+                    href="{% url 'web:trip-detail' trip.slug %}"
+                    class="trip-picks__action-btn trip-picks__action-btn--primary"
+                  >
+                    View details
+                  </a>
+                  <form
+                    method="post"
+                    action="{% url 'web:booking-cart-quick-add' trip.slug %}"
+                    class="trip-picks__action-form"
+                    data-cart-toggle
+                  >
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+                    {% with date_id="picks-quick-add-date-"|add:trip.slug count_id="picks-quick-add-count-"|add:trip.slug %}
+                    <div class="trip-picks__quick-add" data-quick-add-container>
+                      <button
+                        type="submit"
+                        class="trip-picks__action-btn {% if trip.in_cart %}trip-picks__action-btn--remove{% else %}trip-picks__action-btn--secondary{% endif %}"
+                        data-cart-toggle-button
+                        data-cart-state="{% if trip.in_cart %}added{% else %}removed{% endif %}"
+                        data-cart-class-added="trip-picks__action-btn--remove"
+                        data-cart-class-removed="trip-picks__action-btn--secondary"
+                        aria-haspopup="dialog"
+                        aria-expanded="false"
+                      >
+                        {% if trip.in_cart %}
+                        Remove from booking list
+                        {% else %}
+                        Add to booking list
+                        {% endif %}
+                      </button>
+                      <div
+                        class="quick-add-popover trip-picks__popover hidden"
+                        data-quick-add-popover
+                        role="dialog"
+                        aria-label="Add {{ trip.title }} to booking list"
+                        aria-modal="false"
+                        data-state="closed"
+                      >
+                        <div class="trip-picks__popover-body">
+                          <div class="trip-picks__popover-field">
+                            <label for="{{ date_id }}">Travel date</label>
+                            <input
+                              id="{{ date_id }}"
+                              type="date"
+                              name="date"
+                              data-quick-add-date
+                            />
+                          </div>
+                          <div class="trip-picks__popover-field">
+                            <label for="{{ count_id }}">Travelers</label>
+                            <div class="trip-picks__popover-counter">
+                              <button type="button" data-quick-add-step="down" aria-label="Decrease travelers">-</button>
+                              <input
+                                id="{{ count_id }}"
+                                type="number"
+                                name="adults"
+                                min="1"
+                                max="16"
+                                value="2"
+                                data-quick-add-count
+                              />
+                              <button type="button" data-quick-add-step="up" aria-label="Increase travelers">+</button>
+                            </div>
+                          </div>
+                          <div class="trip-picks__popover-actions">
+                            <button type="button" data-quick-add-cancel>Cancel</button>
+                            <button type="submit" data-quick-add-confirm>Add trip</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    {% endwith %}
+                  </form>
+                </div>
               </article>
               {% endfor %}
             </div>
@@ -109,6 +186,358 @@
 
   const toggles = Array.from(section.querySelectorAll('[data-trip-toggle]'));
   const panels = Array.from(section.querySelectorAll('[data-trip-panel]'));
+
+  const isoLocalDateString = (date) => {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+      return '';
+    }
+    const offset = date.getTimezoneOffset() * 60000;
+    const local = new Date(date.getTime() - offset);
+    return local.toISOString().slice(0, 10);
+  };
+
+  const todayIsoDate = () => isoLocalDateString(new Date());
+
+  const clampTravelerCount = (value, minValue, maxValue) => {
+    const parsed = parseInt(value, 10);
+    const min = typeof minValue === 'number' && !Number.isNaN(minValue) ? minValue : 1;
+    const max =
+      typeof maxValue === 'number' && !Number.isNaN(maxValue) ? maxValue : null;
+    let next = Number.isNaN(parsed) ? min : parsed;
+    if (next < min) {
+      next = min;
+    }
+    if (typeof max === 'number' && !Number.isNaN(max) && next > max) {
+      next = max;
+    }
+    return next;
+  };
+
+  const getClassTokens = (button, attr) => {
+    const value = button.getAttribute(attr);
+    if (!value) {
+      return [];
+    }
+    return value
+      .split(/\s+/)
+      .map((token) => token.trim())
+      .filter(Boolean);
+  };
+
+  const setCartButtonState = (button, inCart) => {
+    const added = getClassTokens(button, 'data-cart-class-added');
+    const removed = getClassTokens(button, 'data-cart-class-removed');
+    const allTokens = [...added, ...removed];
+
+    allTokens.forEach((token) => {
+      if (token) {
+        button.classList.remove(token);
+      }
+    });
+
+    const targetTokens = inCart ? added : removed;
+    targetTokens.forEach((token) => {
+      if (token) {
+        button.classList.add(token);
+      }
+    });
+
+    button.setAttribute('data-cart-state', inCart ? 'added' : 'removed');
+    button.setAttribute('aria-expanded', 'false');
+    button.textContent = inCart ? 'Remove from booking list' : 'Add to booking list';
+  };
+
+  const updateNavCart = (data) => {
+    if (!data || typeof data !== 'object') {
+      return;
+    }
+    const badge = document.querySelector('[data-cart-count-badge]');
+    if (badge) {
+      if (data.cart_count > 0) {
+        badge.textContent = data.cart_count;
+        badge.classList.remove('hidden');
+      } else {
+        badge.textContent = '';
+        badge.classList.add('hidden');
+      }
+    }
+
+    const label = document.querySelector('[data-cart-label-text]');
+    if (label && typeof data.cart_label === 'string') {
+      label.textContent = data.cart_label;
+      label.classList.toggle('font-semibold', data.cart_count > 0);
+      label.classList.toggle('text-foreground', data.cart_count > 0);
+      label.classList.toggle('text-muted-foreground', data.cart_count === 0);
+    }
+
+    const panel = document.querySelector('[data-cart-panel]');
+    if (panel && typeof data.panel_html === 'string') {
+      panel.innerHTML = data.panel_html;
+    }
+
+    const navcart = document.querySelector('[data-navcart]');
+    const toast = document.querySelector('[data-cart-toast]');
+    if (navcart && toast) {
+      const messageEl = toast.querySelector('[data-cart-toast-message]');
+      const iconEl = toast.querySelector('[data-cart-toast-icon]');
+      const message = (data.toast_message || '').trim();
+      window.clearTimeout(toast._hideTimer);
+      if (messageEl && message) {
+        messageEl.textContent = message;
+        if (iconEl) {
+          iconEl.textContent = data.in_cart ? '✓' : '-';
+        }
+        toast.dataset.state = data.in_cart ? 'added' : 'removed';
+        navcart.dataset.toast = 'show';
+        toast._hideTimer = window.setTimeout(() => {
+          toast.dataset.state = '';
+          if (iconEl) {
+            iconEl.textContent = '';
+          }
+          delete navcart.dataset.toast;
+        }, 2400);
+      } else {
+        toast.dataset.state = '';
+        if (iconEl) {
+          iconEl.textContent = '';
+        }
+        delete navcart.dataset.toast;
+      }
+    }
+  };
+
+  const bindQuickAddForm = (form) => {
+    if (!form || form.dataset.tripPicksBound === 'true') {
+      return;
+    }
+    form.dataset.tripPicksBound = 'true';
+
+    const toggleButton = form.querySelector('[data-cart-toggle-button]');
+    const container = form.querySelector('[data-quick-add-container]');
+    const popover = form.querySelector('[data-quick-add-popover]');
+    const cancelButton = form.querySelector('[data-quick-add-cancel]');
+    const countInput = form.querySelector('[data-quick-add-count]');
+    const dateInput = form.querySelector('[data-quick-add-date]');
+    const stepButtons = Array.from(form.querySelectorAll('[data-quick-add-step]'));
+    const card = form.closest('.trip-picks__card');
+
+    let outsideHandler = null;
+    let escHandler = null;
+
+    const setExpanded = (expanded) => {
+      if (toggleButton) {
+        toggleButton.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+      }
+    };
+
+    const ensureDateValue = () => {
+      if (!dateInput) return;
+      const today = todayIsoDate();
+      if (dateInput.min !== today) {
+        dateInput.min = today;
+      }
+      if (!dateInput.value || dateInput.value < today) {
+        dateInput.value = today;
+      }
+    };
+
+    const ensureCountValue = () => {
+      if (!countInput) return;
+      const minAttr = parseInt(countInput.getAttribute('min'), 10);
+      const maxAttr = parseInt(countInput.getAttribute('max'), 10);
+      const min = Number.isNaN(minAttr) ? 1 : minAttr;
+      const max = Number.isNaN(maxAttr) ? null : maxAttr;
+      const next = clampTravelerCount(countInput.value, min, max);
+      countInput.value = String(next);
+    };
+
+    const removeDocumentListeners = () => {
+      if (outsideHandler) {
+        document.removeEventListener('mousedown', outsideHandler);
+        document.removeEventListener('touchstart', outsideHandler);
+        outsideHandler = null;
+      }
+      if (escHandler) {
+        document.removeEventListener('keydown', escHandler);
+        escHandler = null;
+      }
+    };
+
+    const closePopover = () => {
+      if (popover && popover.dataset.state === 'open') {
+        popover.classList.add('hidden');
+        popover.dataset.state = 'closed';
+      }
+      setExpanded(false);
+      removeDocumentListeners();
+      if (container) {
+        container.classList.remove('quick-add-open');
+      }
+      if (card) {
+        card.classList.remove('quick-add-active');
+      }
+    };
+
+    const openPopover = () => {
+      if (!popover || popover.dataset.state === 'open') {
+        return;
+      }
+      ensureDateValue();
+      ensureCountValue();
+      popover.classList.remove('hidden');
+      popover.dataset.state = 'open';
+      setExpanded(true);
+      if (container) {
+        container.classList.add('quick-add-open');
+      }
+      if (card) {
+        card.classList.add('quick-add-active');
+      }
+      outsideHandler = (event) => {
+        if (!form.contains(event.target)) {
+          closePopover();
+        }
+      };
+      escHandler = (event) => {
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          closePopover();
+        }
+      };
+      document.addEventListener('mousedown', outsideHandler);
+      document.addEventListener('touchstart', outsideHandler);
+      document.addEventListener('keydown', escHandler);
+      if (dateInput) {
+        window.requestAnimationFrame(() => {
+          dateInput.focus({ preventScroll: true });
+        });
+      }
+    };
+
+    if (toggleButton && popover) {
+      toggleButton.addEventListener('click', (event) => {
+        if (toggleButton.getAttribute('data-cart-state') === 'removed') {
+          event.preventDefault();
+          if (popover.dataset.state === 'open') {
+            closePopover();
+          } else {
+            openPopover();
+          }
+        } else {
+          closePopover();
+        }
+      });
+    }
+
+    if (cancelButton) {
+      cancelButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        closePopover();
+      });
+    }
+
+    if (countInput) {
+      countInput.addEventListener('change', ensureCountValue);
+      countInput.addEventListener('blur', ensureCountValue);
+    }
+
+    if (stepButtons.length && countInput) {
+      stepButtons.forEach((stepButton) => {
+        stepButton.addEventListener('click', () => {
+          const direction = stepButton.getAttribute('data-quick-add-step');
+          const minAttr = parseInt(countInput.getAttribute('min'), 10);
+          const maxAttr = parseInt(countInput.getAttribute('max'), 10);
+          const min = Number.isNaN(minAttr) ? 1 : minAttr;
+          const max = Number.isNaN(maxAttr) ? null : maxAttr;
+          const current = clampTravelerCount(countInput.value, min, max);
+          const delta = direction === 'down' ? -1 : 1;
+          let next = current + delta;
+          if (typeof max === 'number' && !Number.isNaN(max)) {
+            next = Math.min(next, max);
+          }
+          next = Math.max(next, min);
+          countInput.value = String(next);
+        });
+      });
+    }
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (!toggleButton) {
+        form.submit();
+        return;
+      }
+
+      ensureDateValue();
+      ensureCountValue();
+
+      if (typeof window.fetch !== 'function') {
+        form.submit();
+        return;
+      }
+
+      const primaryButton = toggleButton;
+      const submitter = event.submitter && event.submitter instanceof HTMLElement ? event.submitter : primaryButton;
+      if (submitter && submitter !== primaryButton) {
+        submitter.disabled = true;
+      }
+      primaryButton.disabled = true;
+      primaryButton.setAttribute('aria-busy', 'true');
+
+      const formData = new FormData(form);
+      if (!formData.get('next')) {
+        formData.set('next', window.location.pathname + window.location.search);
+      }
+
+      if (dateInput && dateInput.value) {
+        formData.set('date', dateInput.value);
+      }
+      if (countInput && countInput.value) {
+        formData.set('adults', countInput.value);
+      }
+
+      closePopover();
+
+      let shouldFallback = false;
+
+      fetch(form.action, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        body: formData,
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('Request failed');
+          }
+          return response.json();
+        })
+        .then((data) => {
+          setCartButtonState(primaryButton, Boolean(data && data.in_cart));
+          updateNavCart(data || {});
+        })
+        .catch(() => {
+          shouldFallback = true;
+        })
+        .finally(() => {
+          primaryButton.disabled = false;
+          primaryButton.removeAttribute('aria-busy');
+          if (submitter && submitter !== primaryButton) {
+            submitter.disabled = false;
+          }
+          if (shouldFallback) {
+            form.submit();
+          }
+        });
+    });
+  };
+
+  const initQuickAdd = () => {
+    const forms = Array.from(section.querySelectorAll('[data-cart-toggle]'));
+    if (!forms.length) {
+      return;
+    }
+    forms.forEach(bindQuickAddForm);
+  };
 
   const activate = (slug) => {
     if (!slug) return;
@@ -196,6 +625,7 @@
   };
 
   section.querySelectorAll('[data-trip-carousel]').forEach(initCarousel);
+  initQuickAdd();
 })();
 </script>
 {% endblock %}

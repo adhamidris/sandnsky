@@ -828,6 +828,175 @@
     color:#fff;
     box-shadow:0 12px 24px rgba(0,0,0,.18);
   }
+  .trip-picks__actions{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin:0;
+    padding:18px 20px 20px;
+    border-top:1px solid rgba(17,17,17,.06);
+  }
+  .trip-picks__actions > *{
+    width:100%;
+  }
+  @media (min-width:640px){
+    .trip-picks__actions{
+      flex-direction:row;
+      gap:12px;
+    }
+    .trip-picks__actions > *{
+      flex:1;
+    }
+  }
+  .trip-picks__action-btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:100%;
+    border-radius:999px;
+    border:1px solid transparent;
+    font:600 12px/1 Inter,system-ui;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    padding:12px 16px;
+    text-decoration:none;
+    transition:background .2s ease, color .2s ease, border-color .2s ease, transform .2s ease;
+    cursor:pointer;
+    gap:8px;
+  }
+  .trip-picks__action-btn--primary{
+    background:#1a2b4a;
+    color:#fff;
+    border-color:#1a2b4a;
+    box-shadow:0 12px 24px rgba(26,43,74,.18);
+  }
+  .trip-picks__action-btn--primary:hover{
+    background:#243b65;
+    transform:translateY(-2px);
+  }
+  .trip-picks__action-btn--secondary{
+    background:#f5f1e8;
+    color:#1a2b4a;
+    border-color:rgba(201,169,97,.5);
+  }
+  .trip-picks__action-btn--secondary:hover{
+    background:#c9a961;
+    border-color:#c9a961;
+    color:#1a2b4a;
+  }
+  .trip-picks__action-btn--remove{
+    background:#8a3d28;
+    color:#fff;
+    border-color:#8a3d28;
+  }
+  .trip-picks__action-btn--remove:hover{
+    background:#743220;
+  }
+  .trip-picks__action-btn:focus-visible{
+    outline:2px solid #c9a961;
+    outline-offset:2px;
+  }
+  .trip-picks__action-form{
+    width:100%;
+    display:flex;
+  }
+  .trip-picks__action-form .trip-picks__action-btn{
+    flex:1;
+  }
+  .trip-picks__quick-add{
+    position:relative;
+    width:100%;
+  }
+  .trip-picks__popover{
+    position:absolute;
+    left:0;
+    right:0;
+    top:calc(100% + 8px);
+    border:1px solid rgba(26,43,74,.12);
+    border-radius:16px;
+    background:#fff;
+    box-shadow:0 18px 40px rgba(0,0,0,.14);
+    z-index:40;
+  }
+  .trip-picks__popover-body{
+    display:grid;
+    gap:16px;
+    padding:20px;
+  }
+  .trip-picks__popover-field label{
+    display:block;
+    font:700 11px/1 Inter,system-ui;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:#5f5649;
+    margin-bottom:6px;
+  }
+  .trip-picks__popover-field input[type="date"],
+  .trip-picks__popover-field input[type="number"]{
+    width:100%;
+    border:1px solid rgba(26,43,74,.18);
+    border-radius:10px;
+    padding:10px 12px;
+    font:500 14px/1.2 Inter,system-ui;
+    color:#1a2b4a;
+    background:#fff;
+  }
+  .trip-picks__popover-counter{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .trip-picks__popover-counter button{
+    width:36px;
+    height:36px;
+    border-radius:50%;
+    border:1px solid rgba(26,43,74,.24);
+    background:#f5f1e8;
+    color:#1a2b4a;
+    font:600 16px/1 Inter,system-ui;
+    cursor:pointer;
+    transition:background .2s ease,color .2s ease,transform .2s ease;
+  }
+  .trip-picks__popover-counter button:hover{
+    background:#1a2b4a;
+    color:#fff;
+    transform:translateY(-1px);
+  }
+  .trip-picks__popover-counter input[type="number"]{
+    text-align:center;
+  }
+  .trip-picks__popover-actions{
+    display:flex;
+    justify-content:flex-end;
+    gap:12px;
+  }
+  .trip-picks__popover-actions button{
+    border-radius:999px;
+    padding:10px 18px;
+    font:600 11px/1 Inter,system-ui;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    border:1px solid transparent;
+    background:transparent;
+    color:#5f5649;
+    cursor:pointer;
+    transition:background .2s ease,color .2s ease,border-color .2s ease,transform .2s ease;
+  }
+  .trip-picks__popover-actions button[data-quick-add-cancel]:hover{
+    border-color:rgba(26,43,74,.24);
+    color:#1a2b4a;
+  }
+  .trip-picks__popover-actions button[data-quick-add-confirm]{
+    background:#1a2b4a;
+    color:#fff;
+    border-color:#1a2b4a;
+  }
+  .trip-picks__popover-actions button[data-quick-add-confirm]:hover{
+    background:#243b65;
+  }
+  .trip-picks__card.quick-add-active{
+    box-shadow:0 18px 40px rgba(0,0,0,.12);
+  }
   .trip-picks__panels{
     margin-top:52px;
   }

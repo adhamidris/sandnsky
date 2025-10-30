@@ -621,6 +621,12 @@ class HomePageView(TemplateView):
         )
 
         limit_per_toggle = 9
+        cart_summary = summarize_cart(self.request.session)
+        cart_trip_slugs = {
+            entry.get("trip_slug")
+            for entry in cart_summary.get("entries", [])
+            if entry.get("trip_slug")
+        }
         toggles_config = [
             (
                 "recommended",
@@ -654,7 +660,13 @@ class HomePageView(TemplateView):
             if slug in seen_slugs:
                 continue
             seen_slugs.add(slug)
-            trips = [build_trip_card(trip) for trip in queryset[:limit_per_toggle]]
+            trips = [
+                {
+                    **build_trip_card(trip),
+                    "in_cart": trip.slug in cart_trip_slugs,
+                }
+                for trip in queryset[:limit_per_toggle]
+            ]
             toggles.append(
                 {
                     "slug": slug,
