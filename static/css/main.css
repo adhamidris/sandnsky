@@ -574,14 +574,13 @@
     .hero-content .actions a {
       width: 100% !important;
       text-align: center !important;
-      border-radius: 0 !important;
-      background-color: transparent !important;
+      border-radius: 15px !important;
+      background-color: #C9A961 !important;
       color: white !important;
       font-weight: 800 !important;
       font-size: 1.1rem;
       border-color: white !important;
       opacity: 0.85 !important;
-      text-decoration: underline !important;
     }
   
     .arrows{
