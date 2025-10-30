@@ -51,14 +51,7 @@
               {% for trip in toggle.cards %}
               <article class="trip-picks__card">
                 <a href="{% url 'web:trip-detail' trip.slug %}" class="trip-picks__link">
-                  {% if trip.image_url %}
-                  <img src="{{ trip.image_url }}" alt="{{ trip.title }}" loading="lazy" class="trip-picks__image" />
-                  {% else %}
-                  <div class="trip-picks__image trip-picks__image--fallback">
-                    <span>Image coming soon</span>
-                  </div>
-                  {% endif %}
-                  <div class="trip-picks__body">
+                  <div class="trip-picks__media">
                     {% if trip.languages %}
                     <ul class="trip-picks__languages" aria-label="Available languages">
                       {% for language in trip.languages %}
@@ -66,6 +59,17 @@
                       {% endfor %}
                     </ul>
                     {% endif %}
+                    <div class="trip-picks__media-inner">
+                      {% if trip.image_url %}
+                      <img src="{{ trip.image_url }}" alt="{{ trip.title }}" loading="lazy" class="trip-picks__image" />
+                      {% else %}
+                      <div class="trip-picks__image trip-picks__image--fallback">
+                        <span>Image coming soon</span>
+                      </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="trip-picks__body">
                     {% if trip.category %}
                     <span class="trip-picks__badge">{{ trip.category }}</span>
                     {% endif %}

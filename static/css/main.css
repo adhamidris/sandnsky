@@ -824,7 +824,7 @@
     outline-offset:2px;
   }
   .trip-picks__toggle.is-active{
-    background:#1a2b4a;
+    background:#C9A961;
     color:#fff;
     box-shadow:0 12px 24px rgba(0,0,0,.18);
   }
@@ -833,7 +833,8 @@
     flex-direction:column;
     gap:10px;
     margin:0;
-    padding:18px 20px 20px;
+    padding: 5px !important;
+    padding-bottom: 12px !important;
     border-top:1px solid rgba(17,17,17,.06);
   }
   .trip-picks__actions > *{
@@ -1013,7 +1014,8 @@
   background:#fff;
   border:1px solid rgba(17,17,17,.08);
   border-radius:18px;
-  overflow:hidden;
+  overflow:visible;
+  position:relative;
   display:flex;
   flex-direction:column;
   min-height:100%;
@@ -1029,6 +1031,15 @@
     color:inherit;
     text-decoration:none;
     height:100%;
+    position:relative;
+  }
+  .trip-picks__media{
+    position:relative;
+  }
+  .trip-picks__media-inner{
+    border-top-left-radius:18px;
+    border-top-right-radius:18px;
+    overflow:hidden;
   }
   .trip-picks__image{
     width:100%;
@@ -1063,11 +1074,16 @@
   }
   .trip-picks__languages{
     list-style:none;
+    position:absolute;
+    top:8px;
+    left:10px;
     display:flex;
     flex-wrap:wrap;
     gap:6px;
-    margin:0 0 6px;
+    margin:0;
     padding:0;
+    z-index:2;
+    pointer-events:none;
   }
   .trip-picks__language-chip{
     display:inline-flex;
@@ -1081,6 +1097,7 @@
     letter-spacing:.18em;
     text-transform:uppercase;
     border:1px solid rgba(201,169,97,.36);
+    pointer-events:none;
   }
   .trip-picks__title{
     font-family:var(--font-heading);
