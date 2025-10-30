@@ -151,13 +151,17 @@
     const prev = carousel.querySelector('[data-trip-arrow="prev"]');
     const next = carousel.querySelector('[data-trip-arrow="next"]');
 
+    const track = carousel.querySelector('[data-trip-track]');
+    const cards = Array.from(track ? track.children : []);
+
     const update = () => {
-      const maxScroll = viewport.scrollWidth - viewport.clientWidth;
+      const trackRect = track ? track.scrollWidth : viewport.scrollWidth;
+      const maxScroll = Math.max(0, trackRect - viewport.clientWidth);
       if (prev) {
-        prev.disabled = viewport.scrollLeft <= 4;
+        prev.disabled = viewport.scrollLeft <= 4 || maxScroll <= 0;
       }
       if (next) {
-        next.disabled = viewport.scrollLeft >= maxScroll - 4;
+        next.disabled = viewport.scrollLeft >= maxScroll - 4 || maxScroll <= 0;
       }
     };
 
@@ -175,6 +179,23 @@
     viewport.addEventListener('scroll', update, { passive: true });
     window.addEventListener('resize', update, { passive: true });
     update();
+
+    const scheduleUpdate = () => {
+      update();
+      setTimeout(update, 160);
+      setTimeout(update, 600);
+    };
+
+    const media = carousel.querySelectorAll('img');
+    media.forEach((img) => {
+      if (img.complete) {
+        scheduleUpdate();
+      } else {
+        img.addEventListener('load', scheduleUpdate, { once: true });
+      }
+    });
+
+    window.addEventListener('load', update, { once: true });
   };
 
   section.querySelectorAll('[data-trip-carousel]').forEach(initCarousel);
