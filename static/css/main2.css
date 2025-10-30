@@ -951,10 +951,10 @@ body {
   border-radius: 1.5rem;
   overflow: hidden;
   color: rgba(248, 244, 235, 0.94);
-  background-image: url('/media/testio.png') !important;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: cover;
+  background-color: white !important;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5) !important;
+  border-color: transparent !important;
+
 }
 
 .testimonial-card figure,
@@ -4631,5 +4631,5 @@ body.gallery-lightbox--open {
 }
 
 #gallery {
-  background-color: #F5F1E8 !important;
+  background-color: white !important;
 }
