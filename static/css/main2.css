@@ -4633,3 +4633,7 @@ body.gallery-lightbox--open {
 .review-confirm {
   color: white !important;
 }
+
+#gallery {
+  background-color: #F5F1E8 !important;
+}
