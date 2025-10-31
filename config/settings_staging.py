@@ -37,8 +37,7 @@ MIDDLEWARE = _MW
 INTERNAL_IPS = []
 
 DEBUG_TOOLBAR_CONFIG = {
-    # Only show when DEBUG and either ?djdt=1 is present or the user is staff.
-    "SHOW_TOOLBAR_CALLBACK": "core.debug.show_toolbar",
+    "SHOW_TOOLBAR_CALLBACK": "web.debug.show_toolbar",
     "ENABLE_STACKTRACES": True,
     "RESULTS_CACHE_SIZE": 3,
     "SHOW_TEMPLATE_CONTEXT": False,
