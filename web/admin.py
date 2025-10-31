@@ -475,6 +475,7 @@ class TripAdmin(admin.ModelAdmin):
         "duration_days",
         "group_size_max",
         "base_price_per_person",
+        "child_price_per_person",
         "is_service",
         "get_language_codes",
         "created_at",

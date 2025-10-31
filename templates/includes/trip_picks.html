@@ -83,7 +83,12 @@
                     </div>
                     <div class="trip-picks__footer">
                       <span>{{ trip.location }}</span>
-                      <span class="trip-picks__price">{{ trip.price }}</span>
+                      <span class="trip-picks__price">
+                        {{ trip.price }}
+                        {% if trip.has_child_price and trip.child_price %}
+                        <span class="block text-[11px] text-muted-foreground">Children: {{ trip.child_price }}</span>
+                        {% endif %}
+                      </span>
                     </div>
                   </div>
                 </a>

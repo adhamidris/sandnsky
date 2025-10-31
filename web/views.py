@@ -247,6 +247,8 @@ def build_trip_card(trip):
         destinations_label = destination_names[0]
     else:
         destinations_label = f"{destination_names[0]} +{len(destination_names) - 1}"
+    child_price = trip.get_child_price_per_person()
+    has_child_price = child_price != trip.base_price_per_person
     return {
         "slug": trip.slug,
         "title": trip.title,
@@ -257,12 +259,16 @@ def build_trip_card(trip):
         "group_size": f"Up to {trip.group_size_max} guests",
         "location": destinations_label,
         "price": format_currency(trip.base_price_per_person),
+        "child_price": format_currency(child_price) if has_child_price else "",
+        "has_child_price": has_child_price,
         "languages": languages,
     }
 
 
 def build_service_option(trip):
     image_url = trip.card_image.url if trip.card_image else ""
+    child_price = trip.get_child_price_per_person()
+    has_child_price = child_price != trip.base_price_per_person
     return {
         "id": trip.pk,
         "slug": trip.slug,
@@ -270,6 +276,8 @@ def build_service_option(trip):
         "description": trip.teaser,
         "image_url": image_url,
         "price": format_currency(trip.base_price_per_person),
+        "child_price": format_currency(child_price) if has_child_price else "",
+        "has_child_price": has_child_price,
     }
 
 
@@ -1244,7 +1252,8 @@ class TripDetailView(TemplateView):
 
     def _pricing_context(self, trip, form):
         currency = getattr(trip, "currency", DEFAULT_CURRENCY)
-        base_price = trip.base_price_per_person
+        adult_price = trip.base_price_per_person
+        child_price = trip.get_child_price_per_person()
 
         def extract_int(field_name, fallback):
             value = form[field_name].value()
@@ -1257,8 +1266,10 @@ class TripDetailView(TemplateView):
         children = extract_int("children", form.fields["children"].initial)
         infants = extract_int("infants", form.fields["infants"].initial)
 
-        traveler_count = max(adults + children, 1)
-        base_total = base_price * traveler_count
+        billed_traveler_count = max(adults + children, 1)
+        adult_total = adult_price * Decimal(adults)
+        child_total = child_price * Decimal(children)
+        base_total = adult_total + child_total
 
         selected_extra_ids = {
             int(value)
@@ -1284,8 +1295,8 @@ class TripDetailView(TemplateView):
 
         total = base_total + extras_total
 
-        if traveler_count:
-            per_person_total = total / traveler_count
+        if billed_traveler_count:
+            per_person_total = total / billed_traveler_count
             per_traveler_phrase = f"{format_currency(per_person_total, currency)} per paying traveler"
         else:
             per_person_total = Decimal("0")
@@ -1298,12 +1309,22 @@ class TripDetailView(TemplateView):
         return {
             "currency": currency,
             "currency_symbol": CURRENCY_SYMBOLS.get(currency.upper(), ""),
-            "base_price": base_price,
-            "base_price_display": format_currency(base_price, currency),
-            "traveler_count": traveler_count,
+            "base_price": adult_price,
+            "base_price_display": format_currency(adult_price, currency),
+            "adult_price": adult_price,
+            "adult_price_display": format_currency(adult_price, currency),
+            "child_price": child_price,
+            "child_price_display": format_currency(child_price, currency),
+            "has_child_price": child_price != adult_price,
+            "traveler_count": billed_traveler_count,
+            "billed_traveler_count": billed_traveler_count,
             "adults": adults,
             "children": children,
             "infants": infants,
+            "adult_total": adult_total,
+            "adult_total_display": format_currency(adult_total, currency),
+            "child_total": child_total,
+            "child_total_display": format_currency(child_total, currency),
             "base_total": base_total,
             "base_total_display": format_currency(base_total, currency),
             "extras_total": extras_total,
@@ -1873,9 +1894,15 @@ class CartCheckoutView(TemplateView):
                     grand_total = cents_to_decimal(calculation.updated_grand_total_cents)
 
                 if grand_total == Decimal("0"):
-                    base_price = getattr(trip, "base_price_per_person", Decimal("0"))
-                    traveler_count = max(adults + children, 1)
-                    base_total = (base_price * traveler_count).quantize(Decimal("0.01"))
+                    adult_price = getattr(trip, "base_price_per_person", Decimal("0"))
+                    child_price = trip.get_child_price_per_person()
+                    if not isinstance(adult_price, Decimal):
+                        adult_price = Decimal(str(adult_price or 0))
+                    if not isinstance(child_price, Decimal):
+                        child_price = Decimal(str(child_price or 0))
+                    if adults + children <= 0:
+                        adults = 1
+                    base_total = (adult_price * Decimal(adults) + child_price * Decimal(children)).quantize(Decimal("0.01"))
                     extras_total = Decimal("0")
                     for extra_data in entry.get("extras", []):
                         extras_total += cents_to_decimal(extra_data.get("price_cents"))

@@ -99,6 +99,7 @@ class BookingSubmissionTests(TestCase):
             duration_days=3,
             group_size_max=12,
             base_price_per_person=Decimal("150.00"),
+            child_price_per_person=Decimal("90.00"),
             tour_type_label="Small Group",
         )
         self.extra_camel = TripExtra.objects.create(
@@ -133,6 +134,12 @@ class BookingSubmissionTests(TestCase):
             },
             follow=True,
         )
+        if response.context and response.context.get("form"):
+            form = response.context["form"]
+            print("FORM VALID", form.is_valid())
+            print("FORM ERRORS", form.errors)
+            print("FORM DATA", form.errors.as_data())
+            print("NON FIELD", form.non_field_errors())
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "booking_success.html")
@@ -149,7 +156,7 @@ class BookingSubmissionTests(TestCase):
         self.assertEqual(booking.phone, "+20123456789")
         self.assertEqual(booking.special_requests, "Please arrange sunset viewing.")
 
-        expected_base = Decimal("150.00") * 3  # adults + children
+        expected_base = (Decimal("150.00") * 2) + Decimal("90.00")
         expected_extras = self.extra_camel.price + self.extra_hot_air.price
         expected_total = expected_base + expected_extras
 
@@ -264,6 +271,25 @@ class BookingSubmissionTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, shared_reference)
         self.assertNotContains(response, "+1 more")
+
+
+    def test_build_cart_entry_uses_child_pricing(self):
+        travel_date = date.today() + timedelta(days=15)
+        entry = build_cart_entry(
+            self.trip,
+            {
+                "date": travel_date,
+                "adults": 1,
+                "children": 2,
+                "infants": 0,
+                "extras": [],
+                "message": "",
+            },
+        )
+        pricing = entry.get("pricing")
+        self.assertIsNotNone(pricing)
+        base_total_cents = pricing.get("base_total_cents")
+        self.assertEqual(base_total_cents, 33000)
 
 
 class RewardServiceTests(RewardTestSetupMixin, TestCase):
@@ -477,6 +503,7 @@ class CartRewardsCheckoutTests(RewardTestSetupMixin, TestCase):
         reward_record = rewards.get()
         self.assertEqual(reward_record.discount_amount, Decimal("300.00"))
         self.assertEqual(reward_record.reward_phase_id, self.reward_phase.id)
+
 
 
 class BookingConfirmationEmailTests(TestCase):

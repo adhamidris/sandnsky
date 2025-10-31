@@ -537,6 +537,11 @@
                 const discountDisplay = comparison.discount_display || "";
                 const perPersonFull = trip.base_price_per_person_display || "";
                 const perPersonReward = comparison.reward_price_per_person_display || "";
+                const perPersonChild =
+                  comparison.child_price_per_person_display ||
+                  trip.child_price_per_person_display ||
+                  "";
+                const hasChildRate = !!(trip.has_child_price || perPersonChild);
                 const showComparison = travelerLabel && fullPrice && rewardPrice;
                 const discountPercentValue = Number(phase.discount_percent || 0);
                 const discountPercentLabel = Number.isFinite(discountPercentValue)
@@ -551,6 +556,11 @@
                   ? "replace"
                   : "available";
                 const quickAddState = cardState;
+                const childRateLine =
+                  hasChildRate && perPersonChild
+                    ? `<p class="text-[0.65rem] text-muted-foreground">Children: ${escapeHtml(perPersonChild)}</p>`
+                    : "";
+
                 const comparisonLines = showComparison
                   ? `
                       <p class="text-[0.65rem] text-muted-foreground">
@@ -561,14 +571,22 @@
                       ${
                         perPersonFull && perPersonReward
                           ? `<p class="text-[0.65rem] text-muted-foreground">
-                               Per traveler: ${escapeHtml(perPersonFull)} → <span class="font-semibold text-primary">${escapeHtml(perPersonReward)}</span>
+                               Adults: ${escapeHtml(perPersonFull)} → <span class="font-semibold text-primary">${escapeHtml(perPersonReward)}</span>
                              </p>`
+                          : perPersonFull
+                          ? `<p class="text-[0.65rem] text-muted-foreground">Adults: ${escapeHtml(perPersonFull)}</p>`
                           : ""
                       }
+                      ${childRateLine}
+                    `
+                  : perPersonFull && hasChildRate
+                  ? `
+                      <p class="text-[0.65rem] text-muted-foreground">Adults: ${escapeHtml(perPersonFull)}</p>
+                      ${childRateLine}
                     `
                   : perPersonFull
                   ? `<p class="text-[0.65rem] text-muted-foreground">From ${escapeHtml(perPersonFull)} per traveler</p>`
-                  : "";
+                  : childRateLine;
                 let statusLine = "";
                 if (!unlocked) {
                   statusLine = discountPercentLabel

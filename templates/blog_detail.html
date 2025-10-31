@@ -117,7 +117,12 @@
               {% endif %}
               <div class="mt-auto flex items-center justify-between text-muted-foreground">
                 <span>{{ trip.duration }}</span>
-                <span class="font-semibold text-primary">{{ trip.price }}</span>
+                <span class="font-semibold text-primary">
+                  {{ trip.price }}
+                  {% if trip.has_child_price and trip.child_price %}
+                  <span class="block text-[11px] text-muted-foreground">Children: {{ trip.child_price }}</span>
+                  {% endif %}
+                </span>
               </div>
             </div>
           </a>

@@ -308,7 +308,9 @@ def build_cart_entry(trip: Trip, cleaned_data: Dict[str, Any]) -> Dict[str, Any]
     adults = int(cleaned_data.get("adults") or 0)
     children = int(cleaned_data.get("children") or 0)
     infants = int(cleaned_data.get("infants") or 0)
-    traveler_count = max(adults + children, 1)
+    if adults + children <= 0:
+        adults = 1
+    billed_traveler_count = max(adults + children, 1)
 
     extras_raw = cleaned_data.get("extras") or []
     extras_ids: List[int] = []
@@ -320,12 +322,34 @@ def build_cart_entry(trip: Trip, cleaned_data: Dict[str, Any]) -> Dict[str, Any]
 
     selected_extras = _selected_extras(trip, extras_ids)
 
-    base_price = getattr(trip, "base_price_per_person", Decimal("0"))
+    adult_price = getattr(trip, "base_price_per_person", Decimal("0"))
+    if not isinstance(adult_price, Decimal):
+        adult_price = Decimal(str(adult_price or 0))
+    child_price = getattr(trip, "get_child_price_per_person", None)
+    if callable(child_price):
+        child_price = child_price()
+    else:
+        child_price = getattr(trip, "child_price_per_person", None)
+    if child_price is None:
+        child_price = adult_price
+    if not isinstance(child_price, Decimal):
+        child_price = Decimal(str(child_price or 0))
+
     currency = getattr(trip, "currency", DEFAULT_CURRENCY)
 
-    base_total = Decimal(base_price) * traveler_count
+    adult_total = adult_price * Decimal(adults)
+    child_total = child_price * Decimal(children)
+    base_total = adult_total + child_total
     extras_total = sum((extra.price for extra in selected_extras), Decimal("0"))
     grand_total = base_total + extras_total
+
+    adult_price_cents = _decimal_to_cents(adult_price)
+    child_price_cents = _decimal_to_cents(child_price)
+    adult_total_cents = _decimal_to_cents(adult_total)
+    child_total_cents = _decimal_to_cents(child_total)
+    base_total_cents = _decimal_to_cents(base_total)
+    extras_total_cents = _decimal_to_cents(extras_total)
+    grand_total_cents = _decimal_to_cents(grand_total)
 
     entry = {
         "id": uuid.uuid4().hex,
@@ -347,10 +371,22 @@ def build_cart_entry(trip: Trip, cleaned_data: Dict[str, Any]) -> Dict[str, Any]
         ],
         "pricing": {
             "currency": currency,
-            "base_price_cents": _decimal_to_cents(base_price),
-            "base_total_cents": _decimal_to_cents(base_total),
-            "extras_total_cents": _decimal_to_cents(extras_total),
-            "grand_total_cents": _decimal_to_cents(grand_total),
+            "base_price_cents": adult_price_cents,
+            "adult_price_cents": adult_price_cents,
+            "child_price_cents": child_price_cents,
+            "base_total_cents": base_total_cents,
+            "adult_total_cents": adult_total_cents,
+            "child_total_cents": child_total_cents,
+            "extras_total_cents": extras_total_cents,
+            "grand_total_cents": grand_total_cents,
+            "billed_traveler_count": billed_traveler_count,
+            "adult_count": adults,
+            "child_count": children,
+            "base_price_per_person_display": _format_money_cents(adult_price_cents),
+            "child_price_per_person_display": _format_money_cents(child_price_cents)
+            if child_price_cents != adult_price_cents
+            else "",
+            "has_child_price": child_price_cents != adult_price_cents,
         },
         "created_at": timezone.now().isoformat(),
     }
@@ -395,6 +431,7 @@ def _serialize_summary_entry(entry: Dict[str, Any]) -> Dict[str, Any]:
     children = int(entry.get("children") or 0)
     infants = int(entry.get("infants") or 0)
     traveler_count = max(adults + children, 1)
+    billed_traveler_count = _safe_int(pricing.get("billed_traveler_count")) or traveler_count
 
     traveler_label = _format_traveler_label(traveler_count)
     if infants:
@@ -407,6 +444,11 @@ def _serialize_summary_entry(entry: Dict[str, Any]) -> Dict[str, Any]:
     )
     if not original_grand_total_cents:
         original_grand_total_cents = grand_total_cents
+    adult_price_cents = _safe_int(pricing.get("adult_price_cents") or pricing.get("base_price_cents"))
+    child_price_cents = _safe_int(pricing.get("child_price_cents") or adult_price_cents)
+    adult_total_cents = _safe_int(pricing.get("adult_total_cents"))
+    child_total_cents = _safe_int(pricing.get("child_total_cents"))
+    has_child_price = child_price_cents != adult_price_cents
 
     summary = {
         "id": entry.get("id"),
@@ -422,6 +464,14 @@ def _serialize_summary_entry(entry: Dict[str, Any]) -> Dict[str, Any]:
         "original_grand_total_display": _format_money_cents(original_grand_total_cents),
         "discount_total_cents": discount_cents,
         "discount_total_display": _format_money_cents(discount_cents) if discount_cents else "0.00",
+        "adult_count": adults,
+        "child_count": children,
+        "adult_price_display": _format_money_cents(adult_price_cents) if adult_price_cents else "",
+        "child_price_display": _format_money_cents(child_price_cents) if has_child_price else "",
+        "adult_total_display": _format_money_cents(adult_total_cents) if adult_total_cents else "",
+        "child_total_display": _format_money_cents(child_total_cents) if child_total_cents else "",
+        "has_child_price": has_child_price,
+        "billed_traveler_count": billed_traveler_count,
     }
 
     applied_reward = entry.get("applied_reward")
@@ -572,6 +622,9 @@ def _build_rewards_metadata(
         for trip in phase.trips:
             base_price_cents = int(trip.base_price_cents or 0)
             base_price_display = _format_money_cents(base_price_cents) if base_price_cents else "0.00"
+            child_price_cents = int(getattr(trip, "child_price_cents", trip.base_price_cents) or 0)
+            child_price_display = _format_money_cents(child_price_cents) if child_price_cents else "0.00"
+            has_child_price = child_price_cents != base_price_cents
 
             snapshot = snapshots_by_trip_id.get(trip.trip_id)
             traveler_count = snapshot.traveler_count if snapshot else default_traveler_count if has_snapshot_context else 0
@@ -610,6 +663,7 @@ def _build_rewards_metadata(
                     "discount_cents": discount_cents,
                     "discount_display": _format_money_cents(discount_cents),
                     "full_price_per_person_display": base_price_display,
+                    "child_price_per_person_display": child_price_display if has_child_price else "",
                     "reward_price_per_person_display": _format_money_cents(
                         _decimal_to_cents(reward_per_person_amount)
                     )
@@ -628,6 +682,9 @@ def _build_rewards_metadata(
                     "card_image_url": trip.card_image_url,
                     "base_price_per_person_cents": base_price_cents,
                     "base_price_per_person_display": base_price_display,
+                    "child_price_per_person_cents": child_price_cents,
+                    "child_price_per_person_display": child_price_display if has_child_price else "",
+                    "has_child_price": has_child_price,
                     "comparison": comparison_payload,
                     "is_redeemed": bool(redeemed_entry_ids),
                     "redeemed_entry_ids": redeemed_entry_ids,

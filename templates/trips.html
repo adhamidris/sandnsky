@@ -289,6 +289,9 @@
                   <dd class="trip-card__value trip-card__price text-[13px]">
                     <span class="trip-card__prefix text-muted-foreground">Starts from</span>
                     {{ trip.price }}
+                    {% if trip.has_child_price and trip.child_price %}
+                    <span class="trip-card__child text-[11px] text-muted-foreground block">Children: {{ trip.child_price }}</span>
+                    {% endif %}
                   </dd>
                 </div>
               </dl>

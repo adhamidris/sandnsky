@@ -1,4 +1,14 @@
-<form action="" method="post" class="space-y-6" id="booking-form" data-module="booking-form" data-base-price="{{ pricing.base_price }}" data-currency-symbol="{{ pricing.currency_symbol }}">
+<form
+  action=""
+  method="post"
+  class="space-y-6"
+  id="booking-form"
+  data-module="booking-form"
+  data-base-price="{{ pricing.adult_price|floatformat:'-2' }}"
+  data-adult-price="{{ pricing.adult_price|floatformat:'-2' }}"
+  data-child-price="{{ pricing.child_price|floatformat:'-2' }}"
+  data-currency-symbol="{{ pricing.currency_symbol }}"
+>
   {% csrf_token %}
   {% if form.non_field_errors %}
   <div class="rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -31,7 +41,9 @@
       <div class="flex items-center justify-between rounded-lg border border-border bg-background px-3 py-2">
         <div>
           <p class="text-sm font-medium">Adults</p>
-          <p class="text-xs text-muted-foreground">12+ years</p>
+          <p class="text-xs text-muted-foreground">
+            12+ years{% if pricing.adult_price_display %} · {{ pricing.adult_price_display }}{% endif %}
+          </p>
         </div>
         <div class="flex items-center gap-2" data-counter>
           <button type="button" class="h-8 w-8 rounded-full border border-border text-lg" data-counter-dec aria-label="Decrease adults">−</button>
@@ -42,7 +54,9 @@
       <div class="flex items-center justify-between rounded-lg border border-border bg-background px-3 py-2">
         <div>
           <p class="text-sm font-medium">Children</p>
-          <p class="text-xs text-muted-foreground">3–11 years</p>
+          <p class="text-xs text-muted-foreground">
+            3–11 years{% if pricing.has_child_price %} · {{ pricing.child_price_display }}{% endif %}
+          </p>
         </div>
         <div class="flex items-center gap-2" data-counter>
           <button type="button" class="h-8 w-8 rounded-full border border-border text-lg" data-counter-dec aria-label="Decrease children">−</button>

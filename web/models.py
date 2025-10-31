@@ -465,6 +465,13 @@ class Trip(models.Model):
     )
 
     base_price_per_person = models.DecimalField(max_digits=10, decimal_places=2)
+    child_price_per_person = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        help_text="Optional per-child rate (ages 3–11). Leave blank to match the adult price.",
+    )
 
     # Simple display label exactly as seen in UI (e.g., "Daily Tour — Discovery Safari")
     tour_type_label = models.CharField(max_length=200)
@@ -496,6 +503,22 @@ class Trip(models.Model):
         if not self.slug:
             self.slug = _generate_unique_slug(self, self.title)
         super().save(*args, **kwargs)
+
+    def get_child_price_per_person(self):
+        """
+        Return the effective per-child price for the trip.
+        Falls back to the adult price when no child rate is configured.
+        """
+        if self.child_price_per_person is None:
+            return self.base_price_per_person
+        return self.child_price_per_person
+
+    @property
+    def has_child_rate(self) -> bool:
+        child_price = self.child_price_per_person
+        if child_price is None:
+            return False
+        return child_price != self.base_price_per_person
 
 
 class TripGalleryImage(models.Model):

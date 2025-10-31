@@ -462,6 +462,21 @@
                 {% if entry.travel_date_display %}<li><span class="font-medium text-foreground">Trip date:</span> {{ entry.travel_date_display }}</li>{% endif %}
                 <li><span class="font-medium text-foreground">Travelers:</span> {{ entry.traveler_label }}</li>
               </ul>
+              <div class="checkout-trip-pricing text-xs text-muted-foreground">
+                <p>
+                  <span class="font-medium text-foreground">Adults ({{ entry.adult_count }})</span>
+                  · {{ entry.currency }} {{ entry.adult_total_display|default:"0.00" }}
+                </p>
+                {% if entry.child_count %}
+                <p>
+                  <span class="font-medium text-foreground">Children ({{ entry.child_count }})</span>
+                  · {{ entry.currency }} {{ entry.child_total_display|default:"0.00" }}
+                  {% if not entry.has_child_price %}
+                  <span class="text-muted-foreground">(same as adult rate)</span>
+                  {% endif %}
+                </p>
+                {% endif %}
+              </div>
               <div class="checkout-trip-actions flex flex-wrap gap-3 text-sm">
                 {% if entry.trip_slug %}
                 <a href="{% url 'web:trip-detail' entry.trip_slug %}#booking-form" class="trip-action-edit inline-flex items-center gap-1 rounded-full px-3 py-1 font-semibold transition">
@@ -682,7 +697,12 @@
                     </div>
                     <div class="quick-add-card-meta flex flex-wrap items-center gap-2 text-xs font-semibold">
                       <span class="quick-add-card-price">{{ trip.price }}</span>
-                      <span class="quick-add-card-price-note text-[0.65rem] font-medium text-muted-foreground">Price per traveller</span>
+                      <span class="quick-add-card-price-note text-[0.65rem] font-medium text-muted-foreground">
+                        Adults
+                        {% if trip.has_child_price and trip.child_price %}
+                        · Children: {{ trip.child_price }}
+                        {% endif %}
+                      </span>
                       {% if trip.duration %}
                       <span class="quick-add-card-duration inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[0.65rem] text-primary">{{ trip.duration }}</span>
                       {% endif %}

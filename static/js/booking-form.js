@@ -6,16 +6,24 @@
   
     const root = form.closest('[data-booking-root]') || form;
   
-    const basePrice = parseFloat(form.dataset.basePrice || '0');
+    const adultPrice = parseFloat(form.dataset.adultPrice || form.dataset.basePrice || '0');
+    const childPrice = parseFloat(form.dataset.childPrice || form.dataset.adultPrice || form.dataset.basePrice || '0');
     const currencySymbol = form.dataset.currencySymbol || '';
-  
+
     const baseOutputs = root.querySelectorAll('[data-booking-base]');
+    const adultOutputs = root.querySelectorAll('[data-booking-adult]');
+    const childOutputs = root.querySelectorAll('[data-booking-child]');
+    const adultCountOutputs = root.querySelectorAll('[data-booking-adult-count]');
+    const childCountOutputs = root.querySelectorAll('[data-booking-child-count]');
+    const childRows = root.querySelectorAll('[data-booking-child-row]');
     const extrasOutputs = root.querySelectorAll('[data-booking-extras]');
     const totalOutputs = root.querySelectorAll('[data-booking-total]');
     const travelerSummaries = root.querySelectorAll('[data-traveler-summary]');
-  
-    const normalizedBasePrice = Number.isFinite(basePrice) ? Math.max(basePrice, 0) : 0;
-    const basePriceCents = Math.round(normalizedBasePrice * 100);
+
+    const normalizedAdultPrice = Number.isFinite(adultPrice) ? Math.max(adultPrice, 0) : 0;
+    const normalizedChildPrice = Number.isFinite(childPrice) ? Math.max(childPrice, 0) : normalizedAdultPrice;
+    const adultPriceCents = Math.round(normalizedAdultPrice * 100);
+    const childPriceCents = Math.round(normalizedChildPrice * 100);
   
     function formatCurrency(amount) {
       return `${currencySymbol}${amount.toLocaleString(undefined, {
@@ -63,8 +71,10 @@
       const infants = infantsInput ? clampValue(infantsInput) : 0;
   
       const billedTravelerCount = Math.max(adults + children, 1);
-      const baseTotalCents = basePriceCents * billedTravelerCount;
-  
+      const adultTotalCents = adultPriceCents * adults;
+      const childTotalCents = childPriceCents * children;
+      const baseTotalCents = adultTotalCents + childTotalCents;
+
       let extrasTotalCents = 0;
       form.querySelectorAll('input[name="extras"]:checked').forEach((checkbox) => {
         const price = parseFloat(checkbox.dataset.extraPrice || '0');
@@ -95,8 +105,21 @@
         : summaryParts.join(' · ');
   
       setCurrency(baseOutputs, baseTotalCents);
+      setCurrency(adultOutputs, adultTotalCents);
+      setCurrency(childOutputs, childTotalCents);
       setCurrency(extrasOutputs, extrasTotalCents);
       setCurrency(totalOutputs, grandTotalCents);
+
+      adultCountOutputs.forEach((node) => {
+        node.textContent = String(adults);
+      });
+      childCountOutputs.forEach((node) => {
+        node.textContent = String(children);
+      });
+      childRows.forEach((row) => {
+        if (!(row instanceof HTMLElement)) return;
+        row.classList.toggle('hidden', children === 0);
+      });
       if (travelerSummaries.length) {
         setTravelerSummary(summary);
       }
