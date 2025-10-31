@@ -37,6 +37,8 @@ MIDDLEWARE = _MW
 INTERNAL_IPS = []
 
 DEBUG_TOOLBAR_CONFIG = {
-    "SHOW_TOOLBAR_CALLBACK": "web.debug.always",  # TEMP test
+    "SHOW_TOOLBAR_CALLBACK": "web.debug.show_toolbar",
+    "ENABLE_STACKTRACES": True,
+    "RESULTS_CACHE_SIZE": 3,
+    "SHOW_TEMPLATE_CONTEXT": False,
 }
-
