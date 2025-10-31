@@ -419,8 +419,6 @@ class HomePageView(TemplateView):
         if site_config.hero_image:
             fallback_image = site_config.hero_image.url
             fallback_image_is_media = True
-        else:
-            fallback_image = "img/hero-pyramids.jpg"
 
         fallback_video = site_config.hero_video.url if site_config.hero_video else ""
         fallback_video_is_media = bool(site_config.hero_video)
