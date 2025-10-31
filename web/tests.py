@@ -2,14 +2,15 @@ import json
 from datetime import date, timedelta
 from decimal import Decimal
 
-from django.core import signing
-from django.test import TestCase
+from django.core import mail, signing
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from .models import (
     Booking,
     BookingExtra,
     BookingReward,
+    BookingConfirmationEmailSettings,
     Destination,
     DestinationName,
     RewardPhase,
@@ -476,3 +477,68 @@ class CartRewardsCheckoutTests(RewardTestSetupMixin, TestCase):
         reward_record = rewards.get()
         self.assertEqual(reward_record.discount_amount, Decimal("300.00"))
         self.assertEqual(reward_record.reward_phase_id, self.reward_phase.id)
+
+
+class BookingConfirmationEmailTests(TestCase):
+    def setUp(self):
+        self.destination = Destination.objects.create(
+            name=DestinationName.CAIRO,
+            tagline="City of a Thousand Minarets",
+            description="Historic capital with vibrant culture.",
+            featured_position=5,
+        )
+        self.trip = Trip.objects.create(
+            title="Nile Discovery Cruise",
+            destination=self.destination,
+            teaser="Sail the Nile and explore iconic temples.",
+            duration_days=5,
+            group_size_max=14,
+            base_price_per_person=Decimal("450.00"),
+            tour_type_label="Guided Journey",
+        )
+        self.booking_kwargs = {
+            "trip": self.trip,
+            "travel_date": date.today() + timedelta(days=40),
+            "adults": 2,
+            "children": 0,
+            "infants": 0,
+            "full_name": "Alex Voyager",
+            "email": "alex@example.com",
+            "phone": "+201201234567",
+            "special_requests": "",
+            "base_subtotal": Decimal("900.00"),
+            "extras_subtotal": Decimal("0.00"),
+            "grand_total": Decimal("900.00"),
+        }
+
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+    def test_email_sent_when_status_transitions_to_confirmed(self):
+        config = BookingConfirmationEmailSettings.get_solo()
+        config.is_enabled = True
+        config.from_email = "reservations@example.com"
+        config.save()
+
+        booking = Booking.objects.create(**self.booking_kwargs)
+        booking.status = Booking.Status.CONFIRMED
+        booking.save(update_fields=["status", "status_updated_at"])
+
+        self.assertEqual(len(mail.outbox), 1)
+        message = mail.outbox[0]
+        self.assertEqual(message.from_email, "reservations@example.com")
+        self.assertEqual(message.to, ["alex@example.com"])
+        self.assertIn("confirmed", message.subject.lower())
+
+        booking.save()
+        self.assertEqual(len(mail.outbox), 1)
+
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+    def test_email_skipped_when_feature_disabled(self):
+        config = BookingConfirmationEmailSettings.get_solo()
+        config.is_enabled = False
+        config.save()
+
+        booking = Booking.objects.create(**self.booking_kwargs)
+        booking.status = Booking.Status.CONFIRMED
+        booking.save(update_fields=["status", "status_updated_at"])
+
+        self.assertEqual(len(mail.outbox), 0)

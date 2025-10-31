@@ -5,6 +5,33 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
 
+BOOKING_EMAIL_DEFAULT_SUBJECT = "Your Sand & Sky booking {{ booking.reference_code }} is confirmed"
+
+BOOKING_EMAIL_DEFAULT_TEXT_TEMPLATE = """Hi {{ booking.full_name }},
+
+We're excited to confirm your trip \"{{ trip.title }}\" scheduled for {{ booking.travel_date|date:"F j, Y" }}.
+
+Booking summary:
+- Reference: {{ booking.reference_code }}
+- Travelers: {{ booking.adults }} adult{{ booking.adults|pluralize }}{% if booking.children %}, {{ booking.children }} child{{ booking.children|pluralize:"ren" }}{% endif %}{% if booking.infants %}, {{ booking.infants }} infant{{ booking.infants|pluralize }}{% endif %}
+- Total: {{ booking.grand_total|floatformat:2 }}
+
+{% if extras %}
+Extras you've selected:
+{% for item in extras %}
+- {{ item.extra.name }} - {{ item.price_at_booking|floatformat:2 }}
+{% endfor %}
+{% endif %}
+{% if booking.special_requests %}
+Special requests:
+{{ booking.special_requests }}
+{% endif %}
+
+One of our travel specialists will reach out soon with the next steps. If you need any help in the meantime, just reply to this email.
+
+Thanks for choosing Sand & Sky Tours!
+"""
+
 
 
 # -----------------------------
@@ -357,6 +384,57 @@ class SiteHeroPair(models.Model):
     @property
     def has_overlay(self) -> bool:
         return bool(self.overlay_image)
+
+
+class BookingConfirmationEmailSettings(models.Model):
+    is_enabled = models.BooleanField(
+        default=False,
+        help_text=(
+            "Automatically send a confirmation email whenever a booking is marked as confirmed."
+        ),
+    )
+    from_email = models.EmailField(
+        blank=True,
+        help_text="Sender address. Leave blank to fall back to DEFAULT_FROM_EMAIL.",
+    )
+    reply_to_email = models.EmailField(
+        blank=True,
+        help_text="Optional reply-to address customers will use when responding.",
+    )
+    cc_addresses = models.TextField(
+        blank=True,
+        help_text="Optional comma-separated list of addresses to CC on each confirmation email.",
+    )
+    bcc_addresses = models.TextField(
+        blank=True,
+        help_text="Optional comma-separated list of addresses to BCC on each confirmation email.",
+    )
+    subject_template = models.CharField(
+        max_length=200,
+        default=BOOKING_EMAIL_DEFAULT_SUBJECT,
+        help_text="Django template for the email subject (e.g. {{ booking.reference_code }}).",
+    )
+    body_text_template = models.TextField(
+        default=BOOKING_EMAIL_DEFAULT_TEXT_TEMPLATE,
+        help_text="Plain-text body rendered with Django template syntax.",
+    )
+    body_html_template = models.TextField(
+        blank=True,
+        help_text="Optional HTML body. Leave blank to auto-convert the text body.",
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Booking confirmation email settings"
+        verbose_name_plural = "Booking confirmation email settings"
+
+    def __str__(self) -> str:
+        return "Booking confirmation email settings"
+
+    @classmethod
+    def get_solo(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
 
 
 # -----------------------------
@@ -745,6 +823,7 @@ class Booking(models.Model):
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None
+        previous_status = None
 
         if self.pk:
             previous_status = (
@@ -752,6 +831,8 @@ class Booking(models.Model):
                 .values_list("status", flat=True)
                 .first()
             )
+            if previous_status is None:
+                previous_status = self.status
             if previous_status and previous_status != self.status:
                 self.status_updated_at = timezone.now()
         else:
@@ -766,6 +847,11 @@ class Booking(models.Model):
             reference = self.reference_code
             Booking.objects.filter(pk=self.pk).update(group_reference=reference)
             self.group_reference = reference
+
+        if previous_status != self.status and self.status == self.Status.CONFIRMED:
+            from .emails import send_booking_confirmation_email
+
+            send_booking_confirmation_email(self)
 
 
 class BookingExtra(models.Model):

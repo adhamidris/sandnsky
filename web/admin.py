@@ -2,7 +2,6 @@ from django import forms
 from django.contrib import admin
 from django.core.exceptions import ValidationError
 from django.db.models import Max
-from django.utils import timezone
 from .models import (
     BlogCategory,
     BlogPost,
@@ -30,6 +29,7 @@ from .models import (
     Booking,
     BookingExtra,
     BookingReward,
+    BookingConfirmationEmailSettings,
     Review,
 )
 
@@ -402,6 +402,45 @@ class SiteConfigurationAdmin(admin.ModelAdmin):
         return super().has_add_permission(request)
 
 
+@admin.register(BookingConfirmationEmailSettings)
+class BookingConfirmationEmailSettingsAdmin(admin.ModelAdmin):
+    fieldsets = (
+        (
+            "Delivery",
+            {
+                "fields": (
+                    "is_enabled",
+                    "from_email",
+                    "reply_to_email",
+                    "cc_addresses",
+                    "bcc_addresses",
+                ),
+                "description": (
+                    "Configure who sends and receives booking confirmation emails."
+                ),
+            },
+        ),
+        (
+            "Templates",
+            {
+                "fields": (
+                    "subject_template",
+                    "body_text_template",
+                    "body_html_template",
+                ),
+                "description": (
+                    "Templates use Django syntax ({{ booking.reference_code }}, {{ trip.title }}, etc.)."
+                ),
+            },
+        ),
+    )
+
+    def has_add_permission(self, request):
+        if BookingConfirmationEmailSettings.objects.exists():
+            return False
+        return super().has_add_permission(request)
+
+
 @admin.register(TripCategory)
 class TripCategoryAdmin(admin.ModelAdmin):
     list_display = ("name", "slug")
@@ -512,30 +551,29 @@ class BookingAdmin(admin.ModelAdmin):
         "mark_as_cancelled",
     )
 
+    def _mass_update_status(self, queryset, status):
+        updated = 0
+        for booking in queryset.exclude(status=status):
+            booking.status = status
+            booking.save(update_fields=["status", "status_updated_at"])
+            updated += 1
+        return updated
+
     @admin.action(description="Mark selected bookings as received")
     def mark_as_received(self, request, queryset):
-        count = queryset.exclude(status=Booking.Status.RECEIVED).update(
-            status=Booking.Status.RECEIVED,
-            status_updated_at=timezone.now(),
-        )
+        count = self._mass_update_status(queryset, Booking.Status.RECEIVED)
         if count:
             self.message_user(request, f"{count} booking(s) marked as received.")
 
     @admin.action(description="Mark selected bookings as confirmed")
     def mark_as_confirmed(self, request, queryset):
-        count = queryset.exclude(status=Booking.Status.CONFIRMED).update(
-            status=Booking.Status.CONFIRMED,
-            status_updated_at=timezone.now(),
-        )
+        count = self._mass_update_status(queryset, Booking.Status.CONFIRMED)
         if count:
             self.message_user(request, f"{count} booking(s) marked as confirmed.")
 
     @admin.action(description="Mark selected bookings as cancelled")
     def mark_as_cancelled(self, request, queryset):
-        count = queryset.exclude(status=Booking.Status.CANCELLED).update(
-            status=Booking.Status.CANCELLED,
-            status_updated_at=timezone.now(),
-        )
+        count = self._mass_update_status(queryset, Booking.Status.CANCELLED)
         if count:
             self.message_user(request, f"{count} booking(s) marked as cancelled.")
 
