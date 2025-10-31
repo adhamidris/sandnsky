@@ -107,7 +107,7 @@
                   >
                     {% csrf_token %}
                     <input type="hidden" name="next" value="{{ request.get_full_path }}" />
-                    {% with date_id="picks-quick-add-date-"|add:trip.slug count_id="picks-quick-add-count-"|add:trip.slug %}
+                    {% with date_id="picks-quick-add-date-"|add:trip.slug adults_id="picks-quick-add-adults-"|add:trip.slug children_id="picks-quick-add-children-"|add:trip.slug infants_id="picks-quick-add-infants-"|add:trip.slug %}
                     <div class="trip-picks__quick-add" data-quick-add-container>
                       <button
                         type="submit"
@@ -144,19 +144,51 @@
                             />
                           </div>
                           <div class="trip-picks__popover-field">
-                            <label for="{{ count_id }}">Travelers</label>
+                            <label for="{{ adults_id }}">Adults</label>
                             <div class="trip-picks__popover-counter">
-                              <button type="button" data-quick-add-step="down" aria-label="Decrease travelers">-</button>
+                              <button type="button" data-quick-add-step="down" data-quick-add-target="adults" aria-label="Decrease adults">-</button>
                               <input
-                                id="{{ count_id }}"
+                                id="{{ adults_id }}"
                                 type="number"
                                 name="adults"
                                 min="1"
                                 max="16"
                                 value="2"
-                                data-quick-add-count
+                                data-quick-add-input="adults"
                               />
-                              <button type="button" data-quick-add-step="up" aria-label="Increase travelers">+</button>
+                              <button type="button" data-quick-add-step="up" data-quick-add-target="adults" aria-label="Increase adults">+</button>
+                            </div>
+                          </div>
+                          <div class="trip-picks__popover-field">
+                            <label for="{{ children_id }}">Children</label>
+                            <div class="trip-picks__popover-counter">
+                              <button type="button" data-quick-add-step="down" data-quick-add-target="children" aria-label="Decrease children">-</button>
+                              <input
+                                id="{{ children_id }}"
+                                type="number"
+                                name="children"
+                                min="0"
+                                max="12"
+                                value="0"
+                                data-quick-add-input="children"
+                              />
+                              <button type="button" data-quick-add-step="up" data-quick-add-target="children" aria-label="Increase children">+</button>
+                            </div>
+                          </div>
+                          <div class="trip-picks__popover-field">
+                            <label for="{{ infants_id }}">Infants</label>
+                            <div class="trip-picks__popover-counter">
+                              <button type="button" data-quick-add-step="down" data-quick-add-target="infants" aria-label="Decrease infants">-</button>
+                              <input
+                                id="{{ infants_id }}"
+                                type="number"
+                                name="infants"
+                                min="0"
+                                max="6"
+                                value="0"
+                                data-quick-add-input="infants"
+                              />
+                              <button type="button" data-quick-add-step="up" data-quick-add-target="infants" aria-label="Increase infants">+</button>
                             </div>
                           </div>
                           <div class="trip-picks__popover-actions">
@@ -332,7 +364,11 @@
     const container = form.querySelector('[data-quick-add-container]');
     const popover = form.querySelector('[data-quick-add-popover]');
     const cancelButton = form.querySelector('[data-quick-add-cancel]');
-    const countInput = form.querySelector('[data-quick-add-count]');
+    const travelerInputs = {
+      adults: form.querySelector('[data-quick-add-input="adults"]'),
+      children: form.querySelector('[data-quick-add-input="children"]'),
+      infants: form.querySelector('[data-quick-add-input="infants"]'),
+    };
     const dateInput = form.querySelector('[data-quick-add-date]');
     const stepButtons = Array.from(form.querySelectorAll('[data-quick-add-step]'));
     const card = form.closest('.trip-picks__card');
@@ -357,14 +393,32 @@
       }
     };
 
-    const ensureCountValue = () => {
-      if (!countInput) return;
-      const minAttr = parseInt(countInput.getAttribute('min'), 10);
-      const maxAttr = parseInt(countInput.getAttribute('max'), 10);
-      const min = Number.isNaN(minAttr) ? 1 : minAttr;
+    const ensureTravelerValue = (input, fallback, minimum) => {
+      if (!input) return null;
+      const minAttr = parseInt(input.getAttribute('min'), 10);
+      const maxAttr = parseInt(input.getAttribute('max'), 10);
+      const min = Number.isNaN(minAttr) ? (typeof minimum === 'number' ? minimum : 0) : minAttr;
       const max = Number.isNaN(maxAttr) ? null : maxAttr;
-      const next = clampTravelerCount(countInput.value, min, max);
-      countInput.value = String(next);
+      const defaultValue = typeof fallback === 'number' ? fallback : min;
+      let currentValue = input.value;
+      if (currentValue === '' || currentValue === null || Number.isNaN(parseInt(currentValue, 10))) {
+        currentValue = defaultValue;
+      }
+      let next = clampTravelerCount(currentValue, min, max);
+      if (next < min) {
+        next = min;
+      }
+      if (typeof max === 'number' && !Number.isNaN(max)) {
+        next = Math.min(next, max);
+      }
+      input.value = String(next);
+      return next;
+    };
+
+    const ensureTravelerValues = () => {
+      ensureTravelerValue(travelerInputs.adults, 2, 1);
+      ensureTravelerValue(travelerInputs.children, 0, 0);
+      ensureTravelerValue(travelerInputs.infants, 0, 0);
     };
 
     const removeDocumentListeners = () => {
@@ -399,7 +453,7 @@
         return;
       }
       ensureDateValue();
-      ensureCountValue();
+      ensureTravelerValues();
       popover.classList.remove('hidden');
       popover.dataset.state = 'open';
       setExpanded(true);
@@ -452,27 +506,32 @@
       });
     }
 
-    if (countInput) {
-      countInput.addEventListener('change', ensureCountValue);
-      countInput.addEventListener('blur', ensureCountValue);
-    }
+    Object.keys(travelerInputs).forEach((key) => {
+      const input = travelerInputs[key];
+      if (!input) return;
+      input.addEventListener('change', ensureTravelerValues);
+      input.addEventListener('blur', ensureTravelerValues);
+    });
 
-    if (stepButtons.length && countInput) {
+    if (stepButtons.length) {
       stepButtons.forEach((stepButton) => {
         stepButton.addEventListener('click', () => {
           const direction = stepButton.getAttribute('data-quick-add-step');
-          const minAttr = parseInt(countInput.getAttribute('min'), 10);
-          const maxAttr = parseInt(countInput.getAttribute('max'), 10);
-          const min = Number.isNaN(minAttr) ? 1 : minAttr;
+          const target = stepButton.getAttribute('data-quick-add-target') || 'adults';
+          const input = travelerInputs[target] || travelerInputs.adults;
+          if (!input) return;
+          const minAttr = parseInt(input.getAttribute('min'), 10);
+          const maxAttr = parseInt(input.getAttribute('max'), 10);
+          const min = Number.isNaN(minAttr) ? (target === 'adults' ? 1 : 0) : minAttr;
           const max = Number.isNaN(maxAttr) ? null : maxAttr;
-          const current = clampTravelerCount(countInput.value, min, max);
+          const current = clampTravelerCount(input.value, min, max);
           const delta = direction === 'down' ? -1 : 1;
           let next = current + delta;
           if (typeof max === 'number' && !Number.isNaN(max)) {
             next = Math.min(next, max);
           }
           next = Math.max(next, min);
-          countInput.value = String(next);
+          input.value = String(next);
         });
       });
     }
@@ -485,7 +544,7 @@
       }
 
       ensureDateValue();
-      ensureCountValue();
+      ensureTravelerValues();
 
       if (typeof window.fetch !== 'function') {
         form.submit();
@@ -501,6 +560,16 @@
       primaryButton.setAttribute('aria-busy', 'true');
 
       const formData = new FormData(form);
+      if (travelerInputs.adults && travelerInputs.adults.value) {
+        formData.set('adults', travelerInputs.adults.value);
+      }
+      if (travelerInputs.children) {
+        formData.set('children', travelerInputs.children.value || '0');
+      }
+      if (travelerInputs.infants) {
+        formData.set('infants', travelerInputs.infants.value || '0');
+      }
+
       if (!formData.get('next')) {
         formData.set('next', window.location.pathname + window.location.search);
       }
@@ -508,10 +577,6 @@
       if (dateInput && dateInput.value) {
         formData.set('date', dateInput.value);
       }
-      if (countInput && countInput.value) {
-        formData.set('adults', countInput.value);
-      }
-
       closePopover();
 
       let shouldFallback = false;

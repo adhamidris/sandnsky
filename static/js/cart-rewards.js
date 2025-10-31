@@ -78,7 +78,11 @@
         trigger: null,
         popover: null,
         dateInput: null,
-        countInput: null,
+        travelerInputs: {
+          adults: null,
+          children: null,
+          infants: null,
+        },
       };
     }
     return {
@@ -86,12 +90,38 @@
       trigger: container.querySelector("[data-quick-add-trigger]"),
       popover: container.querySelector("[data-quick-add-popover]"),
       dateInput: container.querySelector("[data-quick-add-date]"),
-      countInput: container.querySelector("[data-quick-add-count]"),
+      travelerInputs: {
+        adults: container.querySelector('[data-quick-add-input="adults"]'),
+        children: container.querySelector('[data-quick-add-input="children"]'),
+        infants: container.querySelector('[data-quick-add-input="infants"]'),
+      },
     };
   }
 
+  function ensureTravelerValue(input, fallback, minimum) {
+    if (!input) return null;
+    const minAttr = parseInt(input.getAttribute("min"), 10);
+    const maxAttr = parseInt(input.getAttribute("max"), 10);
+    const min = Number.isNaN(minAttr) ? (typeof minimum === "number" ? minimum : 0) : minAttr;
+    const max = Number.isNaN(maxAttr) ? null : maxAttr;
+    const defaultValue = typeof fallback === "number" ? fallback : min;
+    let currentValue = input.value;
+    if (currentValue === "" || currentValue === null || Number.isNaN(parseInt(currentValue, 10))) {
+      currentValue = defaultValue;
+    }
+    let next = clampTravelerCount(currentValue, min, max);
+    if (next < min) {
+      next = min;
+    }
+    if (typeof max === "number" && !Number.isNaN(max)) {
+      next = Math.min(next, max);
+    }
+    input.value = String(next);
+    return next;
+  }
+
   function ensureQuickAddDefaults(container) {
-    const { dateInput, countInput } = getQuickAddElements(container);
+    const { dateInput, travelerInputs } = getQuickAddElements(container);
     if (dateInput) {
       const today = todayIsoDate();
       if (dateInput.min !== today) {
@@ -101,11 +131,10 @@
         dateInput.value = today;
       }
     }
-    if (countInput) {
-      const min = parseInt(countInput.getAttribute("min"), 10);
-      const max = parseInt(countInput.getAttribute("max"), 10);
-      const clamped = clampTravelerCount(countInput.value, min, max);
-      countInput.value = String(clamped);
+    if (travelerInputs) {
+      ensureTravelerValue(travelerInputs.adults, 2, 1);
+      ensureTravelerValue(travelerInputs.children, 0, 0);
+      ensureTravelerValue(travelerInputs.infants, 0, 0);
     }
   }
 
@@ -178,31 +207,45 @@
     }
   }
 
-  function stepTravelerCount(container, direction) {
-    const { countInput } = getQuickAddElements(container);
-    if (!countInput) {
+  function stepTravelerCount(container, direction, target) {
+    const { travelerInputs } = getQuickAddElements(container);
+    if (!travelerInputs) {
       return;
     }
-    const min = parseInt(countInput.getAttribute("min"), 10);
-    const max = parseInt(countInput.getAttribute("max"), 10);
-    const current = clampTravelerCount(countInput.value, min, max);
+    const normalizedTarget = target || "adults";
+    const input = travelerInputs[normalizedTarget] || travelerInputs.adults;
+    if (!input) {
+      return;
+    }
+    const minAttr = parseInt(input.getAttribute("min"), 10);
+    const maxAttr = parseInt(input.getAttribute("max"), 10);
+    const min = Number.isNaN(minAttr) ? (normalizedTarget === "adults" ? 1 : 0) : minAttr;
+    const max = Number.isNaN(maxAttr) ? null : maxAttr;
+    const current = clampTravelerCount(input.value, min, max);
     const next = clampTravelerCount(current + direction, min, max);
-    countInput.value = String(next);
+    input.value = String(next);
   }
 
   function extractQuickAddValues(container) {
     ensureQuickAddDefaults(container);
-    const { dateInput, countInput } = getQuickAddElements(container);
-    const values = { date: "", adults: "" };
+    const { dateInput, travelerInputs } = getQuickAddElements(container);
+    const values = { date: "", adults: "", children: "", infants: "" };
     if (dateInput) {
       values.date = dateInput.value || "";
     }
-    if (countInput) {
-      const min = parseInt(countInput.getAttribute("min"), 10);
-      const max = parseInt(countInput.getAttribute("max"), 10);
-      const clamped = clampTravelerCount(countInput.value, min, max);
-      countInput.value = String(clamped);
-      values.adults = String(clamped);
+    if (travelerInputs) {
+      const adults = ensureTravelerValue(travelerInputs.adults, 2, 1);
+      if (typeof adults === "number") {
+        values.adults = String(adults);
+      }
+      const children = ensureTravelerValue(travelerInputs.children, 0, 0);
+      if (typeof children === "number") {
+        values.children = String(children);
+      }
+      const infants = ensureTravelerValue(travelerInputs.infants, 0, 0);
+      if (typeof infants === "number") {
+        values.infants = String(infants);
+      }
     }
     return values;
   }
@@ -677,7 +720,9 @@
                   const idSuffixRaw = `${slugPlain}-${phase.id || "phase"}`;
                   const idSuffix = idSuffixRaw.replace(/[^a-zA-Z0-9_-]/g, "-");
                   const dateId = `reward-quick-add-date-${idSuffix}`;
-                  const countId = `reward-quick-add-count-${idSuffix}`;
+                  const adultsId = `reward-quick-add-adults-${idSuffix}`;
+                  const childrenId = `reward-quick-add-children-${idSuffix}`;
+                  const infantsId = `reward-quick-add-infants-${idSuffix}`;
                   quickAddControl = `
                     <div class="relative" data-quick-add-container>
                       <button type="button"
@@ -707,31 +752,90 @@
                               data-quick-add-date
                             />
                           </div>
-                          <div class="space-y-1">
-                            <label for="${escapeHtml(countId)}" class="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Travellers</label>
-                            <div class="flex items-center gap-2">
-                              <button type="button"
-                                      class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                                      data-quick-add-step="down"
-                                      aria-label="Decrease travellers">
-                                -
-                              </button>
-                              <input
-                                id="${escapeHtml(countId)}"
-                                type="number"
-                                name="adults"
-                                min="1"
-                                max="16"
-                                value="2"
-                                class="h-8 w-12 rounded-md border border-border/70 bg-background text-center text-xs font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                                data-quick-add-count
-                              />
-                              <button type="button"
-                                      class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                                      data-quick-add-step="up"
-                                      aria-label="Increase travellers">
-                                +
-                              </button>
+                          <div class="space-y-2">
+                            <p class="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Travellers</p>
+                            <div class="space-y-2">
+                              <div class="flex items-center gap-2">
+                                <label for="${escapeHtml(adultsId)}" class="w-14 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Adults</label>
+                                <button type="button"
+                                        class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                        data-quick-add-step="down"
+                                        data-quick-add-target="adults"
+                                        aria-label="Decrease adults">
+                                  -
+                                </button>
+                                <input
+                                  id="${escapeHtml(adultsId)}"
+                                  type="number"
+                                  name="adults"
+                                  min="1"
+                                  max="16"
+                                  value="2"
+                                  class="h-8 w-12 rounded-md border border-border/70 bg-background text-center text-xs font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                  data-quick-add-input="adults"
+                                />
+                                <button type="button"
+                                        class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                        data-quick-add-step="up"
+                                        data-quick-add-target="adults"
+                                        aria-label="Increase adults">
+                                  +
+                                </button>
+                              </div>
+                              <div class="flex items-center gap-2">
+                                <label for="${escapeHtml(childrenId)}" class="w-14 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Children</label>
+                                <button type="button"
+                                        class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                        data-quick-add-step="down"
+                                        data-quick-add-target="children"
+                                        aria-label="Decrease children">
+                                  -
+                                </button>
+                                <input
+                                  id="${escapeHtml(childrenId)}"
+                                  type="number"
+                                  name="children"
+                                  min="0"
+                                  max="12"
+                                  value="0"
+                                  class="h-8 w-12 rounded-md border border-border/70 bg-background text-center text-xs font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                  data-quick-add-input="children"
+                                />
+                                <button type="button"
+                                        class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                        data-quick-add-step="up"
+                                        data-quick-add-target="children"
+                                        aria-label="Increase children">
+                                  +
+                                </button>
+                              </div>
+                              <div class="flex items-center gap-2">
+                                <label for="${escapeHtml(infantsId)}" class="w-14 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Infants</label>
+                                <button type="button"
+                                        class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                        data-quick-add-step="down"
+                                        data-quick-add-target="infants"
+                                        aria-label="Decrease infants">
+                                  -
+                                </button>
+                                <input
+                                  id="${escapeHtml(infantsId)}"
+                                  type="number"
+                                  name="infants"
+                                  min="0"
+                                  max="6"
+                                  value="0"
+                                  class="h-8 w-12 rounded-md border border-border/70 bg-background text-center text-xs font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                  data-quick-add-input="infants"
+                                />
+                                <button type="button"
+                                        class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                        data-quick-add-step="up"
+                                        data-quick-add-target="infants"
+                                        aria-label="Increase infants">
+                                  +
+                                </button>
+                              </div>
                             </div>
                           </div>
                           <div class="flex items-center justify-end gap-2">
@@ -1126,7 +1230,9 @@
       const tripUrl = tripUrlTemplate ? buildTripUrl(tripUrlTemplate, trip.slug || "") : "#";
       const slugPlain = String(trip.slug || "");
       const dateId = `checkout-quick-add-date-${slugPlain}`;
-      const countId = `checkout-quick-add-count-${slugPlain}`;
+      const adultsId = `checkout-quick-add-adults-${slugPlain}`;
+      const childrenId = `checkout-quick-add-children-${slugPlain}`;
+      const infantsId = `checkout-quick-add-infants-${slugPlain}`;
       return `
         <article class="quick-add-card flex items-stretch gap-4">
           <div class="quick-add-card-media h-24 w-28 flex-none overflow-hidden rounded-xl">
@@ -1176,31 +1282,90 @@
                         data-quick-add-date
                       />
                     </div>
-                    <div class="space-y-1">
-                      <label for="${escapeHtml(countId)}" class="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Travellers</label>
-                      <div class="flex items-center gap-2">
-                        <button type="button"
-                                class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                                data-quick-add-step="down"
-                                aria-label="Decrease travellers">
-                          -
-                        </button>
-                        <input
-                          id="${escapeHtml(countId)}"
-                          type="number"
-                          name="adults"
-                          min="1"
-                          max="16"
-                          value="2"
-                          class="h-8 w-12 rounded-md border border-border/70 bg-background text-center text-xs font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                          data-quick-add-count
-                        />
-                        <button type="button"
-                                class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                                data-quick-add-step="up"
-                                aria-label="Increase travellers">
-                          +
-                        </button>
+                    <div class="space-y-2">
+                      <p class="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Travellers</p>
+                      <div class="space-y-2">
+                        <div class="flex items-center gap-2">
+                          <label for="${escapeHtml(adultsId)}" class="w-14 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Adults</label>
+                          <button type="button"
+                                  class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                  data-quick-add-step="down"
+                                  data-quick-add-target="adults"
+                                  aria-label="Decrease adults">
+                            -
+                          </button>
+                          <input
+                            id="${escapeHtml(adultsId)}"
+                            type="number"
+                            name="adults"
+                            min="1"
+                            max="16"
+                            value="2"
+                            class="h-8 w-12 rounded-md border border-border/70 bg-background text-center text-xs font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                            data-quick-add-input="adults"
+                          />
+                          <button type="button"
+                                  class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                  data-quick-add-step="up"
+                                  data-quick-add-target="adults"
+                                  aria-label="Increase adults">
+                            +
+                          </button>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <label for="${escapeHtml(childrenId)}" class="w-14 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Children</label>
+                          <button type="button"
+                                  class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                  data-quick-add-step="down"
+                                  data-quick-add-target="children"
+                                  aria-label="Decrease children">
+                            -
+                          </button>
+                          <input
+                            id="${escapeHtml(childrenId)}"
+                            type="number"
+                            name="children"
+                            min="0"
+                            max="12"
+                            value="0"
+                            class="h-8 w-12 rounded-md border border-border/70 bg-background text-center text-xs font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                            data-quick-add-input="children"
+                          />
+                          <button type="button"
+                                  class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                  data-quick-add-step="up"
+                                  data-quick-add-target="children"
+                                  aria-label="Increase children">
+                            +
+                          </button>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <label for="${escapeHtml(infantsId)}" class="w-14 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Infants</label>
+                          <button type="button"
+                                  class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                  data-quick-add-step="down"
+                                  data-quick-add-target="infants"
+                                  aria-label="Decrease infants">
+                            -
+                          </button>
+                          <input
+                            id="${escapeHtml(infantsId)}"
+                            type="number"
+                            name="infants"
+                            min="0"
+                            max="6"
+                            value="0"
+                            class="h-8 w-12 rounded-md border border-border/70 bg-background text-center text-xs font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                            data-quick-add-input="infants"
+                          />
+                          <button type="button"
+                                  class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                  data-quick-add-step="up"
+                                  data-quick-add-target="infants"
+                                  aria-label="Increase infants">
+                            +
+                          </button>
+                        </div>
                       </div>
                     </div>
                     <div class="flex items-center justify-end gap-2">
@@ -1529,6 +1694,12 @@
     if (opts.adults) {
       formData.append("adults", opts.adults);
     }
+    if (opts.children !== undefined) {
+      formData.append("children", opts.children || "0");
+    }
+    if (opts.infants !== undefined) {
+      formData.append("infants", opts.infants || "0");
+    }
 
     const relatedTrigger =
       opts.relatedTrigger && opts.relatedTrigger !== button ? opts.relatedTrigger : null;
@@ -1660,6 +1831,8 @@
       handleQuickAdd(confirmBtn, {
         date: values.date,
         adults: values.adults,
+        children: values.children,
+        infants: values.infants,
         relatedTrigger,
       });
       return;
@@ -1685,7 +1858,8 @@
       const container = stepBtn.closest("[data-quick-add-container]");
       if (container) {
         const direction = stepBtn.dataset.quickAddStep === "down" ? -1 : 1;
-        stepTravelerCount(container, direction);
+        const target = stepBtn.dataset.quickAddTarget || undefined;
+        stepTravelerCount(container, direction, target);
       }
       return;
     }

@@ -303,7 +303,7 @@
               <form method="post" action="{% url 'web:booking-cart-quick-add' trip.slug %}" class="mt-2" data-cart-toggle>
                 {% csrf_token %}
                 <input type="hidden" name="next" value="{{ request.get_full_path }}" />
-                {% with date_id="quick-add-date-"|add:trip.slug count_id="quick-add-count-"|add:trip.slug %}
+                {% with date_id="quick-add-date-"|add:trip.slug adults_id="quick-add-adults-"|add:trip.slug children_id="quick-add-children-"|add:trip.slug infants_id="quick-add-infants-"|add:trip.slug %}
                 <div class="relative" data-quick-add-container>
                   <button type="submit"
                           class="trip-card__cta-secondary inline-flex w-full items-center justify-center rounded-md border px-3 py-2 text-xs sm:text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
@@ -335,28 +335,95 @@
                                data-quick-add-date />
                       </div>
                       <div class="space-y-1">
-                        <label for="{{ count_id }}" class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Travelers</label>
-                        <div class="flex items-center gap-2">
-                          <button type="button"
-                                  class="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-sm font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                                  data-quick-add-step="down"
-                                  aria-label="Decrease travelers">
-                            -
-                          </button>
-                          <input id="{{ count_id }}"
-                                 type="number"
-                                 name="adults"
-                                 min="1"
-                                 max="16"
-                                 value="2"
-                                 class="h-9 w-14 rounded-md border border-border/70 bg-background text-center text-sm font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                                 data-quick-add-count />
-                          <button type="button"
-                                  class="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-sm font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                                  data-quick-add-step="up"
-                                  aria-label="Increase travelers">
-                            +
-                          </button>
+                        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Travelers</p>
+                        <div class="space-y-3">
+                          <div class="space-y-1">
+                            <div class="flex items-center justify-between text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                              <label for="{{ adults_id }}">Adults</label>
+                            </div>
+                            <div class="flex items-center gap-2">
+                              <button type="button"
+                                      class="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-sm font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                      data-quick-add-step="down"
+                                      data-quick-add-target="adults"
+                                      aria-label="Decrease adults">
+                                -
+                              </button>
+                              <input id="{{ adults_id }}"
+                                     type="number"
+                                     name="adults"
+                                     min="1"
+                                     max="16"
+                                     value="2"
+                                     class="h-9 w-14 rounded-md border border-border/70 bg-background text-center text-sm font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                     data-quick-add-input="adults" />
+                              <button type="button"
+                                      class="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-sm font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                      data-quick-add-step="up"
+                                      data-quick-add-target="adults"
+                                      aria-label="Increase adults">
+                                +
+                              </button>
+                            </div>
+                          </div>
+                          <div class="space-y-1">
+                            <div class="flex items-center justify-between text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                              <label for="{{ children_id }}">Children</label>
+                            </div>
+                            <div class="flex items-center gap-2">
+                              <button type="button"
+                                      class="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-sm font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                      data-quick-add-step="down"
+                                      data-quick-add-target="children"
+                                      aria-label="Decrease children">
+                                -
+                              </button>
+                              <input id="{{ children_id }}"
+                                     type="number"
+                                     name="children"
+                                     min="0"
+                                     max="12"
+                                     value="0"
+                                     class="h-9 w-14 rounded-md border border-border/70 bg-background text-center text-sm font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                     data-quick-add-input="children" />
+                              <button type="button"
+                                      class="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-sm font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                      data-quick-add-step="up"
+                                      data-quick-add-target="children"
+                                      aria-label="Increase children">
+                                +
+                              </button>
+                            </div>
+                          </div>
+                          <div class="space-y-1">
+                            <div class="flex items-center justify-between text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                              <label for="{{ infants_id }}">Infants</label>
+                            </div>
+                            <div class="flex items-center gap-2">
+                              <button type="button"
+                                      class="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-sm font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                      data-quick-add-step="down"
+                                      data-quick-add-target="infants"
+                                      aria-label="Decrease infants">
+                                -
+                              </button>
+                              <input id="{{ infants_id }}"
+                                     type="number"
+                                     name="infants"
+                                     min="0"
+                                     max="6"
+                                     value="0"
+                                     class="h-9 w-14 rounded-md border border-border/70 bg-background text-center text-sm font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                     data-quick-add-input="infants" />
+                              <button type="button"
+                                      class="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-sm font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                      data-quick-add-step="up"
+                                      data-quick-add-target="infants"
+                                      aria-label="Increase infants">
+                                +
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       </div>
                       <div class="flex items-center justify-end gap-2">
@@ -1432,7 +1499,11 @@
     var popover = form.querySelector('[data-quick-add-popover]');
     var container = form.querySelector('[data-quick-add-container]');
     var cancelButton = form.querySelector('[data-quick-add-cancel]');
-    var countInput = form.querySelector('[data-quick-add-count]');
+    var travelerInputs = {
+      adults: form.querySelector('[data-quick-add-input="adults"]'),
+      children: form.querySelector('[data-quick-add-input="children"]'),
+      infants: form.querySelector('[data-quick-add-input="infants"]'),
+    };
     var dateInput = form.querySelector('[data-quick-add-date]');
     var stepButtons = form.querySelectorAll('[data-quick-add-step]');
     var outsideHandler = null;
@@ -1458,20 +1529,34 @@
       }
     }
 
-    function ensureCountValue() {
-      if (!countInput) {
-        return;
+    function ensureTravelerValue(input, fallback, minimum) {
+      if (!input) {
+        return null;
       }
-      var min = parseInt(countInput.getAttribute('min'), 10);
-      if (isNaN(min)) {
-        min = 1;
+      var minAttr = parseInt(input.getAttribute('min'), 10);
+      var maxAttr = parseInt(input.getAttribute('max'), 10);
+      var min = Number.isNaN(minAttr) ? (typeof minimum === 'number' ? minimum : 0) : minAttr;
+      var max = Number.isNaN(maxAttr) ? null : maxAttr;
+      var defaultValue = typeof fallback === 'number' ? fallback : min;
+      var currentValue = input.value;
+      if (currentValue === '' || currentValue === null || Number.isNaN(parseInt(currentValue, 10))) {
+        currentValue = defaultValue;
       }
-      var max = parseInt(countInput.getAttribute('max'), 10);
-      if (isNaN(max)) {
-        max = null;
+      var next = clampTravelerCount(currentValue, min, max);
+      if (next < min) {
+        next = min;
       }
-      var next = clampTravelerCount(countInput.value, min, max);
-      countInput.value = String(next);
+      if (typeof max === 'number' && !Number.isNaN(max)) {
+        next = Math.min(next, max);
+      }
+      input.value = String(next);
+      return next;
+    }
+
+    function ensureTravelerValues() {
+      ensureTravelerValue(travelerInputs.adults, 2, 1);
+      ensureTravelerValue(travelerInputs.children, 0, 0);
+      ensureTravelerValue(travelerInputs.infants, 0, 0);
     }
 
     function removeDocumentListeners() {
@@ -1491,7 +1576,7 @@
         return;
       }
       ensureDateValue();
-      ensureCountValue();
+      ensureTravelerValues();
       popover.classList.remove('hidden');
       popover.dataset.state = 'open';
       setAriaExpanded(true);
@@ -1572,30 +1657,35 @@
       });
     }
 
-    if (countInput) {
-      countInput.addEventListener('change', ensureCountValue);
-      countInput.addEventListener('blur', ensureCountValue);
-    }
+    Object.keys(travelerInputs).forEach(function (key) {
+      var input = travelerInputs[key];
+      if (!input) {
+        return;
+      }
+      input.addEventListener('change', ensureTravelerValues);
+      input.addEventListener('blur', ensureTravelerValues);
+    });
 
-    if (stepButtons.length && countInput) {
+    if (stepButtons.length) {
       Array.prototype.forEach.call(stepButtons, function (stepButton) {
         stepButton.addEventListener('click', function () {
           var isDown = stepButton.getAttribute('data-quick-add-step') === 'down';
-          var min = parseInt(countInput.getAttribute('min'), 10);
-          if (isNaN(min)) {
-            min = 1;
+          var target = stepButton.getAttribute('data-quick-add-target') || 'adults';
+          var input = travelerInputs[target] || travelerInputs.adults;
+          if (!input) {
+            return;
           }
-          var max = parseInt(countInput.getAttribute('max'), 10);
-          if (isNaN(max)) {
-            max = null;
-          }
-          var current = clampTravelerCount(countInput.value, min, max);
+          var minAttr = parseInt(input.getAttribute('min'), 10);
+          var maxAttr = parseInt(input.getAttribute('max'), 10);
+          var min = Number.isNaN(minAttr) ? (target === 'adults' ? 1 : 0) : minAttr;
+          var max = Number.isNaN(maxAttr) ? null : maxAttr;
+          var current = clampTravelerCount(input.value, min, max);
           var next = current + (isDown ? -1 : 1);
-          if (typeof max === 'number' && !isNaN(max)) {
+          if (typeof max === 'number' && !Number.isNaN(max)) {
             next = Math.min(next, max);
           }
           next = Math.max(next, min);
-          countInput.value = String(next);
+          input.value = String(next);
         });
       });
     }
@@ -1610,14 +1700,20 @@
       }
 
       ensureDateValue();
-      ensureCountValue();
+      ensureTravelerValues();
 
       var formData = new FormData(form);
       if (dateInput && dateInput.value) {
         formData.set('date', dateInput.value);
       }
-      if (countInput && countInput.value) {
-        formData.set('adults', countInput.value);
+      if (travelerInputs.adults && travelerInputs.adults.value) {
+        formData.set('adults', travelerInputs.adults.value);
+      }
+      if (travelerInputs.children) {
+        formData.set('children', travelerInputs.children.value || '0');
+      }
+      if (travelerInputs.infants) {
+        formData.set('infants', travelerInputs.infants.value || '0');
       }
       if (!formData.get('next')) {
         formData.set('next', window.location.pathname + window.location.search);

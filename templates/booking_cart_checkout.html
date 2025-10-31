@@ -293,7 +293,7 @@
                         </button>
                         {% else %}
                         {% with phase_id=phase.id|stringformat:"s" slug_value=trip.slug|default:trip.trip_id|stringformat:"s" %}
-                        {% with date_id="reward-quick-add-date-"|add:phase_id|add:"-"|add:slug_value count_id="reward-quick-add-count-"|add:phase_id|add:"-"|add:slug_value %}
+                        {% with date_id="reward-quick-add-date-"|add:phase_id|add:"-"|add:slug_value adults_id="reward-quick-add-adults-"|add:phase_id|add:"-"|add:slug_value children_id="reward-quick-add-children-"|add:phase_id|add:"-"|add:slug_value infants_id="reward-quick-add-infants-"|add:phase_id|add:"-"|add:slug_value %}
                         <div class="relative" data-quick-add-container>
                           <button
                             type="button"
@@ -335,35 +335,102 @@
                                   data-quick-add-date
                                 />
                               </div>
-                              <div class="space-y-1">
-                                <label for="{{ count_id }}" class="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Travellers</label>
-                                <div class="flex items-center gap-2">
-                                  <button
-                                    type="button"
-                                    class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                                    data-quick-add-step="down"
-                                    aria-label="Decrease travellers"
-                                  >
-                                    -
-                                  </button>
-                                  <input
-                                    id="{{ count_id }}"
-                                    type="number"
-                                    name="adults"
-                                    min="1"
-                                    max="16"
-                                    value="2"
-                                    class="h-8 w-12 rounded-md border border-border/70 bg-background text-center text-xs font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                                    data-quick-add-count
-                                  />
-                                  <button
-                                    type="button"
-                                    class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                                    data-quick-add-step="up"
-                                    aria-label="Increase travellers"
-                                  >
-                                    +
-                                  </button>
+                              <div class="space-y-2">
+                                <p class="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Travellers</p>
+                                <div class="space-y-2">
+                                  <div class="flex items-center gap-2">
+                                    <label for="{{ adults_id }}" class="w-14 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Adults</label>
+                                    <button
+                                      type="button"
+                                      class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                      data-quick-add-step="down"
+                                      data-quick-add-target="adults"
+                                      aria-label="Decrease adults"
+                                    >
+                                      -
+                                    </button>
+                                    <input
+                                      id="{{ adults_id }}"
+                                      type="number"
+                                      name="adults"
+                                      min="1"
+                                      max="16"
+                                      value="2"
+                                      class="h-8 w-12 rounded-md border border-border/70 bg-background text-center text-xs font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                      data-quick-add-input="adults"
+                                    />
+                                    <button
+                                      type="button"
+                                      class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                      data-quick-add-step="up"
+                                      data-quick-add-target="adults"
+                                      aria-label="Increase adults"
+                                    >
+                                      +
+                                    </button>
+                                  </div>
+                                  <div class="flex items-center gap-2">
+                                    <label for="{{ children_id }}" class="w-14 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Children</label>
+                                    <button
+                                      type="button"
+                                      class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                      data-quick-add-step="down"
+                                      data-quick-add-target="children"
+                                      aria-label="Decrease children"
+                                    >
+                                      -
+                                    </button>
+                                    <input
+                                      id="{{ children_id }}"
+                                      type="number"
+                                      name="children"
+                                      min="0"
+                                      max="12"
+                                      value="0"
+                                      class="h-8 w-12 rounded-md border border-border/70 bg-background text-center text-xs font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                      data-quick-add-input="children"
+                                    />
+                                    <button
+                                      type="button"
+                                      class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                      data-quick-add-step="up"
+                                      data-quick-add-target="children"
+                                      aria-label="Increase children"
+                                    >
+                                      +
+                                    </button>
+                                  </div>
+                                  <div class="flex items-center gap-2">
+                                    <label for="{{ infants_id }}" class="w-14 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Infants</label>
+                                    <button
+                                      type="button"
+                                      class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                      data-quick-add-step="down"
+                                      data-quick-add-target="infants"
+                                      aria-label="Decrease infants"
+                                    >
+                                      -
+                                    </button>
+                                    <input
+                                      id="{{ infants_id }}"
+                                      type="number"
+                                      name="infants"
+                                      min="0"
+                                      max="6"
+                                      value="0"
+                                      class="h-8 w-12 rounded-md border border-border/70 bg-background text-center text-xs font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                      data-quick-add-input="infants"
+                                    />
+                                    <button
+                                      type="button"
+                                      class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                      data-quick-add-step="up"
+                                      data-quick-add-target="infants"
+                                      aria-label="Increase infants"
+                                    >
+                                      +
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
                               <div class="flex items-center justify-end gap-2">
@@ -708,7 +775,7 @@
                       {% endif %}
                     </div>
                     <div class="mt-auto flex flex-wrap items-center justify-end gap-2 text-xs">
-                      {% with date_id="checkout-quick-add-date-"|add:trip.slug count_id="checkout-quick-add-count-"|add:trip.slug %}
+                      {% with date_id="checkout-quick-add-date-"|add:trip.slug adults_id="checkout-quick-add-adults-"|add:trip.slug children_id="checkout-quick-add-children-"|add:trip.slug infants_id="checkout-quick-add-infants-"|add:trip.slug %}
                       <div class="relative" data-quick-add-container>
                         <button
                           type="button"
@@ -736,31 +803,90 @@
                                 data-quick-add-date
                               />
                             </div>
-                            <div class="space-y-1">
-                              <label for="{{ count_id }}" class="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Travellers</label>
-                              <div class="flex items-center gap-2">
-                                <button type="button"
-                                        class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                                        data-quick-add-step="down"
-                                        aria-label="Decrease travellers">
-                                  -
-                                </button>
-                                <input
-                                  id="{{ count_id }}"
-                                  type="number"
-                                  name="adults"
-                                  min="1"
-                                  max="16"
-                                  value="2"
-                                  class="h-8 w-12 rounded-md border border-border/70 bg-background text-center text-xs font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                                  data-quick-add-count
-                                />
-                                <button type="button"
-                                        class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                                        data-quick-add-step="up"
-                                        aria-label="Increase travellers">
-                                  +
-                                </button>
+                            <div class="space-y-2">
+                              <p class="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Travellers</p>
+                              <div class="space-y-2">
+                                <div class="flex items-center gap-2">
+                                  <label for="{{ adults_id }}" class="w-14 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Adults</label>
+                                  <button type="button"
+                                          class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                          data-quick-add-step="down"
+                                          data-quick-add-target="adults"
+                                          aria-label="Decrease adults">
+                                    -
+                                  </button>
+                                  <input
+                                    id="{{ adults_id }}"
+                                    type="number"
+                                    name="adults"
+                                    min="1"
+                                    max="16"
+                                    value="2"
+                                    class="h-8 w-12 rounded-md border border-border/70 bg-background text-center text-xs font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                    data-quick-add-input="adults"
+                                  />
+                                  <button type="button"
+                                          class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                          data-quick-add-step="up"
+                                          data-quick-add-target="adults"
+                                          aria-label="Increase adults">
+                                    +
+                                  </button>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                  <label for="{{ children_id }}" class="w-14 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Children</label>
+                                  <button type="button"
+                                          class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                          data-quick-add-step="down"
+                                          data-quick-add-target="children"
+                                          aria-label="Decrease children">
+                                    -
+                                  </button>
+                                  <input
+                                    id="{{ children_id }}"
+                                    type="number"
+                                    name="children"
+                                    min="0"
+                                    max="12"
+                                    value="0"
+                                    class="h-8 w-12 rounded-md border border-border/70 bg-background text-center text-xs font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                    data-quick-add-input="children"
+                                  />
+                                  <button type="button"
+                                          class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                          data-quick-add-step="up"
+                                          data-quick-add-target="children"
+                                          aria-label="Increase children">
+                                    +
+                                  </button>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                  <label for="{{ infants_id }}" class="w-14 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Infants</label>
+                                  <button type="button"
+                                          class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                          data-quick-add-step="down"
+                                          data-quick-add-target="infants"
+                                          aria-label="Decrease infants">
+                                    -
+                                  </button>
+                                  <input
+                                    id="{{ infants_id }}"
+                                    type="number"
+                                    name="infants"
+                                    min="0"
+                                    max="6"
+                                    value="0"
+                                    class="h-8 w-12 rounded-md border border-border/70 bg-background text-center text-xs font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                    data-quick-add-input="infants"
+                                  />
+                                  <button type="button"
+                                          class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                          data-quick-add-step="up"
+                                          data-quick-add-target="infants"
+                                          aria-label="Increase infants">
+                                    +
+                                  </button>
+                                </div>
                               </div>
                             </div>
                             <div class="flex items-center justify-end gap-2">

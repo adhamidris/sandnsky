@@ -2221,3 +2221,9 @@
 #gallery {
   background-color: white !important;
 }
+
+@media (min-width: 767px) {
+  .testimonial-swiper {
+    display: none !important;
+  }
+}

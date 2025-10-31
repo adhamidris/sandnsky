@@ -20,7 +20,7 @@
 
     
 
-    <div class="relative mt-14 w-full max-w-none px-0 sm:px-4 lg:px-8" data-testimonials data-interval="6500">
+    <div class="relative mt-14 w-full max-w-none px-0 sm:px-4 lg:px-8" data-testimonials>
       <div class="testimonial-stack" aria-live="polite" aria-atomic="true">
         <div class="testimonial-carousel" data-testimonial-track>
         <article class="testi testimonial-card" data-testimonial data-testimonial-index="0" role="tabpanel" id="testimonial-panel-1">
@@ -127,6 +127,25 @@
           </div>
         </article>
         </div>
+      </div>
+
+      <div class="testimonial-swiper mt-8 flex items-center justify-center gap-6 sm:hidden" data-testimonial-controls>
+        <button type="button"
+                class="inline-flex h-12 w-12 items-center justify-center rounded-full border border-border/60 bg-card text-muted-foreground shadow-subtle transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                data-testimonial-prev
+                aria-label="Previous testimonial">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-5 w-5">
+            <path fill-rule="evenodd" d="M12.78 4.22a.75.75 0 0 1 0 1.06L8.06 10l4.72 4.72a.75.75 0 1 1-1.06 1.06l-5.25-5.25a.75.75 0 0 1 0-1.06l5.25-5.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+          </svg>
+        </button>
+        <button type="button"
+                class="inline-flex h-12 w-12 items-center justify-center rounded-full border border-border/60 bg-card text-muted-foreground shadow-subtle transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                data-testimonial-next
+                aria-label="Next testimonial">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-5 w-5">
+            <path fill-rule="evenodd" d="M7.22 4.22a.75.75 0 0 1 1.06 0l5.25 5.25a.75.75 0 0 1 0 1.06l-5.25 5.25a.75.75 0 1 1-1.06-1.06L11.94 10 7.22 5.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+          </svg>
+        </button>
       </div>
 
       <div class="hidden mt-10 flex justify-center gap-2" role="tablist" aria-label="Testimonials navigation">

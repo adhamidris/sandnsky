@@ -1602,6 +1602,16 @@ class CartQuickAddView(View):
                         parsed_date = today
                 cleaned_data["date"] = parsed_date
 
+            max_group_size_raw = getattr(trip, "group_size_max", None)
+            try:
+                max_group_size_int = int(max_group_size_raw)
+            except (TypeError, ValueError):
+                max_group_size_int = None
+            else:
+                if max_group_size_int <= 0:
+                    max_group_size_int = None
+
+            adults_count = cleaned_data["adults"]
             adults_raw = request.POST.get("adults")
             if adults_raw is not None:
                 try:
@@ -1611,19 +1621,43 @@ class CartQuickAddView(View):
                 else:
                     if adults_count < 1:
                         adults_count = 1
-                    max_group_size = getattr(trip, "group_size_max", None)
-                    if max_group_size:
-                        try:
-                            max_group_size_int = int(max_group_size)
-                        except (TypeError, ValueError):
-                            max_group_size_int = None
-                    else:
-                        max_group_size_int = None
-                    if max_group_size_int and max_group_size_int > 0:
+                    if max_group_size_int:
                         adults_count = min(adults_count, max_group_size_int)
                     else:
                         adults_count = min(adults_count, 16)
-                cleaned_data["adults"] = adults_count
+            if max_group_size_int and adults_count > max_group_size_int:
+                adults_count = max_group_size_int
+            cleaned_data["adults"] = adults_count
+
+            children_count = cleaned_data["children"]
+            children_raw = request.POST.get("children")
+            if children_raw is not None:
+                try:
+                    children_count = int(children_raw)
+                except (TypeError, ValueError):
+                    children_count = 0
+            if children_count < 0:
+                children_count = 0
+            if max_group_size_int:
+                available_children = max_group_size_int - adults_count
+                if available_children < 0:
+                    available_children = 0
+                children_count = min(children_count, available_children)
+            else:
+                children_count = min(children_count, 12)
+            cleaned_data["children"] = children_count
+
+            infants_count = cleaned_data["infants"]
+            infants_raw = request.POST.get("infants")
+            if infants_raw is not None:
+                try:
+                    infants_count = int(infants_raw)
+                except (TypeError, ValueError):
+                    infants_count = 0
+            if infants_count < 0:
+                infants_count = 0
+            infants_count = min(infants_count, 6)
+            cleaned_data["infants"] = infants_count
 
             # ensure unique by clearing any lingering duplicates
             remove_trip_entries(request.session, trip.pk)
