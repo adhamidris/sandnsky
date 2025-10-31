@@ -663,17 +663,13 @@
   }
 
   .trip-cardi.quick-add-active {
-    z-index: 50;
     overflow: visible;
     transform: none !important;
+    max-height: none;
   }
 
   .trip-grid.trip-grid--list .trip-cardi {
     overflow: visible;
-  }
-
-  .trip-grid.trip-grid--list [data-quick-add-container].quick-add-open {
-    z-index: 40;
   }
 
   .trip-grid.trip-grid--list [data-quick-add-container].quick-add-open .quick-add-popover {
@@ -716,6 +712,30 @@
     letter-spacing:.18em;
     text-transform:uppercase;
     border:1px solid rgba(201,169,97,0.36);
+  }
+
+  .quick-add-popover {
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    z-index: 30;
+  }
+
+  .quick-add-popover :is(button, input, label, p, span, dd) {
+    font-size: inherit;
+  }
+
+  .quick-add-popover .text-sm {
+    font-size: 0.8125rem;
+  }
+
+  .quick-add-popover .text-xs,
+  .quick-add-popover label {
+    font-size: 0.7rem;
+  }
+
+  [data-quick-add-popover][data-state="open"] {
+    position: static;
+    width: 100%;
   }
 
   .trip-cardi .trip-card__price {
