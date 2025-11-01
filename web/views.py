@@ -136,8 +136,8 @@ def _serialize_gallery_images(images):
         file_field = getattr(item, "image", None)
         if not file_field:
             continue
-        width = getattr(file_field, "width", None)
-        height = getattr(file_field, "height", None)
+        width = getattr(item, "image_width", None)
+        height = getattr(item, "image_height", None)
         is_landscape = False
         if width and height:
             try:

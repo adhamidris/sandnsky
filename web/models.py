@@ -103,7 +103,13 @@ class DestinationGalleryImage(models.Model):
     destination = models.ForeignKey(
         Destination, on_delete=models.CASCADE, related_name="gallery_images"
     )
-    image = models.ImageField(upload_to="destinations/gallery/")
+    image = models.ImageField(
+        upload_to="destinations/gallery/",
+        width_field="image_width",
+        height_field="image_height",
+    )
+    image_width = models.PositiveIntegerField(null=True, blank=True)
+    image_height = models.PositiveIntegerField(null=True, blank=True)
     caption = models.CharField(max_length=200, blank=True)
     position = models.PositiveSmallIntegerField(default=0)
 
@@ -525,7 +531,13 @@ class TripGalleryImage(models.Model):
     trip = models.ForeignKey(
         Trip, on_delete=models.CASCADE, related_name="gallery_images"
     )
-    image = models.ImageField(upload_to="trips/gallery/")
+    image = models.ImageField(
+        upload_to="trips/gallery/",
+        width_field="image_width",
+        height_field="image_height",
+    )
+    image_width = models.PositiveIntegerField(null=True, blank=True)
+    image_height = models.PositiveIntegerField(null=True, blank=True)
     caption = models.CharField(max_length=200, blank=True)
     position = models.PositiveSmallIntegerField(default=0)
 
