@@ -43,7 +43,3 @@ local_settings.py
 # Media files (optional - you might want to track some)
 # media/
 /media/
-
-/backups/
-/backups/static-backup/
-/backups/temp-backup/
