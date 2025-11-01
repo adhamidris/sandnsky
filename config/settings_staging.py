@@ -1,59 +1,59 @@
-"""
-Staging settings for PythonAnywhere with Django Debug Toolbar enabled safely.
+# """
+# Staging settings for PythonAnywhere with Django Debug Toolbar enabled safely.
 
-Usage:
-  DJANGO_SETTINGS_MODULE=config.settings_staging
-"""
+# Usage:
+#   DJANGO_SETTINGS_MODULE=config.settings_staging
+# """
 
-from .settings import *  # noqa
+# from .settings import *  # noqa
 
-# --- Core toggles -----------------------------------------------------------
-DEBUG = True  # staging only; do NOT use on production
+# # --- Core toggles -----------------------------------------------------------
+# DEBUG = True  # staging only; do NOT use on production
 
-# Make sure your PA domain is present (your base already includes it, but this
-# keeps things explicit and future-proof).
-if "adhamidris.pythonanywhere.com" not in ALLOWED_HOSTS:
-    ALLOWED_HOSTS.append("adhamidris.pythonanywhere.com")
+# # Make sure your PA domain is present (your base already includes it, but this
+# # keeps things explicit and future-proof).
+# if "adhamidris.pythonanywhere.com" not in ALLOWED_HOSTS:
+#     ALLOWED_HOSTS.append("adhamidris.pythonanywhere.com")
 
-# CSRF trusted origins (explicit for clarity)
-if "https://adhamidris.pythonanywhere.com" not in CSRF_TRUSTED_ORIGINS:
-    CSRF_TRUSTED_ORIGINS.append("https://adhamidris.pythonanywhere.com")
+# # CSRF trusted origins (explicit for clarity)
+# if "https://adhamidris.pythonanywhere.com" not in CSRF_TRUSTED_ORIGINS:
+#     CSRF_TRUSTED_ORIGINS.append("https://adhamidris.pythonanywhere.com")
 
-# --- Debug Toolbar ----------------------------------------------------------
-# Install the app
-if "debug_toolbar" not in INSTALLED_APPS:
-    INSTALLED_APPS = [*INSTALLED_APPS, "debug_toolbar"]
+# # --- Debug Toolbar ----------------------------------------------------------
+# # Install the app
+# if "debug_toolbar" not in INSTALLED_APPS:
+#     INSTALLED_APPS = [*INSTALLED_APPS, "debug_toolbar"]
 
-# Insert the middleware right after SecurityMiddleware if present; else append.
-_MW = list(MIDDLEWARE)
-try:
-    sec_idx = _MW.index("django.middleware.security.SecurityMiddleware")
-    _MW.insert(sec_idx + 1, "debug_toolbar.middleware.DebugToolbarMiddleware")
-except ValueError:
-    _MW.append("debug_toolbar.middleware.DebugToolbarMiddleware")
-MIDDLEWARE = _MW
+# # Insert the middleware right after SecurityMiddleware if present; else append.
+# _MW = list(MIDDLEWARE)
+# try:
+#     sec_idx = _MW.index("django.middleware.security.SecurityMiddleware")
+#     _MW.insert(sec_idx + 1, "debug_toolbar.middleware.DebugToolbarMiddleware")
+# except ValueError:
+#     _MW.append("debug_toolbar.middleware.DebugToolbarMiddleware")
+# MIDDLEWARE = _MW
 
-# INTERNAL_IPS is unreliable on PA (behind proxies). We’ll use a callback toggle.
-INTERNAL_IPS = []
+# # INTERNAL_IPS is unreliable on PA (behind proxies). We’ll use a callback toggle.
+# INTERNAL_IPS = []
 
-DEBUG_TOOLBAR_CONFIG = {
-    "SHOW_TOOLBAR_CALLBACK": "web.debug.show_toolbar",
-    "ENABLE_STACKTRACES": True,
-    "RESULTS_CACHE_SIZE": 3,
-    "SHOW_TEMPLATE_CONTEXT": False,
-}
+# DEBUG_TOOLBAR_CONFIG = {
+#     "SHOW_TOOLBAR_CALLBACK": "web.debug.show_toolbar",
+#     "ENABLE_STACKTRACES": True,
+#     "RESULTS_CACHE_SIZE": 3,
+#     "SHOW_TEMPLATE_CONTEXT": False,
+# }
 
-DEBUG_TOOLBAR_PANELS = [
-    'debug_toolbar.panels.timer.TimerPanel',
-    'debug_toolbar.panels.sql.SQLPanel',
-    'debug_toolbar.panels.templates.TemplatesPanel',
-    'debug_toolbar.panels.cache.CachePanel',
-    'debug_toolbar.panels.headers.HeadersPanel',
-    'debug_toolbar.panels.request.RequestPanel',
-    'debug_toolbar.panels.settings.SettingsPanel',
-    'debug_toolbar.panels.versions.VersionsPanel',
-    'debug_toolbar.panels.signals.SignalsPanel',
-    'debug_toolbar.panels.history.HistoryPanel',
-    'debug_toolbar.panels.profiling.ProfilingPanel',
-]
+# DEBUG_TOOLBAR_PANELS = [
+#     'debug_toolbar.panels.timer.TimerPanel',
+#     'debug_toolbar.panels.sql.SQLPanel',
+#     'debug_toolbar.panels.templates.TemplatesPanel',
+#     'debug_toolbar.panels.cache.CachePanel',
+#     'debug_toolbar.panels.headers.HeadersPanel',
+#     'debug_toolbar.panels.request.RequestPanel',
+#     'debug_toolbar.panels.settings.SettingsPanel',
+#     'debug_toolbar.panels.versions.VersionsPanel',
+#     'debug_toolbar.panels.signals.SignalsPanel',
+#     'debug_toolbar.panels.history.HistoryPanel',
+#     'debug_toolbar.panels.profiling.ProfilingPanel',
+# ]
 
