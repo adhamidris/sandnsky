@@ -67,8 +67,8 @@ class Destination(models.Model):
     slug = models.SlugField(max_length=200, unique=True, db_index=True, editable=False)
     tagline = models.CharField(max_length=200, blank=True)
     description = models.TextField(blank=True)
-    card_image = models.ImageField(upload_to="destinations/", blank=True)
-    hero_image = models.ImageField(upload_to="destinations/hero/", blank=True)
+    card_image = models.ImageField(upload_to="destinations/", blank=True, max_length=255)
+    hero_image = models.ImageField(upload_to="destinations/hero/", blank=True, max_length=255)
     hero_subtitle = models.TextField(blank=True)
     is_featured = models.BooleanField(default=False, db_index=True)
     featured_position = models.PositiveSmallIntegerField(default=0)
@@ -107,6 +107,7 @@ class DestinationGalleryImage(models.Model):
         upload_to="destinations/gallery/",
         width_field="image_width",
         height_field="image_height",
+        max_length=255
     )
     image_width = models.PositiveIntegerField(null=True, blank=True)
     image_height = models.PositiveIntegerField(null=True, blank=True)
@@ -139,7 +140,7 @@ class LandingGalleryImage(models.Model):
         blank=True,
         help_text="Describe the image for accessibility (leave empty if decorative).",
     )
-    image = models.ImageField(upload_to="site/gallery/")
+    image = models.ImageField(upload_to="site/gallery/", max_length=255)
     position = models.PositiveSmallIntegerField(
         default=0,
         help_text="Lower numbers appear first on the homepage gallery.",
@@ -223,8 +224,8 @@ class BlogPost(models.Model):
         BlogCategory, on_delete=models.PROTECT, related_name="posts"
     )
 
-    hero_image = models.ImageField(upload_to="blog/hero/", blank=True)
-    card_image = models.ImageField(upload_to="blog/cards/", blank=True)
+    hero_image = models.ImageField(upload_to="blog/hero/", blank=True, max_length=255)
+    card_image = models.ImageField(upload_to="blog/cards/", blank=True, max_length=255)
 
     excerpt = models.TextField(blank=True)
     intro = models.TextField(blank=True)
@@ -279,7 +280,7 @@ class BlogSection(models.Model):
     heading = models.CharField(max_length=200)
     location_label = models.CharField(max_length=150, blank=True)
     body = models.TextField()
-    section_image = models.ImageField(upload_to="blog/sections/", blank=True)
+    section_image = models.ImageField(upload_to="blog/sections/", blank=True, max_length=255)
 
     class Meta:
         ordering = ["position", "id"]
@@ -303,18 +304,19 @@ class SiteConfiguration(models.Model):
     hero_primary_cta_href = models.CharField(max_length=255, default="/trips")
     hero_secondary_cta_label = models.CharField(max_length=100, default="Learn More")
     hero_secondary_cta_href = models.CharField(max_length=255, default="#about")
-    hero_image = models.ImageField(upload_to="site/hero/", blank=True)
+    hero_image = models.ImageField(upload_to="site/hero/", blank=True, max_length=255)
     hero_video = models.FileField(
         upload_to="site/hero/videos/",
         blank=True,
         validators=[FileExtensionValidator(["mp4", "webm", "mov"])],
         help_text="Video shown on desktop hero. Prefer optimized MP4/WebM under 10 MB.",
     )
-    trips_hero_image = models.ImageField(upload_to="site/trips_hero/", blank=True)
+    trips_hero_image = models.ImageField(upload_to="site/trips_hero/", blank=True, max_length=255)
     gallery_background_image = models.ImageField(
         upload_to="site/gallery/frame/",
         blank=True,
         help_text="Optional background image for the gallery marquee frame.",
+        max_length=255
     )
 
     class Meta:
@@ -349,6 +351,7 @@ class SiteHeroPair(models.Model):
         upload_to="site/hero/pairs/",
         blank=True,
         help_text="Desktop/mobile hero image, or poster fallback when a video is provided.",
+        max_length=255
     )
     hero_video = models.FileField(
         upload_to="site/hero/pairs/videos/",
@@ -360,6 +363,7 @@ class SiteHeroPair(models.Model):
         upload_to="site/hero/pairs/overlay/",
         blank=True,
         help_text="Smaller layered image displayed on top of the hero banner.",
+        max_length=255
     )
     overlay_alt = models.CharField(
         max_length=200,
@@ -460,8 +464,8 @@ class Trip(models.Model):
     )
 
     teaser = models.TextField(help_text="Short blurb shown on listing cards.")
-    card_image = models.ImageField(upload_to="trips/cards/", blank=True)
-    hero_image = models.ImageField(upload_to="trips/hero/", blank=True)
+    card_image = models.ImageField(upload_to="trips/cards/", blank=True,max_length=255)
+    hero_image = models.ImageField(upload_to="trips/hero/", blank=True, max_length=255)
 
     duration_days = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(1)]
@@ -535,6 +539,7 @@ class TripGalleryImage(models.Model):
         upload_to="trips/gallery/",
         width_field="image_width",
         height_field="image_height",
+        max_length=255
     )
     image_width = models.PositiveIntegerField(null=True, blank=True)
     image_height = models.PositiveIntegerField(null=True, blank=True)
