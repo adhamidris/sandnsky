@@ -5,7 +5,7 @@
 
 {% block content %}
 {% if destination_hero %}
-<section id="page-top" class="relative isolate overflow-hidden bg-black text-white scroll-mt-32">
+<section id="page-top" class="page-top-hero relative isolate overflow-hidden bg-black text-white scroll-mt-32">
   {% if destination_hero.image_url or destination_hero.mobile_image_url %}
   {% with mobile_src=destination_hero.mobile_image_url|default:destination_hero.image_url %}
     {% if mobile_src %}
@@ -17,10 +17,7 @@
     <img src="{{ desktop_src }}" alt="{{ destination_hero.title }}" class="absolute inset-0 hidden h-full w-full object-cover md:block" />
     {% endif %}
   {% endwith %}
-  {% else %}
-  <div class="absolute inset-0 bg-gradient-to-br from-primary/70 via-primary/60 to-black opacity-90"></div>
   {% endif %}
-  <div class="absolute inset-0 bg-gradient-to-b from-black/25 via-black/10 to-black/50"></div>
   <div class="hero-dest relative mx-auto max-w-7xl px-4 pb-28 pt-32 sm:px-6 lg:px-8">
     <div class="destination-hero-texts max-w-3xl space-y-6">
       <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white/70">Destination spotlight</span>
@@ -63,14 +60,13 @@
   </div>
 </section>
 {% elif default_trips_hero_image %}
-<section id="page-top" class="relative isolate overflow-hidden bg-black text-white scroll-mt-32">
+<section id="page-top" class="page-top-hero relative isolate overflow-hidden bg-black text-white scroll-mt-32">
   {% with mobile_src=default_trips_hero_image_mobile|default:default_trips_hero_image %}
     {% if mobile_src %}
     <img src="{{ mobile_src }}" alt="Trips hero" class="absolute inset-0 h-full w-full object-cover md:hidden" />
     {% endif %}
   {% endwith %}
   <img src="{{ default_trips_hero_image }}" alt="Trips hero" class="absolute inset-0 hidden h-full w-full object-cover md:block" />
-  <div class="absolute inset-0 bg-gradient-to-b from-black/25 via-black/10 to-black/60"></div>
   <div class="relative mx-auto max-w-7xl px-4 pb-28 pt-32 sm:px-6 lg:px-8">
     <div class="max-w-3xl space-y-6">
       <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white/70">Our journeys</span>

@@ -2137,6 +2137,22 @@
   color: white !important;
 }
 
+.page-top-hero{
+  min-height:clamp(520px,72vh,780px);
+}
+.page-top-hero .hero-dest{
+  min-height:inherit;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+.page-top-hero > .relative{
+  min-height:inherit;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+
 .destination-hero-texts span, h1, p {
   color: white !important;
 }
@@ -2429,16 +2445,3 @@
   text-overflow: ellipsis;
 }
 
-.navcart-empty__title, .navcart-empty__message {
-  color: white !important;
-}
-
-.navcart-empty__cta {
-  border-color: #C9A961 !important;
-  background: #C9A961 !important;
-}
-
-.navcart-empty__icon {
-  background-color: #C9A961 !important;
-  color: white !important;
-}
