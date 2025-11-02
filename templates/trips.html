@@ -19,7 +19,7 @@
   {% endwith %}
   {% endif %}
   <div class="hero-dest relative mx-auto max-w-7xl px-4 pb-28 pt-32 sm:px-6 lg:px-8">
-    <div class="destination-hero-texts max-w-3xl space-y-6">
+    <div class="chip-hero destination-hero-texts max-w-3xl space-y-6">
       <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white/70">Destination spotlight</span>
       <h1 class="font-serif text-4xl leading-tight sm:text-5xl md:text-6xl">{{ destination_hero.title }}</h1>
       {% if destination_hero.subtitle %}
@@ -29,14 +29,14 @@
       {% endif %}
     </div>
     <div class="trips-hero2 mt-12 flex flex-wrap gap-4">
-      <span class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
+      <span class="chip inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
         <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
         </svg>
         {{ total_trip_count }} itineraries
       </span>
       {% if selected_destination and selected_destination.tagline %}
-      <span class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
+      <span class="chip inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
         <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" d="M16.343 7.657 12 12l-4.343-4.343" />
           <path stroke-linecap="round" stroke-linejoin="round" d="M19.071 4.929A10 10 0 1 0 4.93 19.07 10 10 0 0 0 19.07 4.93Z" />
@@ -44,13 +44,13 @@
         {{ selected_destination.tagline }}
       </span>
       {% endif %}
-      <span class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
+      <span class="chip inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
         <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18M3 12h18M3 17h18" />
         </svg>
         Thoughtfully paced journeys
       </span>
-      <span class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
+      <span class="chip inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
         <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
         </svg>
@@ -68,25 +68,25 @@
   {% endwith %}
   <img src="{{ default_trips_hero_image }}" alt="Trips hero" class="absolute inset-0 hidden h-full w-full object-cover md:block" />
   <div class="relative mx-auto max-w-7xl px-4 pb-28 pt-32 sm:px-6 lg:px-8">
-    <div class="max-w-3xl space-y-6">
-      <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white/70">Our journeys</span>
+    <div class="chip-hero max-w-3xl space-y-6">
+      <span class="chip inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white/70">Our journeys</span>
       <h1 class="font-serif text-4xl leading-tight sm:text-5xl md:text-6xl">Our Tours &amp; Experiences</h1>
-      <p class="text-base leading-relaxed text-white/80 sm:text-lg">Carefully curated journeys to unveil the wonders of Egypt.</p>
+      <p class="trips-hero-chip text-base leading-relaxed text-white/80 sm:text-lg">Carefully curated journeys to unveil the wonders of Egypt.</p>
     </div>
     <div class="mt-12 flex flex-wrap gap-4">
-      <span class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
+      <span class="chip inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
         <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
         </svg>
         {{ total_trip_count }} itineraries
       </span>
-      <span class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
+      <span class="chip inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
         <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18M3 12h18M3 17h18" />
         </svg>
         Thoughtfully paced journeys
       </span>
-      <span class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
+      <span class="chip inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
         <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
         </svg>
@@ -241,7 +241,7 @@
           {% if trip.category %}
           <span class="trip-card__badge">{{ trip.category }}</span>
           {% endif %}
-          <div class="relative h-48 overflow-hidden">
+          <div class="image-list relative h-48 overflow-hidden">
             {% if trip.image_url %}
             <img src="{{ trip.image_url }}" alt="{{ trip.title }}" class="h-full w-full object-cover" />
             {% else %}

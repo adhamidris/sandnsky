@@ -168,10 +168,19 @@
 @media (min-width:768px){
   .trip-grid.trip-grid--list .trip-cardi{
     flex-direction:row;
+    align-items:stretch;
   }
   .trip-grid.trip-grid--list .trip-cardi > .relative{
     flex:0 0 320px;
-    min-height:260px;
+    max-height:360px !important;
+    min-height: 300px !important;
+    height:100%;
+    align-self:stretch;
+  }
+  .trip-grid.trip-grid--list .trip-cardi > .relative img{
+    height:100% !important;
+    max-height:360px !important;
+    min-height: 300px !important;
   }
   .trip-grid.trip-grid--list .trip-cardi > .flex{
     padding:28px;
@@ -2445,3 +2454,42 @@
   text-overflow: ellipsis;
 }
 
+.chip {
+  background: rgba(0, 0, 0, 0.2);
+  color: #fff !important;
+  border: none !important;
+}
+
+.chip2 {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.share-btn {
+  color: white !important;
+}
+
+.share-btn-span {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.chip-hero {
+  padding: 10px !important;
+  border-radius: 15px !important;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.chip-hero h1 {
+  font-size: 2.8rem !important;
+}
+
+.review-submit {
+  background-color: #b9945a !important;
+}
+
+.review-submit span {
+  color: white !important;
+}
+
+.trips-hero-chip {
+  color: white !important;
+}

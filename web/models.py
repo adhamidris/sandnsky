@@ -1015,10 +1015,6 @@ class BookingReward(models.Model):
 
 class Review(models.Model):
     trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name="reviews")
-    rating = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(5)]
-    )
-    title = models.CharField(max_length=200, blank=True)
     body = models.TextField()
     author_name = models.CharField(max_length=120)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1027,4 +1023,4 @@ class Review(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self) -> str:
-        return f"{self.rating}★ by {self.author_name} · {self.trip.title}"
+        return f"Review by {self.author_name} · {self.trip.title}"

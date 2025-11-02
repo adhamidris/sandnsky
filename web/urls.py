@@ -5,6 +5,7 @@ from .views import (
     HomePageView,
     DestinationListView,
     TripDetailView,
+    TripReviewCreateView,
     TripListView,
     CartCheckoutView,
     CartQuickAddView,
@@ -56,6 +57,11 @@ urlpatterns = [
     path("blog/", BlogListView.as_view(), name="blog-list"),
     path("blog/<slug:slug>/", BlogDetailView.as_view(), name="blog-detail"),
     path("trips/", TripListView.as_view(), name="trips"),
+    path(
+        "trips/<slug:slug>/reviews/",
+        TripReviewCreateView.as_view(),
+        name="trip-review-create",
+    ),
     path("trips/<slug:slug>/", TripDetailView.as_view(), name="trip-detail"),
     path(
         "booking/cart/add/<slug:slug>/",

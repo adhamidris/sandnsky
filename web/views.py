@@ -31,7 +31,7 @@ from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.template.loader import render_to_string
 
-from .forms import BookingRequestForm, BookingCartCheckoutForm
+from .forms import BookingRequestForm, BookingCartCheckoutForm, ReviewSubmissionForm
 from .booking_cart import (
     add_entry,
     build_booking_help_link,
@@ -63,6 +63,7 @@ from .models import (
     TripRelation,
     TripExtra,
     TripGalleryImage,
+    Review,
 )
 from .rewards import (
     RewardComputationError,
@@ -78,6 +79,13 @@ BOOKING_REFERENCE_SALT = "booking-success"
 BOOKING_REFERENCE_MAX_AGE = 60 * 60 * 24 * 14  # 14 days
 BOOKING_CART_REFERENCE_SALT = "booking-cart-success"
 BOOKING_CART_REFERENCE_MAX_AGE = BOOKING_REFERENCE_MAX_AGE
+
+
+def format_review_summary(count: int):
+    if count <= 0:
+        return "New — be the first to review", False
+    label = "review" if count == 1 else "reviews"
+    return (f"{count} {label} shared", True)
 
 
 def format_currency(amount, currency=DEFAULT_CURRENCY):
@@ -1262,6 +1270,7 @@ class TripDetailView(TemplateView):
         context = super().get_context_data(**kwargs)
         form = kwargs.get("form") or self.get_form()
         trip = self.get_trip()
+        review_form = ReviewSubmissionForm(trip=trip)
 
         pricing = self._pricing_context(trip, form)
         other_trips = self._serialize_related_trips(trip)
@@ -1271,6 +1280,7 @@ class TripDetailView(TemplateView):
         context.update(
             trip=trip_context,
             form=form,
+            review_form=review_form,
             pricing={k: v for k, v in pricing.items() if k != "extras"},
             other_trips=other_trips,
         )
@@ -1450,6 +1460,7 @@ class TripDetailView(TemplateView):
         ]
         reviews = list(trip.reviews.all())
         review_summary, has_reviews = self._review_summary(reviews)
+        review_count = len(reviews)
 
         destinations_label = " • ".join(_all_destination_names(trip))
         gallery_items = _trip_gallery_context(trip)
@@ -1508,6 +1519,8 @@ class TripDetailView(TemplateView):
             "not_included": excluded,
             "faqs": faqs,
             "has_reviews": has_reviews,
+            "reviews": reviews,
+            "review_count": review_count,
             "contact_actions": contact_actions(),
             "destinations": destinations_label,
             "gallery": gallery_items,
@@ -1564,12 +1577,8 @@ class TripDetailView(TemplateView):
         ]
 
     def _review_summary(self, reviews):
-        if not reviews:
-            return "New — be the first to review", False
         count = len(reviews)
-        average = sum(review.rating for review in reviews) / count
-        summary = f"Rated {average:.1f} / 5 • {count} review{'s' if count != 1 else ''}"
-        return summary, True
+        return format_review_summary(count)
 
     def _breadcrumbs(self, trip):
         breadcrumbs = [
@@ -1609,6 +1618,68 @@ class TripDetailView(TemplateView):
         if other_trips:
             nav.append({"label": "Related trips", "target": "related"})
         return nav
+
+
+class TripReviewCreateView(View):
+    http_method_names = ["post"]
+
+    def _is_json_request(self, request) -> bool:
+        content_type = request.META.get("CONTENT_TYPE") or request.headers.get("Content-Type", "")
+        return "application/json" in content_type.lower()
+
+    def post(self, request, slug):
+        trip = get_object_or_404(Trip.objects.only("id", "title", "slug"), slug=slug)
+
+        if self._is_json_request(request):
+            try:
+                payload = json.loads(request.body.decode("utf-8") or "{}")
+            except (TypeError, json.JSONDecodeError):
+                payload = {}
+            form = ReviewSubmissionForm(payload, trip=trip)
+        else:
+            form = ReviewSubmissionForm(request.POST, trip=trip)
+
+        if not form.is_valid():
+            return JsonResponse(
+                {
+                    "ok": False,
+                    "errors": {field: list(errors) for field, errors in form.errors.items()},
+                    "non_field_errors": list(form.non_field_errors()),
+                },
+                status=400,
+            )
+
+        review = Review.objects.create(
+            trip=trip,
+            body=form.cleaned_data["body"],
+            author_name=form.cleaned_data["author_name"],
+        )
+
+        stats = Review.objects.filter(trip=trip).aggregate(
+            count=Count("id"),
+        )
+        count = stats.get("count") or 0
+        summary, has_reviews = format_review_summary(count)
+
+        review_html = render_to_string(
+            "includes/review_item.html",
+            {"review": review},
+            request=request,
+        )
+
+        return JsonResponse(
+            {
+                "ok": True,
+                "review": {
+                    "id": review.pk,
+                    "html": review_html,
+                },
+                "summary": summary,
+                "has_reviews": has_reviews,
+                "count": count,
+            },
+            status=201,
+        )
 
 
 class CartQuickAddView(View):

@@ -1,5 +1,9 @@
 from django import forms
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.core.validators import validate_email
 from django.utils import timezone
+
+from .models import Booking
 
 
 def _default_classes():
@@ -114,3 +118,76 @@ class BookingCartCheckoutForm(forms.Form):
             "placeholder",
             "Share preferences, group details, or travel notes",
         )
+
+
+class ReviewSubmissionForm(forms.Form):
+    body = forms.CharField(
+        label="Your review",
+        widget=forms.Textarea(attrs={"rows": 4}),
+        max_length=2000,
+    )
+    author_name = forms.CharField(label="Your name", max_length=120)
+    booking_lookup = forms.CharField(
+        label="Booking reference or email",
+        max_length=254,
+        required=False,
+    )
+
+    def __init__(self, *args, trip=None, **kwargs):
+        self.trip = trip
+        super().__init__(*args, **kwargs)
+
+        classes = _default_classes()
+        for field_name, field in self.fields.items():
+            widget = field.widget
+            existing_class = widget.attrs.get("class", "")
+            widget.attrs["class"] = f"{existing_class} {classes}".strip()
+            widget.attrs.setdefault("placeholder", field.label)
+
+        self.fields["body"].widget.attrs.setdefault(
+            "placeholder",
+            "Share what made your trip memorable",
+        )
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        lookup_value = (cleaned_data.get("booking_lookup") or "").strip()
+        cleaned_data["booking_lookup"] = lookup_value
+
+        if not lookup_value:
+            self.add_error("booking_lookup", "Enter the booking email or reference used when booking.")
+            raise forms.ValidationError(
+                "Please provide your booking reference or the email used when booking."
+            )
+
+        if self.trip is None:
+            raise forms.ValidationError("Trip context is required to submit a review.")
+
+        booking_qs = Booking.objects.filter(trip=self.trip)
+        booking_qs = booking_qs.exclude(status=Booking.Status.CANCELLED)
+
+        matches_booking = False
+        lookup_is_email = False
+
+        try:
+            validate_email(lookup_value)
+            lookup_is_email = True
+        except (DjangoValidationError, TypeError):
+            lookup_is_email = False
+
+        if lookup_is_email:
+            matches_booking = booking_qs.filter(email__iexact=lookup_value).exists()
+        else:
+            matches_booking = booking_qs.filter(group_reference__iexact=lookup_value).exists()
+
+        if not matches_booking:
+            if lookup_is_email:
+                self.add_error("booking_lookup", "We couldn't find a booking with that email.")
+            else:
+                self.add_error("booking_lookup", "We couldn't find a booking with that reference.")
+            raise forms.ValidationError(
+                "We couldn't find a booking with that reference or email."
+            )
+
+        return cleaned_data

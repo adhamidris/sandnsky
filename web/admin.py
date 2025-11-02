@@ -588,8 +588,8 @@ class BookingAdmin(admin.ModelAdmin):
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
-    list_display = ("trip", "rating", "author_name", "created_at")
-    list_filter = ("rating", "trip", "created_at")
+    list_display = ("trip", "author_name", "created_at")
+    list_filter = ("trip", "created_at")
     search_fields = ("author_name", "body", "trip__title")
     date_hierarchy = "created_at"
     ordering = ("-created_at",)
