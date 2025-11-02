@@ -17,6 +17,7 @@ from .models import (
     RewardPhaseTrip,
     Trip,
     TripExtra,
+    Review,
 )
 from .views import CartCheckoutView, BOOKING_CART_REFERENCE_SALT
 from .booking_cart import (
@@ -569,3 +570,112 @@ class BookingConfirmationEmailTests(TestCase):
         booking.save(update_fields=["status", "status_updated_at"])
 
         self.assertEqual(len(mail.outbox), 0)
+
+
+class TripReviewSubmissionTests(TestCase):
+    def setUp(self):
+        self.destination = Destination.objects.create(
+            name=DestinationName.ALEXANDRIA,
+            tagline="Coastal charm",
+            description="Relax by the sea",
+            featured_position=3,
+        )
+        self.trip = Trip.objects.create(
+            title="Desert Nights Escape",
+            destination=self.destination,
+            teaser="Stargaze under crystal clear skies",
+            duration_days=4,
+            group_size_max=10,
+            base_price_per_person=Decimal("250.00"),
+            tour_type_label="Guided Tour",
+        )
+        self.booking = Booking.objects.create(
+            trip=self.trip,
+            travel_date=date.today(),
+            adults=2,
+            children=0,
+            infants=0,
+            full_name="Layla Explorer",
+            email="layla@example.com",
+            phone="1234567890",
+            special_requests="",
+            base_subtotal=Decimal("500.00"),
+            extras_subtotal=Decimal("0.00"),
+            grand_total=Decimal("500.00"),
+            group_reference="REF-2024-001",
+            status=Booking.Status.CONFIRMED,
+        )
+        self.url = reverse("web:trip-review-create", args=[self.trip.slug])
+
+    def test_submitting_review_with_reference_succeeds(self):
+        response = self.client.post(
+            self.url,
+            {
+                "body": "The guides were knowledgeable and the itinerary was perfectly paced.",
+                "author_name": "Layla Explorer",
+                "booking_lookup": "REF-2024-001",
+            },
+        )
+
+        self.assertEqual(response.status_code, 201)
+        payload = response.json()
+        self.assertTrue(payload.get("ok"))
+        self.assertEqual(payload.get("count"), 1)
+        self.assertIn("html", payload.get("review", {}))
+
+        self.assertEqual(Review.objects.count(), 1)
+        review = Review.objects.get()
+        self.assertEqual(review.trip, self.trip)
+        self.assertEqual(review.author_name, "Layla Explorer")
+        self.assertIn("The guides were knowledgeable", review.body)
+
+    def test_submitting_review_with_email_succeeds(self):
+        response = self.client.post(
+            self.url,
+            {
+                "body": "Sunsets were breathtaking and accommodations were comfortable.",
+                "author_name": "Layla Explorer",
+                "booking_lookup": "layla@example.com",
+            },
+        )
+
+        self.assertEqual(response.status_code, 201)
+        payload = response.json()
+        self.assertTrue(payload.get("ok"))
+        self.assertEqual(payload.get("count"), 1)
+        self.assertEqual(Review.objects.count(), 1)
+
+    def test_rejects_when_no_matching_booking_found(self):
+        response = self.client.post(
+            self.url,
+            {
+                "body": "Enjoyable trip",
+                "author_name": "Mystery Guest",
+                "booking_lookup": "UNKNOWN",
+            },
+        )
+
+        self.assertEqual(response.status_code, 400)
+        payload = response.json()
+        self.assertFalse(payload.get("ok"))
+        self.assertEqual(Review.objects.count(), 0)
+        non_field_errors = payload.get("non_field_errors") or payload.get("errors", {}).get("__all__", [])
+        self.assertTrue(any("couldn't find" in msg.lower() for msg in non_field_errors))
+
+    def test_rejects_cancelled_booking(self):
+        self.booking.status = Booking.Status.CANCELLED
+        self.booking.save(update_fields=["status", "status_updated_at"])
+
+        response = self.client.post(
+            self.url,
+            {
+                "body": "Had a great time regardless!",
+                "author_name": "Layla Explorer",
+                "booking_lookup": "REF-2024-001",
+            },
+        )
+
+        self.assertEqual(response.status_code, 400)
+        payload = response.json()
+        self.assertFalse(payload.get("ok"))
+        self.assertEqual(Review.objects.count(), 0)

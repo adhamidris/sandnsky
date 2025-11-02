@@ -60,14 +60,23 @@
     </div>
   </div>
 {% else %}
-  <div style="text-align:center; padding:18px 0; display:grid; gap:10px; justify-items:center">
-    <span style="display:grid; place-items:center; width:48px; height:48px; border-radius:999px; border:1px solid var(--border); color:rgba(255,255,255,.65)">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-           fill="none" stroke="currentColor" stroke-width="1.4"
-           width="18" height="18"><path stroke-linecap="round" stroke-linejoin="round" d="M6 7.5h12l-1.2 6A1.75 1.75 0 0 1 15.1 15H9.4L8.7 18"/><path stroke-linecap="round" stroke-linejoin="round" d="M4 4.5h2.2a1 1 0 0 1 .98.8l.25 1"/></svg>
+  <div class="navcart-empty">
+    <span class="navcart-empty__icon" aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg"
+           viewBox="0 0 24 24"
+           fill="none"
+           stroke="currentColor"
+           stroke-width="1.4"
+           width="18"
+           height="18">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 7.5h12l-1.2 6A1.75 1.75 0 0 1 15.1 15H9.4L8.7 18" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4.5h2.2a1 1 0 0 1 .98.8l.25 1" />
+      </svg>
     </span>
-    <p style="margin:0; font-weight:700">Save trips as you explore</p>
-    <p style="margin:0; max-width:14rem; color:rgba(255,255,255,.7); font-size:12px">Shortlist favourites anywhere on the site and return here when it’s time to plan.</p>
-    <a href="/trips" class="navcart-primary" style="background:transparent; color:#fff; border:1px solid var(--border); text-decoration:none">Browse experiences</a>
+    <p class="navcart-empty__title">Save trips as you explore</p>
+    <p class="navcart-empty__message">
+      Shortlist favourites anywhere on the site and return here when it’s time to plan.
+    </p>
+    <a href="/trips" class="navcart-empty__cta">Browse experiences</a>
   </div>
 {% endif %}

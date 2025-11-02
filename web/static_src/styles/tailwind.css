@@ -112,7 +112,7 @@ All colors MUST be HSL.
   }
 
   .booking-floater {
-    @apply pointer-events-none fixed bottom-6 right-6 z-40 hidden translate-y-2 opacity-0 transition-all duration-300 lg:flex;
+    @apply pointer-events-none fixed bottom-6 right-6 z-[400] hidden translate-y-2 opacity-0 transition-all duration-300 lg:flex;
   }
 
   .booking-floater[aria-hidden="false"] {

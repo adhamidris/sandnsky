@@ -132,7 +132,7 @@
       }
     }
     if (travelerInputs) {
-      ensureTravelerValue(travelerInputs.adults, 2, 1);
+      ensureTravelerValue(travelerInputs.adults, 1, 1);
       ensureTravelerValue(travelerInputs.children, 0, 0);
       ensureTravelerValue(travelerInputs.infants, 0, 0);
     }
@@ -234,7 +234,7 @@
       values.date = dateInput.value || "";
     }
     if (travelerInputs) {
-      const adults = ensureTravelerValue(travelerInputs.adults, 2, 1);
+      const adults = ensureTravelerValue(travelerInputs.adults, 1, 1);
       if (typeof adults === "number") {
         values.adults = String(adults);
       }

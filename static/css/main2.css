@@ -685,7 +685,7 @@ body {
   position: fixed;
   bottom: 1.5rem;
   right: 1.5rem;
-  z-index: 40;
+  z-index: 400;
   display: none;
   --tw-translate-y: 0.5rem;
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
@@ -4317,6 +4317,7 @@ body.gallery-lightbox--open {
   box-shadow: 0 2px 8px rgba(74, 124, 158, 0.06);
   transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
   padding: 1rem !important;
+  align-items: stretch !important;
 }
 
 .quick-add-card:hover {
@@ -4340,6 +4341,17 @@ body.gallery-lightbox--open {
 .quick-add-card-media {
   background: rgba(232, 220, 200, 0.3) !important;
   border-radius: 12px !important;
+  width: 7rem !important;
+  min-width: 7rem !important;
+  min-height: 7.5rem !important;
+  height: 100% !important;
+  align-self: stretch !important;
+}
+
+.quick-add-card-media > img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
 }
 
 .quick-add-card-placeholder {

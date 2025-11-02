@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Booking Terms & Conditions — Sand & Sky Tours{% endblock %}
+
+{% block head_extra %}
+  {{ block.super }}
+  <style>
+    .legal-wrapper {
+      background: #fdfbf7;
+      color: #1f1b12;
+    }
+    .legal-container {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: clamp(64px, 10vw, 120px) 24px 96px;
+    }
+    .legal-eyebrow {
+      display: inline-block;
+      font: 600 11px/1 "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: rgba(31, 27, 18, 0.6);
+      margin-bottom: 12px;
+    }
+    .legal-title {
+      font-family: var(--font-heading, "Cormorant Garamond"), serif;
+      font-size: clamp(36px, 6vw, 58px);
+      line-height: 1.04;
+      margin: 0 0 18px;
+      text-transform: uppercase;
+    }
+    .legal-updated {
+      margin: 0 0 40px;
+      font-size: 13px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(31, 27, 18, 0.5);
+    }
+    .legal-section {
+      margin-bottom: 40px;
+    }
+    .legal-section:last-of-type {
+      margin-bottom: 0;
+    }
+    .legal-section h2 {
+      font-family: var(--font-heading, "Cormorant Garamond"), serif;
+      font-size: clamp(24px, 3vw, 32px);
+      margin: 0 0 12px;
+    }
+    .legal-section p,
+    .legal-section ul {
+      font-size: 16px;
+      line-height: 1.7;
+      color: rgba(31, 27, 18, 0.82);
+      margin: 0 0 16px;
+    }
+    .legal-section ul {
+      padding-left: 20px;
+      list-style: disc;
+    }
+    .legal-contact {
+      display: grid;
+      gap: 8px;
+      font-size: 15px;
+    }
+    .legal-section a {
+      color: #8a3d28;
+      text-decoration: underline;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 4px;
+    }
+    @media (max-width: 640px) {
+      .legal-container {
+        padding: 56px 20px 80px;
+      }
+      .legal-section ul {
+        padding-left: 18px;
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <article class="legal-wrapper">
+    <div class="legal-container">
+      <span class="legal-eyebrow">Booking Policies</span>
+      <h1 class="legal-title">Booking Terms &amp; Conditions</h1>
+      <p class="legal-updated">Last updated: 15 September 2024</p>
+
+      <section class="legal-section" id="who-we-are">
+        <h2>Who We Are &amp; Governing Law</h2>
+        <p>
+          Sand &amp; Sky Tours (“we”, “us”, “our”) is a boutique Egypt-based travel agency curating desert and cultural experiences.
+          These terms are governed by the laws of the Arab Republic of Egypt.
+        </p>
+        <div class="legal-contact">
+          <span><strong>Email:</strong> <a href="mailto:hello@sandandskytours.com">hello@sandandskytours.com</a></span>
+          <span><strong>Phone / WhatsApp:</strong> +20 XXX XXX XXXX</span>
+          <span><strong>Address:</strong> [Add registered office address]</span>
+        </div>
+      </section>
+
+      <section class="legal-section" id="reservations-payments">
+        <h2>1. Reservations &amp; Payments</h2>
+        <p>
+          You can request a booking through our website, by email, or via WhatsApp. A booking is confirmed once you receive written confirmation from us.
+        </p>
+        <ul>
+          <li><strong>Deposit:</strong> Unless otherwise stated on a specific trip page, a 30% deposit secures your space.</li>
+          <li><strong>Balance:</strong> The remaining balance is due 14 days before departure. If you book within 14 days of the start date, full payment is required at confirmation.</li>
+          <li><strong>Currency:</strong> Prices are displayed in EGP (or clearly labeled otherwise). Payments in other currencies are subject to your bank’s exchange rates and fees.</li>
+        </ul>
+      </section>
+
+      <section class="legal-section" id="included-excluded">
+        <h2>2. What’s Included / Excluded</h2>
+        <p>
+          Your confirmation email and <a href="/trips">individual trip pages</a> outline the services applicable to your itinerary.
+        </p>
+        <ul>
+          <li><strong>Included:</strong> Items listed for the specific departure (e.g., ground transport, guiding, permits, meals noted).</li>
+          <li><strong>Excluded:</strong> International flights, visas, travel insurance, personal expenses, optional add-ons, and gratuities (unless specifically noted).</li>
+        </ul>
+      </section>
+
+      <section class="legal-section" id="changes-by-you">
+        <h2>3. Changes By You</h2>
+        <p>
+          Date or name changes may be requested at least seven (7) days before departure. We will make reasonable efforts to accommodate your needs, but additional supplier fees may apply.
+        </p>
+      </section>
+
+      <section class="legal-section" id="changes-by-us">
+        <h2>4. Changes By Us</h2>
+        <p>
+          We may adjust itineraries if required for safety, weather, government closures, or capacity limits at key sites. When this happens, we will present a comparable alternative or other options as detailed in our
+          <a href="/cancellation-policy">Cancellation &amp; Refund Policy</a>.
+        </p>
+      </section>
+
+      <section class="legal-section" id="fitness-safety">
+        <h2>5. Fitness, Safety &amp; Conduct</h2>
+        <p>
+          Please disclose relevant medical conditions when booking and follow all guide instructions. We reserve the right to refuse participation if we believe continuing would compromise your safety or the safety of the group.
+          Respect for local laws, cultural norms, and protected environments is mandatory. We enforce a zero-tolerance policy toward abusive or harassing behavior.
+        </p>
+      </section>
+
+      <section class="legal-section" id="visas-entry">
+        <h2>6. Visas &amp; Entry Requirements</h2>
+        <p>
+          Guests are responsible for maintaining valid passports, securing visas, and meeting all vaccination or health requirements for entry into Egypt and any other countries visited on the itinerary.
+        </p>
+      </section>
+
+      <section class="legal-section" id="liability">
+        <h2>7. Liability</h2>
+        <p>
+          Many of our journeys explore remote deserts, dunes, wadis, and waterways. Participation acknowledges these inherent risks.
+          To the fullest extent permitted under Egyptian law, our liability is limited to the value of services purchased through Sand &amp; Sky Tours.
+        </p>
+      </section>
+
+      <section class="legal-section" id="complaints">
+        <h2>8. Complaints</h2>
+        <p>
+          Please alert your guide immediately during the tour so we can remedy any issues on the spot. If concerns remain unresolved,
+          contact us by email within seven (7) days of the tour ending so we can investigate promptly.
+        </p>
+        <p>
+          Email: <a href="mailto:hello@sandandskytours.com">hello@sandandskytours.com</a>
+        </p>
+      </section>
+    </div>
+  </article>
+{% endblock %}

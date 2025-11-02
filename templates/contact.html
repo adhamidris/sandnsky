@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Contact Sand & Sky Tours{% endblock %}
+
+{% block head_extra %}
+  {{ block.super }}
+  <style>
+    .contact-wrapper {
+      background: #f9f4ec;
+      color: #1f1b12;
+    }
+    .contact-container {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: clamp(72px, 12vw, 140px) 24px 120px;
+      text-align: left;
+    }
+    .contact-eyebrow {
+      display: inline-block;
+      font: 600 11px/1 "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: rgba(31, 27, 18, 0.45);
+      margin-bottom: 18px;
+    }
+    .contact-title {
+      font-family: var(--font-heading, "Cormorant Garamond"), serif;
+      font-size: clamp(40px, 6vw, 60px);
+      margin: 0 0 16px;
+      letter-spacing: 0.01em;
+    }
+    .contact-subtitle {
+      font-size: 16px;
+      line-height: 1.7;
+      color: rgba(31, 27, 18, 0.68);
+      margin: 0 0 40px;
+      max-width: 560px;
+    }
+    .contact-actions {
+      display: grid;
+      gap: 24px;
+    }
+    .contact-method {
+      padding: 22px 0;
+      border-top: 1px solid rgba(31, 27, 18, 0.08);
+      display: grid;
+      gap: 6px;
+    }
+    .contact-method:first-of-type {
+      border-top: 0;
+    }
+    .contact-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 15px;
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      color: rgba(31, 27, 18, 0.6);
+    }
+    .contact-label svg {
+      width: 18px;
+      height: 18px;
+    }
+    .contact-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 20px;
+      font-weight: 600;
+      color: #8a3d28;
+      text-decoration: none;
+    }
+    .contact-link svg {
+      width: 16px;
+      height: 16px;
+    }
+    .contact-link:hover,
+    .contact-link:focus-visible {
+      color: #c1872c;
+    }
+    .contact-note {
+      font-size: 14px;
+      color: rgba(31, 27, 18, 0.62);
+      margin: 0;
+    }
+    @media (max-width: 640px) {
+      .contact-container {
+        padding: 56px 20px 96px;
+      }
+      .contact-link {
+        font-size: 18px;
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <section class="contact-wrapper">
+    <div class="contact-container">
+      <span class="contact-eyebrow">Get In Touch</span>
+      <h1 class="contact-title">We're here to help plan your Egypt journey</h1>
+      <p class="contact-subtitle">
+        Choose the channel that suits you. Our travel specialists respond daily and love crafting tailored itineraries.
+      </p>
+
+      <div class="contact-actions">
+        <div class="contact-method">
+          <span class="contact-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M6.5 3h2l1.5 4-2 1c1 2.5 2.9 4.4 5.4 5.4l1-2 4 1.5v2c0 1-1 2-2 2A14 14 0 0 1 4.5 5c0-1 1-2 2-2Z" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            WhatsApp Concierge
+          </span>
+          <a class="contact-link" href="https://wa.me/201108741159?text=Hi%20Sand%20%26%20Sky%2C%20I%27m%20interested%20in%20your%20tours." target="_blank" rel="noopener">
+            Message us on WhatsApp
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="m9 6 6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+          <p class="contact-note">Fast responses for planning questions, day-of travel support, and real-time updates.</p>
+        </div>
+
+        <div class="contact-method">
+          <span class="contact-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M3 5h18v14H3z" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M3 7.5 12 13l9-5.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Email Our Designers
+          </span>
+          <a class="contact-link" href="mailto:hello@sandandskytours.com">
+            hello@sandandskytours.com
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="m9 6 6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+          <p class="contact-note">Share dates, group details, or inspiration moodboards and receive a tailored proposal within 24 hours.</p>
+        </div>
+
+        <div class="contact-method">
+          <span class="contact-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M6.5 3h2l1.5 4-2 1c1 2.5 2.9 4.4 5.4 5.4l1-2 4 1.5v2c0 1-1 2-2 2A14 14 0 0 1 4.5 5c0-1 1-2 2-2Z" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Speak With A Specialist
+          </span>
+          <a class="contact-link" href="tel:+201108741159">
+            +20 110 874 1159
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="m9 6 6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+          <p class="contact-note">Call daily 09:00 – 19:00 (GMT+2) for bespoke consultations or last-minute arrangements.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}

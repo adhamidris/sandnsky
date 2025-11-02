@@ -2,28 +2,66 @@
 <section id="hero" class="hero relative min-h-[calc(100vh-4rem)]" aria-label="Promo">
   <!-- Media layer -->
   <div class="hero-media" aria-hidden="true">
-    <div class="hero-slide is-active">
-      {% if hero.background.image %}
-        <img
-          src="{% if hero.background.image_is_media %}{{ hero.background.image }}{% else %}{% static hero.background.image %}{% endif %}"
-          alt=""
-          class="w-full h-full object-cover"
-          loading="eager"
-          decoding="async"
-        />
-      {% endif %}
-      {% if hero.background.video %}
-        <video
-          class="absolute inset-0 hidden h-full w-full object-cover md:block"
-          autoplay loop muted playsinline
-          preload="auto"
-          {% if hero.background.image %}poster="{% if hero.background.image_is_media %}{{ hero.background.image }}{% else %}{% static hero.background.image %}{% endif %}"{% endif %}
-          data-hero-video
-          aria-hidden="true">
-          <source src="{% if hero.background.video_is_media %}{{ hero.background.video }}{% else %}{% static hero.background.video %}{% endif %}" type="{{ hero.background.video_type }}" />
-          Your browser does not support the background video.
-        </video>
-      {% endif %}
+    <div class="hero-slide is-active relative">
+      {% with bg=hero.background %}
+        {% if bg.image or bg.mobile_image %}
+          <picture class="absolute inset-0 block h-full w-full">
+            {% if bg.image %}
+              <source media="(min-width: 768px)" srcset="{% if bg.image_is_media %}{{ bg.image }}{% else %}{% static bg.image %}{% endif %}">
+            {% endif %}
+            {% if bg.mobile_image %}
+              <source media="(max-width: 767px)" srcset="{% if bg.mobile_image_is_media %}{{ bg.mobile_image }}{% else %}{% static bg.mobile_image %}{% endif %}">
+            {% endif %}
+            {% with fallback_image=bg.image|default:bg.mobile_image %}
+              <img
+                src="{% if bg.image and bg.image_is_media %}{{ bg.image }}{% elif bg.image %}{% static bg.image %}{% elif bg.mobile_image_is_media %}{{ bg.mobile_image }}{% else %}{% static bg.mobile_image %}{% endif %}"
+                alt=""
+                class="h-full w-full object-cover"
+                loading="eager"
+                decoding="async"
+              />
+            {% endwith %}
+          </picture>
+        {% endif %}
+
+        {% if bg.mobile_video %}
+          <div class="absolute inset-0 md:hidden">
+            <video
+              class="h-full w-full object-cover"
+              autoplay loop muted playsinline
+              preload="auto"
+              data-hero-video
+              aria-hidden="true"
+              {% with poster_image=bg.mobile_image|default:bg.image %}
+                {% if poster_image %}
+                  poster="{% if bg.mobile_image and bg.mobile_image_is_media %}{{ bg.mobile_image }}{% elif bg.mobile_image %}{% static bg.mobile_image %}{% elif bg.image and bg.image_is_media %}{{ bg.image }}{% elif bg.image %}{% static bg.image %}{% endif %}"
+                {% endif %}
+              {% endwith %}>
+              <source src="{% if bg.mobile_video_is_media %}{{ bg.mobile_video }}{% else %}{% static bg.mobile_video %}{% endif %}" type="{{ bg.mobile_video_type|default:'video/mp4' }}" />
+              Your browser does not support the background video.
+            </video>
+          </div>
+        {% endif %}
+
+        {% if bg.video %}
+          <div class="absolute inset-0 hidden md:block">
+            <video
+              class="h-full w-full object-cover"
+              autoplay loop muted playsinline
+              preload="auto"
+              data-hero-video
+              aria-hidden="true"
+              {% with poster_image=bg.image|default:bg.mobile_image %}
+                {% if poster_image %}
+                  poster="{% if bg.image and bg.image_is_media %}{{ bg.image }}{% elif bg.image %}{% static bg.image %}{% elif bg.mobile_image_is_media %}{{ bg.mobile_image }}{% else %}{% static bg.mobile_image %}{% endif %}"
+                {% endif %}
+              {% endwith %}>
+              <source src="{% if bg.video_is_media %}{{ bg.video }}{% else %}{% static bg.video %}{% endif %}" type="{{ bg.video_type|default:'video/mp4' }}" />
+              Your browser does not support the background video.
+            </video>
+          </div>
+        {% endif %}
+      {% endwith %}
     </div>
   </div>
 
@@ -39,6 +77,11 @@
         <h1 class="font-serif text-white drop-shadow-lg">
           {{ hero.title }}
         </h1>
+        <div class="mobile-hero-cta">
+          <a href="{{ hero.primary_cta.href }}" class="btn btn-primary">
+            {{ hero.primary_cta.label }}
+          </a>
+        </div>
         <!-- <p class="subcopy">
           {{ hero.subtitle }}
         </p> -->
@@ -68,11 +111,11 @@
       </aside>
     {% endif %} -->
 
-    <div class="actions mobile-hero-cta">
+    <!-- <div class="actions mobile-hero-cta">
       <a href="{{ hero.primary_cta.href }}" class="btn btn-primary">
         {{ hero.primary_cta.label }}
       </a>
-    </div>
+    </div> -->
   </div>
 
 

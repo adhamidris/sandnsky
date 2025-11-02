@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Cancellation & Refund Policy — Sand & Sky Tours{% endblock %}
+
+{% block head_extra %}
+  {{ block.super }}
+  <style>
+    .policy-wrapper {
+      background: #fbf6ef;
+      color: #1f1b12;
+    }
+    .policy-container {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: clamp(64px, 10vw, 120px) 24px 96px;
+    }
+    .policy-eyebrow {
+      display: inline-block;
+      font: 600 11px/1 "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: rgba(31, 27, 18, 0.6);
+      margin-bottom: 12px;
+    }
+    .policy-title {
+      font-family: var(--font-heading, "Cormorant Garamond"), serif;
+      font-size: clamp(36px, 6vw, 56px);
+      line-height: 1.04;
+      margin: 0 0 18px;
+      text-transform: uppercase;
+    }
+    .policy-updated {
+      margin: 0 0 40px;
+      font-size: 13px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(31, 27, 18, 0.5);
+    }
+    .policy-section {
+      margin-bottom: 40px;
+    }
+    .policy-section:last-of-type {
+      margin-bottom: 0;
+    }
+    .policy-section h2 {
+      font-family: var(--font-heading, "Cormorant Garamond"), serif;
+      font-size: clamp(24px, 3vw, 32px);
+      margin: 0 0 12px;
+    }
+    .policy-section p,
+    .policy-section ul {
+      font-size: 16px;
+      line-height: 1.7;
+      color: rgba(31, 27, 18, 0.82);
+      margin: 0 0 16px;
+    }
+    .policy-section ul {
+      padding-left: 20px;
+      list-style: disc;
+    }
+    .policy-section a {
+      color: #8a3d28;
+      text-decoration: underline;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 4px;
+    }
+    @media (max-width: 640px) {
+      .policy-container {
+        padding: 56px 20px 80px;
+      }
+      .policy-section ul {
+        padding-left: 18px;
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <article class="policy-wrapper">
+    <div class="policy-container">
+      <span class="policy-eyebrow">Booking Policies</span>
+      <h1 class="policy-title">Cancellation &amp; Refund Policy</h1>
+      <p class="policy-updated">Last updated: 15 September 2024</p>
+
+      <section class="policy-section" id="guest-cancellations">
+        <h2>1. If You Cancel</h2>
+        <p>The timing of your written cancellation determines the refund available:</p>
+        <ul>
+          <li><strong>≥ 30 days</strong> before the trip start: Full refund minus any non-recoverable supplier costs already paid (see below).</li>
+          <li><strong>14 – 29 days</strong> before start: 70% refund, or one complimentary date change if availability allows.</li>
+          <li><strong>7 – 13 days</strong> before start: 50% refund.</li>
+          <li><strong>&lt; 7 days</strong> before start or no-show: No refund.</li>
+        </ul>
+        <p>
+          Some services (e.g., special desert permits, exclusive lodges, charter flights) are fully non-refundable once booked.
+          We will flag these items before you pay your deposit.
+        </p>
+      </section>
+
+      <section class="policy-section" id="company-cancellations">
+        <h2>2. If We Cancel or Significantly Change Your Tour</h2>
+        <p>
+          Should Sand &amp; Sky Tours need to cancel or make a major change that materially affects your experience, you may select one of the following:
+        </p>
+        <ul>
+          <li>Move to a comparable new departure date.</li>
+          <li>Switch to another Sand &amp; Sky tour and pay or receive any price difference.</li>
+          <li>Receive a full refund of all amounts paid to us.</li>
+        </ul>
+        <p>
+          The above options exclude events beyond our reasonable control where force-majeure terms apply (see below).
+        </p>
+      </section>
+
+      <section class="policy-section" id="force-majeure">
+        <h2>3. Force Majeure</h2>
+        <p>
+          Force majeure covers extraordinary events such as extreme weather, government closures or restrictions, strikes, civil unrest, and public health emergencies.
+          In these situations we prioritize offering a new date or future travel credit so you can still enjoy your experience when conditions improve.
+          Cash refunds depend on what we are able to recover from local suppliers.
+        </p>
+      </section>
+
+      <section class="policy-section" id="refund-processing">
+        <h2>4. Refund Timing &amp; Method</h2>
+        <p>
+          Approved refunds are processed within 10 business days to the original payment method. Bank processing times, international transfers, and card issuer policies may affect how quickly funds appear in your account.
+        </p>
+      </section>
+
+      <section class="policy-section" id="questions">
+        <h2>Questions?</h2>
+        <p>
+          We know plans can change. Reach us anytime at
+          <a href="mailto:hello@sandandskytours.com">hello@sandandskytours.com</a> or via WhatsApp at +20 XXX XXX XXXX so we can walk you through options.
+        </p>
+        <p>
+          You’ll also find a quick summary on each trip page (“Free date change ≥7 days…”) linking back here for the full policy.
+        </p>
+      </section>
+    </div>
+  </article>
+{% endblock %}

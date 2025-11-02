@@ -53,6 +53,8 @@ class SiteHeroPairInline(admin.StackedInline):
         "position",
         "hero_image",
         "hero_video",
+        "hero_mobile_image",
+        "hero_mobile_video",
         "overlay_image",
         "overlay_alt",
     )
@@ -296,7 +298,7 @@ class DestinationAdmin(admin.ModelAdmin):
         ),
         (
             "Media",
-            {"fields": ("card_image", "hero_image")},
+            {"fields": ("card_image", "hero_image", "hero_image_mobile")},
         ),
         (
             "Hero Content",
@@ -372,7 +374,9 @@ class SiteConfigurationAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "hero_image",
+                    "hero_mobile_image",
                     "hero_video",
+                    "hero_mobile_video",
                 ),
                 "description": "Optional default media used only if no hero pairs exist.",
                 "classes": ("collapse",),
@@ -383,6 +387,7 @@ class SiteConfigurationAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "trips_hero_image",
+                    "trips_hero_image_mobile",
                 )
             },
         ),
@@ -472,6 +477,7 @@ class TripAdmin(admin.ModelAdmin):
     list_display = (
         "title",
         "destination",
+        "destination_order",
         "duration_days",
         "group_size_max",
         "base_price_per_person",
@@ -484,7 +490,8 @@ class TripAdmin(admin.ModelAdmin):
     search_fields = ("title", "slug", "teaser", "tour_type_label", "destination__name")
     filter_horizontal = ("languages", "category_tags", "additional_destinations")
     date_hierarchy = "created_at"
-    ordering = ("title",)
+    ordering = ("destination", "destination_order", "title")
+    list_editable = ("destination_order",)
 
     autocomplete_fields = ()  # keep explicit for clarity
 
@@ -581,8 +588,8 @@ class BookingAdmin(admin.ModelAdmin):
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
-    list_display = ("trip", "rating", "author_name", "created_at")
-    list_filter = ("rating", "trip", "created_at")
+    list_display = ("trip", "author_name", "created_at")
+    list_filter = ("trip", "created_at")
     search_fields = ("author_name", "body", "trip__title")
     date_hierarchy = "created_at"
     ordering = ("-created_at",)

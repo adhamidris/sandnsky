@@ -82,9 +82,6 @@
       });
   
       const grandTotalCents = baseTotalCents + extrasTotalCents;
-      const perPersonCents = billedTravelerCount > 0 ? Math.round(grandTotalCents / billedTravelerCount) : 0;
-      const perPersonLabel = billedTravelerCount > 0 ? `${formatCurrencyFromCents(perPersonCents)} per paying traveler` : '';
-  
       const summaryParts = [];
       const pushPart = (count, label) => {
         if (count > 0) {
@@ -100,9 +97,7 @@
         summaryParts.push('0 travelers');
       }
   
-      const summary = perPersonLabel && summaryParts.length
-        ? `${summaryParts.join(' · ')} · ${perPersonLabel}`
-        : summaryParts.join(' · ');
+      const summary = summaryParts.join(' · ');
   
       setCurrency(baseOutputs, baseTotalCents);
       setCurrency(adultOutputs, adultTotalCents);
@@ -221,20 +216,11 @@
       }
     };
   
-    const startFloaterObserver = () => {
-      if (!floater || !summaryCard) return;
-      stopFloaterObserver();
-      floaterObserver = new IntersectionObserver((entries) => {
-        const entry = entries[0];
-        const summaryVisible = entry ? entry.isIntersecting : false;
-        setFloaterVisibility(!summaryVisible);
-      }, {
-        root: null,
-        threshold: 0,
-        rootMargin: '0px 0px -20% 0px',
-      });
-      floaterObserver.observe(summaryCard);
-    };
+  const startFloaterObserver = () => {
+    if (!floater) return;
+    stopFloaterObserver();
+    setFloaterVisibility(true);
+  };
   
     const updateFloaterForViewport = () => {
       if (!floater) return;

@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}About Sand & Sky Tours{% endblock %}
+
+{% block head_extra %}
+  {{ block.super }}
+  <style>
+    .about-wrapper {
+      background: #f6f1e7;
+      color: #1f1b12;
+    }
+    .about-container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: clamp(80px, 10vw, 140px) 24px 120px;
+      display: grid;
+      gap: 48px;
+    }
+    .about-header {
+      display: grid;
+      gap: 18px;
+      text-align: left;
+    }
+    .about-eyebrow {
+      font: 600 11px/1 "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: rgba(31, 27, 18, 0.5);
+    }
+    .about-title {
+      font-family: var(--font-heading, "Cormorant Garamond"), serif;
+      font-size: clamp(42px, 6vw, 66px);
+      margin: 0;
+      letter-spacing: 0.01em;
+    }
+    .about-description {
+      font-size: 16px;
+      line-height: 1.7;
+      color: rgba(31, 27, 18, 0.7);
+      max-width: 680px;
+    }
+    .about-layout {
+      display: grid;
+      gap: 48px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      align-items: start;
+    }
+    .about-logo {
+      border: 1px solid rgba(31, 27, 18, 0.12);
+      border-radius: 18px;
+      padding: 40px;
+      display: grid;
+      place-items: center;
+      background: rgba(255, 255, 255, 0.9);
+      min-height: 200px;
+      font-family: var(--font-heading, "Cormorant Garamond"), serif;
+      font-size: 28px;
+      letter-spacing: 0.1em;
+      color: rgba(31, 27, 18, 0.65);
+      text-transform: uppercase;
+    }
+    .about-image {
+      border-radius: 24px;
+      aspect-ratio: 4 / 5;
+      background: linear-gradient(135deg, rgba(31, 27, 18, 0.08), rgba(31, 27, 18, 0.02));
+      border: 1px solid rgba(31, 27, 18, 0.08);
+      display: grid;
+      place-items: center;
+      color: rgba(31, 27, 18, 0.4);
+      font-size: 13px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    .about-content {
+      display: grid;
+      gap: 24px;
+    }
+    .about-content p {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.8;
+      color: rgba(31, 27, 18, 0.74);
+    }
+    @media (max-width: 640px) {
+      .about-container {
+        padding: 56px 20px 96px;
+      }
+      .about-logo {
+        padding: 32px;
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <section class="about-wrapper">
+    <div class="about-container">
+      <header class="about-header">
+        <span class="about-eyebrow">Our Story</span>
+        <h1 class="about-title">Sand &amp; Sky Tours</h1>
+        <p class="about-description">
+          We design soulful journeys across Egypt—merging desert stillness, Nile intimacy, and the treasured hospitality of the communities we call home.
+          Each itinerary is hand-built by our Cairo-based team to balance signature moments with unexpected, quietly luxurious details.
+        </p>
+      </header>
+
+      <div class="about-layout">
+        <div class="about-logo">
+          <img src="https://pub-b5144fdd56fb4b018c6d025a213f59d3.r2.dev/logo5.png" alt="Sand & Sky" />
+        </div>
+        <div class="about-image">
+          <img src="https://pub-b5144fdd56fb4b018c6d025a213f59d3.r2.dev/first-license.jpg">
+        </div>
+        <div class="about-content">
+          <p>
+            From the rippling dunes of the Great Sand Sea to sunset feluccas along the Nile, Sand &amp; Sky Tours curates experiences that feel both timeless and deeply personal.
+            We collaborate with veteran Egyptologists, desert explorers, and local artisans to ensure every journey is guided with care.
+          </p>
+          <p>
+            Our boutique approach keeps groups intentionally small, allows for flexible pacing, and ensures that every traveler
+            has the space to connect with Egypt’s landscapes and rituals.
+            We are here to champion meaningful travel that respects the land, honors culture, and leaves a light footprint.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}

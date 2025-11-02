@@ -1,0 +1,463 @@
+Destination: Ain El Sokhna (slug: ain-el-sokhna)
+  Primary trips:
+    - Cairo to Ain Sokhna: Cable Car Experience & Red Sea Day Trip (slug: cairo-to-ain-sokhna-cable-car-experience-red-sea-day-trip)
+      Primary destination: Ain El Sokhna
+      Destination order: None
+      Additional destinations: Cairo, Giza
+    - Cairo to Ain Sokhna: Luxury Yacht Day Trip on Red Sea (slug: cairo-to-ain-sokhna-luxury-yacht-day-trip-on-red-sea)
+      Primary destination: Ain El Sokhna
+      Destination order: None
+      Additional destinations: Cairo
+    - Cairo to El Ain Sokhna: Private Red Sea Beach Day Trip (slug: cairo-to-el-ain-sokhna-private-red-sea-beach-day-trip)
+      Primary destination: Ain El Sokhna
+      Destination order: None
+      Additional destinations: Cairo
+  Appears as additional destination in:
+    - Cairo to El Ain Sokhna: 3-Day City Tour & Beach Escape (slug: cairo-to-el-ain-sokhna-3-day-city-tour-beach-escape)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: Ain El Sokhna, Giza
+
+Destination: Alexandria (slug: alexandria)
+  Primary trips:
+    - Alexandria to Cairo: Pyramids & Egyptian Museum Day Tour (slug: alexandria-to-cairo-pyramids-egyptian-museum-day-tour)
+      Primary destination: Alexandria
+      Destination order: None
+      Additional destinations: Cairo, Giza
+    - Alexandria to El Alamein: 2-Day City & WWII History (War Museum & Cemeteries) (slug: alexandria-to-el-alamein-2-day-city-wwii-history-war-museum-cemeteries)
+      Primary destination: Alexandria
+      Destination order: None
+      Additional destinations: Cairo
+    - Cairo to Alexandria: Africano Park Safari Day Trip (Family-Friendly Wildlife Experience) (slug: cairo-to-alexandria-africano-park-safari-day-trip-family-friendly-wildlife-experience)
+      Primary destination: Alexandria
+      Destination order: None
+      Additional destinations: Cairo, Giza
+    - Cairo to Alexandria: Full-Day Private City Highlights with Lunch (slug: cairo-to-alexandria-full-day-private-city-highlights-with-lunch)
+      Primary destination: Alexandria
+      Destination order: None
+      Additional destinations: Cairo
+    - Cairo to El Alamein: War Museum & WWII Cemeteries Day Tour (Private) (slug: cairo-to-el-alamein-war-museum-wwii-cemeteries-day-tour-private)
+      Primary destination: Alexandria
+      Destination order: None
+      Additional destinations: Cairo, Giza
+  Appears as additional destination in:
+    - Cairo to Alexandria: 2-Day Highlights (Pyramids, Museum & Coastal City) — Meals Included (slug: cairo-to-alexandria-2-day-highlights-pyramids-museum-coastal-city-meals-included)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: Alexandria, Giza
+    - Cairo to Alexandria: 3-Day Highlights (Pyramids ATV, GEM & Nile Dinner Cruise) (slug: cairo-to-alexandria-3-day-highlights-pyramids-atv-gem-nile-dinner-cruise)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: Alexandria, Giza
+    - Cairo to Alexandria: 4-Day Egypt Highlights with Fayoum Oasis (slug: cairo-to-alexandria-4-day-egypt-highlights-with-fayoum-oasis)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: Alexandria, Fayoum, Giza
+    - Alexandria Port to Giza: Pyramids & Grand Egyptian Museum (Shore Excursion) (slug: alexandria-port-to-giza-pyramids-grand-egyptian-museum-shore-excursion)
+      Primary destination: Giza
+      Destination order: None
+      Additional destinations: Alexandria, Cairo
+
+Destination: Aswan (slug: aswan)
+  Primary trips:
+    - Aswan to Luxor: 4-Day Nile Cruise with Temples & Valley of Kings (slug: aswan-to-luxor-4-day-nile-cruise-with-temples-valley-of-kings)
+      Primary destination: Aswan
+      Destination order: None
+      Additional destinations: Luxor
+  Appears as additional destination in:
+    - Luxor to Aswan: 5-Day Nile Cruise with Temples & Valley of Kings (slug: luxor-to-aswan-5-day-nile-cruise-with-temples-valley-of-kings)
+      Primary destination: Luxor
+      Destination order: None
+      Additional destinations: Aswan
+
+Destination: Bahareya Oasis (slug: bahareya-oasis)
+  Primary trips:
+    - Cairo to Bahariya Oasis: Overnight Desert Safari (Black Desert, Crystal Mountain & White Desert) (slug: cairo-to-bahariya-oasis-overnight-desert-safari-black-desert-crystal-mountain-white-desert)
+      Primary destination: Bahareya Oasis
+      Destination order: None
+      Additional destinations: Cairo, White & Black Desert
+    - Cairo to White Desert: 3-Day Bahariya Oasis & Desert Safari (slug: cairo-to-white-desert-3-day-bahariya-oasis-desert-safari)
+      Primary destination: Bahareya Oasis
+      Destination order: None
+      Additional destinations: Cairo, White & Black Desert
+    - Cairo to White Desert: 5-Day City Tour & Desert Safari (slug: cairo-to-white-desert-5-day-city-tour-desert-safari)
+      Primary destination: Bahareya Oasis
+      Destination order: None
+      Additional destinations: Cairo, White & Black Desert
+  Appears as additional destination in:
+    - Cairo to White Desert: 7-Day Adventure (Bahariya Oasis, El-Fayoum & Pyramids) (slug: cairo-to-white-desert-7-day-adventure-bahariya-oasis-el-fayoum-pyramids)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: Bahareya Oasis, Fayoum, White & Black Desert
+
+Destination: Cairo (slug: cairo)
+  Primary trips:
+    - Cairo by Night: Free Walking Tour — Horse Carriage, Ice Cream & Cairo Tower Views (slug: cairo-by-night-free-walking-tour-horse-carriage-ice-cream-cairo-tower-views)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: Giza
+    - Cairo to Alexandria: 2-Day Highlights (Pyramids, Museum & Coastal City) — Meals Included (slug: cairo-to-alexandria-2-day-highlights-pyramids-museum-coastal-city-meals-included)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: Alexandria, Giza
+    - Cairo to Alexandria: 3-Day Highlights (Pyramids ATV, GEM & Nile Dinner Cruise) (slug: cairo-to-alexandria-3-day-highlights-pyramids-atv-gem-nile-dinner-cruise)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: Alexandria, Giza
+    - Cairo to Alexandria: 4-Day Egypt Highlights with Fayoum Oasis (slug: cairo-to-alexandria-4-day-egypt-highlights-with-fayoum-oasis)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: Alexandria, Fayoum, Giza
+    - Cairo to El Ain Sokhna: 3-Day City Tour & Beach Escape (slug: cairo-to-el-ain-sokhna-3-day-city-tour-beach-escape)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: Ain El Sokhna, Giza
+    - Cairo to El-Fayoum: 2-Day Pyramids & Oasis Tour (slug: cairo-to-el-fayoum-2-day-pyramids-oasis-tour)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: Fayoum, Giza
+    - Cairo to El-Minya: Full-Day Tour (Beni Hassan & Tell El-Amarna) (slug: cairo-to-el-minya-full-day-tour-beni-hassan-tell-el-amarna)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: None
+    - Cairo to White Desert: 7-Day Adventure (Bahariya Oasis, El-Fayoum & Pyramids) (slug: cairo-to-white-desert-7-day-adventure-bahariya-oasis-el-fayoum-pyramids)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: Bahareya Oasis, Fayoum, White & Black Desert
+    - Cairo: 3-Day Guided City Tour with Pyramids & Museums (slug: cairo-3-day-guided-city-tour-with-pyramids-museums)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: Giza
+    - Cairo: Felucca Nile Cruise — Traditional Sailboat Experience (slug: cairo-felucca-nile-cruise-traditional-sailboat-experience)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: None
+    - Cairo: Half-Day Old Cairo — Coptic Churches & Ben Ezra Synagogue (slug: cairo-half-day-old-cairo-coptic-churches-ben-ezra-synagogue)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: None
+    - Cairo: Khan El-Khalili Souk & Local Crafts — Guided Shopping Walk (slug: cairo-khan-el-khalili-souk-local-crafts-guided-shopping-walk)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: Giza
+    - Cairo: Nile Maxim Luxury Dinner Cruise with Entertainment (slug: cairo-nile-maxim-luxury-dinner-cruise-with-entertainment)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: Giza
+    - Cairo: Royal Palaces Day Tour - Abdeen, Baron & Manial Palace (slug: cairo-royal-palaces-day-tour-abdeen-baron-manial-palace)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: None
+    - Old Cairo Heritage: Coptic & Islamic Landmarks + Khan Al Khalili (slug: old-cairo-heritage-coptic-islamic-landmarks-khan-al-khalili)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: Giza
+  Appears as additional destination in:
+    - Cairo to Ain Sokhna: Cable Car Experience & Red Sea Day Trip (slug: cairo-to-ain-sokhna-cable-car-experience-red-sea-day-trip)
+      Primary destination: Ain El Sokhna
+      Destination order: None
+      Additional destinations: Cairo, Giza
+    - Cairo to Ain Sokhna: Luxury Yacht Day Trip on Red Sea (slug: cairo-to-ain-sokhna-luxury-yacht-day-trip-on-red-sea)
+      Primary destination: Ain El Sokhna
+      Destination order: None
+      Additional destinations: Cairo
+    - Cairo to El Ain Sokhna: Private Red Sea Beach Day Trip (slug: cairo-to-el-ain-sokhna-private-red-sea-beach-day-trip)
+      Primary destination: Ain El Sokhna
+      Destination order: None
+      Additional destinations: Cairo
+    - Alexandria to Cairo: Pyramids & Egyptian Museum Day Tour (slug: alexandria-to-cairo-pyramids-egyptian-museum-day-tour)
+      Primary destination: Alexandria
+      Destination order: None
+      Additional destinations: Cairo, Giza
+    - Alexandria to El Alamein: 2-Day City & WWII History (War Museum & Cemeteries) (slug: alexandria-to-el-alamein-2-day-city-wwii-history-war-museum-cemeteries)
+      Primary destination: Alexandria
+      Destination order: None
+      Additional destinations: Cairo
+    - Cairo to Alexandria: Africano Park Safari Day Trip (Family-Friendly Wildlife Experience) (slug: cairo-to-alexandria-africano-park-safari-day-trip-family-friendly-wildlife-experience)
+      Primary destination: Alexandria
+      Destination order: None
+      Additional destinations: Cairo, Giza
+    - Cairo to Alexandria: Full-Day Private City Highlights with Lunch (slug: cairo-to-alexandria-full-day-private-city-highlights-with-lunch)
+      Primary destination: Alexandria
+      Destination order: None
+      Additional destinations: Cairo
+    - Cairo to El Alamein: War Museum & WWII Cemeteries Day Tour (Private) (slug: cairo-to-el-alamein-war-museum-wwii-cemeteries-day-tour-private)
+      Primary destination: Alexandria
+      Destination order: None
+      Additional destinations: Cairo, Giza
+    - Cairo to Bahariya Oasis: Overnight Desert Safari (Black Desert, Crystal Mountain & White Desert) (slug: cairo-to-bahariya-oasis-overnight-desert-safari-black-desert-crystal-mountain-white-desert)
+      Primary destination: Bahareya Oasis
+      Destination order: None
+      Additional destinations: Cairo, White & Black Desert
+    - Cairo to White Desert: 3-Day Bahariya Oasis & Desert Safari (slug: cairo-to-white-desert-3-day-bahariya-oasis-desert-safari)
+      Primary destination: Bahareya Oasis
+      Destination order: None
+      Additional destinations: Cairo, White & Black Desert
+    - Cairo to White Desert: 5-Day City Tour & Desert Safari (slug: cairo-to-white-desert-5-day-city-tour-desert-safari)
+      Primary destination: Bahareya Oasis
+      Destination order: None
+      Additional destinations: Cairo, White & Black Desert
+    - Cairo to Fayoum: Oasis Safari & Valley of Whales Day Tour (slug: cairo-to-fayoum-oasis-safari-valley-of-whales-day-tour)
+      Primary destination: Fayoum
+      Destination order: None
+      Additional destinations: Cairo, Giza
+    - Cairo to Fayoum: Overnight Desert Camp (Wadi El Rayan & Magic Lake) (slug: cairo-to-fayoum-overnight-desert-camp-wadi-el-rayan-magic-lake)
+      Primary destination: Fayoum
+      Destination order: None
+      Additional destinations: Cairo
+    - Alexandria Port to Giza: Pyramids & Grand Egyptian Museum (Shore Excursion) (slug: alexandria-port-to-giza-pyramids-grand-egyptian-museum-shore-excursion)
+      Primary destination: Giza
+      Destination order: None
+      Additional destinations: Alexandria, Cairo
+    - Cairo to Giza, Saqqara & Memphis: Full-Day Pyramids Tour with Lunch (slug: cairo-to-giza-saqqara-memphis-full-day-pyramids-tour-with-lunch)
+      Primary destination: Giza
+      Destination order: None
+      Additional destinations: Cairo
+    - Cairo to Giza: Dahshur, Saqqara & Memphis Pyramid Tour (slug: cairo-to-giza-dahshur-saqqara-memphis-pyramid-tour)
+      Primary destination: Giza
+      Destination order: None
+      Additional destinations: Cairo
+    - Cairo to Giza: Grand Egyptian Museum Day Tour (slug: cairo-to-giza-grand-egyptian-museum-day-tour)
+      Primary destination: Giza
+      Destination order: None
+      Additional destinations: Cairo
+    - Cairo to Giza: Museums Double — Grand Egyptian Museum & Egyptian Museum Day Tour (slug: cairo-to-giza-museums-double-grand-egyptian-museum-egyptian-museum-day-tour)
+      Primary destination: Giza
+      Destination order: None
+      Additional destinations: Cairo
+    - Cairo to Giza: Pyramids & Grand Egyptian Museum (Full-Day Tour) (slug: cairo-to-giza-pyramids-grand-egyptian-museum-full-day-tour)
+      Primary destination: Giza
+      Destination order: None
+      Additional destinations: Cairo
+    - Cairo to Giza: Pyramids & Sphinx (Half-Day Tour with Egyptologist) (slug: cairo-to-giza-pyramids-sphinx-half-day-tour-with-egyptologist)
+      Primary destination: Giza
+      Destination order: None
+      Additional destinations: Cairo
+    - Giza Pyramids Desert: Quad Bike (ATV) Sunrise/Sunset Ride (slug: giza-pyramids-desert-quad-bike-atv-sunrisesunset-ride)
+      Primary destination: Giza
+      Destination order: None
+      Additional destinations: Cairo
+    - Giza to Cairo: Luxury Pyramids, Egyptian Museum & Khan el-Khalili (Private Day Tour) (slug: giza-to-cairo-luxury-pyramids-egyptian-museum-khan-el-khalili-private-day-tour)
+      Primary destination: Giza
+      Destination order: None
+      Additional destinations: Cairo
+    - Giza: Pyramids & Sphinx with Camel Safari — Half-Day Adventure (slug: giza-pyramids-sphinx-with-camel-safari-half-day-adventure)
+      Primary destination: Giza
+      Destination order: None
+      Additional destinations: Cairo
+    - Giza: Pyramids Sound & Light Show Night Experience (slug: giza-pyramids-sound-light-show-night-experience)
+      Primary destination: Giza
+      Destination order: None
+      Additional destinations: Cairo
+    - Giza: Pyramids Sound & Light Show with Dinner Experience (slug: giza-pyramids-sound-light-show-with-dinner-experience)
+      Primary destination: Giza
+      Destination order: None
+      Additional destinations: Cairo
+    - Cairo to Luxor: Day Trip by Flight (Karnak, Valley of the Kings & Hatshepsut) (slug: cairo-to-luxor-day-trip-by-flight-karnak-valley-of-the-kings-hatshepsut)
+      Primary destination: Luxor
+      Destination order: None
+      Additional destinations: Cairo
+    - Cairo to Sinai: Mount Sunrise & St. Catherine Monastery Overnight Trip (slug: cairo-to-sinai-mount-sunrise-st-catherine-monastery-overnight-trip)
+      Primary destination: Sinai
+      Destination order: None
+      Additional destinations: Cairo
+    - Cairo to Siwa Oasis: 3-Day Desert Escape — Oracle Temple, Salt Lakes & Great Sand Sea (slug: cairo-to-siwa-oasis-3-day-desert-escape-oracle-temple-salt-lakes-great-sand-sea)
+      Primary destination: Siwa
+      Destination order: None
+      Additional destinations: Cairo
+    - Cairo to Siwa: 4-Day Oasis Tour with Desert Safari & Salt Lakes (slug: cairo-to-siwa-4-day-oasis-tour-with-desert-safari-salt-lakes)
+      Primary destination: Siwa
+      Destination order: None
+      Additional destinations: Cairo
+
+Destination: Fayoum (slug: fayoum)
+  Primary trips:
+    - Cairo to Fayoum: Oasis Safari & Valley of Whales Day Tour (slug: cairo-to-fayoum-oasis-safari-valley-of-whales-day-tour)
+      Primary destination: Fayoum
+      Destination order: None
+      Additional destinations: Cairo, Giza
+    - Cairo to Fayoum: Overnight Desert Camp (Wadi El Rayan & Magic Lake) (slug: cairo-to-fayoum-overnight-desert-camp-wadi-el-rayan-magic-lake)
+      Primary destination: Fayoum
+      Destination order: None
+      Additional destinations: Cairo
+  Appears as additional destination in:
+    - Cairo to Alexandria: 4-Day Egypt Highlights with Fayoum Oasis (slug: cairo-to-alexandria-4-day-egypt-highlights-with-fayoum-oasis)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: Alexandria, Fayoum, Giza
+    - Cairo to El-Fayoum: 2-Day Pyramids & Oasis Tour (slug: cairo-to-el-fayoum-2-day-pyramids-oasis-tour)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: Fayoum, Giza
+    - Cairo to White Desert: 7-Day Adventure (Bahariya Oasis, El-Fayoum & Pyramids) (slug: cairo-to-white-desert-7-day-adventure-bahariya-oasis-el-fayoum-pyramids)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: Bahareya Oasis, Fayoum, White & Black Desert
+
+Destination: Giza (slug: giza)
+  Primary trips:
+    - Alexandria Port to Giza: Pyramids & Grand Egyptian Museum (Shore Excursion) (slug: alexandria-port-to-giza-pyramids-grand-egyptian-museum-shore-excursion)
+      Primary destination: Giza
+      Destination order: None
+      Additional destinations: Alexandria, Cairo
+    - Cairo to Giza, Saqqara & Memphis: Full-Day Pyramids Tour with Lunch (slug: cairo-to-giza-saqqara-memphis-full-day-pyramids-tour-with-lunch)
+      Primary destination: Giza
+      Destination order: None
+      Additional destinations: Cairo
+    - Cairo to Giza: Dahshur, Saqqara & Memphis Pyramid Tour (slug: cairo-to-giza-dahshur-saqqara-memphis-pyramid-tour)
+      Primary destination: Giza
+      Destination order: None
+      Additional destinations: Cairo
+    - Cairo to Giza: Grand Egyptian Museum Day Tour (slug: cairo-to-giza-grand-egyptian-museum-day-tour)
+      Primary destination: Giza
+      Destination order: None
+      Additional destinations: Cairo
+    - Cairo to Giza: Museums Double — Grand Egyptian Museum & Egyptian Museum Day Tour (slug: cairo-to-giza-museums-double-grand-egyptian-museum-egyptian-museum-day-tour)
+      Primary destination: Giza
+      Destination order: None
+      Additional destinations: Cairo
+    - Cairo to Giza: Pyramids & Grand Egyptian Museum (Full-Day Tour) (slug: cairo-to-giza-pyramids-grand-egyptian-museum-full-day-tour)
+      Primary destination: Giza
+      Destination order: None
+      Additional destinations: Cairo
+    - Cairo to Giza: Pyramids & Sphinx (Half-Day Tour with Egyptologist) (slug: cairo-to-giza-pyramids-sphinx-half-day-tour-with-egyptologist)
+      Primary destination: Giza
+      Destination order: None
+      Additional destinations: Cairo
+    - Giza Pyramids Desert: Quad Bike (ATV) Sunrise/Sunset Ride (slug: giza-pyramids-desert-quad-bike-atv-sunrisesunset-ride)
+      Primary destination: Giza
+      Destination order: None
+      Additional destinations: Cairo
+    - Giza to Cairo: Luxury Pyramids, Egyptian Museum & Khan el-Khalili (Private Day Tour) (slug: giza-to-cairo-luxury-pyramids-egyptian-museum-khan-el-khalili-private-day-tour)
+      Primary destination: Giza
+      Destination order: None
+      Additional destinations: Cairo
+    - Giza: Pyramids & Sphinx with Camel Safari — Half-Day Adventure (slug: giza-pyramids-sphinx-with-camel-safari-half-day-adventure)
+      Primary destination: Giza
+      Destination order: None
+      Additional destinations: Cairo
+    - Giza: Pyramids Sound & Light Show Night Experience (slug: giza-pyramids-sound-light-show-night-experience)
+      Primary destination: Giza
+      Destination order: None
+      Additional destinations: Cairo
+    - Giza: Pyramids Sound & Light Show with Dinner Experience (slug: giza-pyramids-sound-light-show-with-dinner-experience)
+      Primary destination: Giza
+      Destination order: None
+      Additional destinations: Cairo
+  Appears as additional destination in:
+    - Cairo to Ain Sokhna: Cable Car Experience & Red Sea Day Trip (slug: cairo-to-ain-sokhna-cable-car-experience-red-sea-day-trip)
+      Primary destination: Ain El Sokhna
+      Destination order: None
+      Additional destinations: Cairo, Giza
+    - Alexandria to Cairo: Pyramids & Egyptian Museum Day Tour (slug: alexandria-to-cairo-pyramids-egyptian-museum-day-tour)
+      Primary destination: Alexandria
+      Destination order: None
+      Additional destinations: Cairo, Giza
+    - Cairo to Alexandria: Africano Park Safari Day Trip (Family-Friendly Wildlife Experience) (slug: cairo-to-alexandria-africano-park-safari-day-trip-family-friendly-wildlife-experience)
+      Primary destination: Alexandria
+      Destination order: None
+      Additional destinations: Cairo, Giza
+    - Cairo to El Alamein: War Museum & WWII Cemeteries Day Tour (Private) (slug: cairo-to-el-alamein-war-museum-wwii-cemeteries-day-tour-private)
+      Primary destination: Alexandria
+      Destination order: None
+      Additional destinations: Cairo, Giza
+    - Cairo by Night: Free Walking Tour — Horse Carriage, Ice Cream & Cairo Tower Views (slug: cairo-by-night-free-walking-tour-horse-carriage-ice-cream-cairo-tower-views)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: Giza
+    - Cairo to Alexandria: 2-Day Highlights (Pyramids, Museum & Coastal City) — Meals Included (slug: cairo-to-alexandria-2-day-highlights-pyramids-museum-coastal-city-meals-included)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: Alexandria, Giza
+    - Cairo to Alexandria: 3-Day Highlights (Pyramids ATV, GEM & Nile Dinner Cruise) (slug: cairo-to-alexandria-3-day-highlights-pyramids-atv-gem-nile-dinner-cruise)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: Alexandria, Giza
+    - Cairo to Alexandria: 4-Day Egypt Highlights with Fayoum Oasis (slug: cairo-to-alexandria-4-day-egypt-highlights-with-fayoum-oasis)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: Alexandria, Fayoum, Giza
+    - Cairo to El Ain Sokhna: 3-Day City Tour & Beach Escape (slug: cairo-to-el-ain-sokhna-3-day-city-tour-beach-escape)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: Ain El Sokhna, Giza
+    - Cairo to El-Fayoum: 2-Day Pyramids & Oasis Tour (slug: cairo-to-el-fayoum-2-day-pyramids-oasis-tour)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: Fayoum, Giza
+    - Cairo: 3-Day Guided City Tour with Pyramids & Museums (slug: cairo-3-day-guided-city-tour-with-pyramids-museums)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: Giza
+    - Cairo: Khan El-Khalili Souk & Local Crafts — Guided Shopping Walk (slug: cairo-khan-el-khalili-souk-local-crafts-guided-shopping-walk)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: Giza
+    - Cairo: Nile Maxim Luxury Dinner Cruise with Entertainment (slug: cairo-nile-maxim-luxury-dinner-cruise-with-entertainment)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: Giza
+    - Old Cairo Heritage: Coptic & Islamic Landmarks + Khan Al Khalili (slug: old-cairo-heritage-coptic-islamic-landmarks-khan-al-khalili)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: Giza
+    - Cairo to Fayoum: Oasis Safari & Valley of Whales Day Tour (slug: cairo-to-fayoum-oasis-safari-valley-of-whales-day-tour)
+      Primary destination: Fayoum
+      Destination order: None
+      Additional destinations: Cairo, Giza
+
+Destination: Luxor (slug: luxor)
+  Primary trips:
+    - Cairo to Luxor: Day Trip by Flight (Karnak, Valley of the Kings & Hatshepsut) (slug: cairo-to-luxor-day-trip-by-flight-karnak-valley-of-the-kings-hatshepsut)
+      Primary destination: Luxor
+      Destination order: None
+      Additional destinations: Cairo
+    - Luxor to Aswan: 5-Day Nile Cruise with Temples & Valley of Kings (slug: luxor-to-aswan-5-day-nile-cruise-with-temples-valley-of-kings)
+      Primary destination: Luxor
+      Destination order: None
+      Additional destinations: Aswan
+  Appears as additional destination in:
+    - Aswan to Luxor: 4-Day Nile Cruise with Temples & Valley of Kings (slug: aswan-to-luxor-4-day-nile-cruise-with-temples-valley-of-kings)
+      Primary destination: Aswan
+      Destination order: None
+      Additional destinations: Luxor
+
+Destination: Sinai (slug: sinai)
+  Primary trips:
+    - Cairo to Sinai: Mount Sunrise & St. Catherine Monastery Overnight Trip (slug: cairo-to-sinai-mount-sunrise-st-catherine-monastery-overnight-trip)
+      Primary destination: Sinai
+      Destination order: None
+      Additional destinations: Cairo
+  Appears as additional destination in: none
+
+Destination: Siwa (slug: siwa)
+  Primary trips:
+    - Cairo to Siwa Oasis: 3-Day Desert Escape — Oracle Temple, Salt Lakes & Great Sand Sea (slug: cairo-to-siwa-oasis-3-day-desert-escape-oracle-temple-salt-lakes-great-sand-sea)
+      Primary destination: Siwa
+      Destination order: None
+      Additional destinations: Cairo
+    - Cairo to Siwa: 4-Day Oasis Tour with Desert Safari & Salt Lakes (slug: cairo-to-siwa-4-day-oasis-tour-with-desert-safari-salt-lakes)
+      Primary destination: Siwa
+      Destination order: None
+      Additional destinations: Cairo
+  Appears as additional destination in: none
+
+Destination: White & Black Desert (slug: white-black-desert)
+  Primary trips: none
+  Appears as additional destination in:
+    - Cairo to Bahariya Oasis: Overnight Desert Safari (Black Desert, Crystal Mountain & White Desert) (slug: cairo-to-bahariya-oasis-overnight-desert-safari-black-desert-crystal-mountain-white-desert)
+      Primary destination: Bahareya Oasis
+      Destination order: None
+      Additional destinations: Cairo, White & Black Desert
+    - Cairo to White Desert: 3-Day Bahariya Oasis & Desert Safari (slug: cairo-to-white-desert-3-day-bahariya-oasis-desert-safari)
+      Primary destination: Bahareya Oasis
+      Destination order: None
+      Additional destinations: Cairo, White & Black Desert
+    - Cairo to White Desert: 5-Day City Tour & Desert Safari (slug: cairo-to-white-desert-5-day-city-tour-desert-safari)
+      Primary destination: Bahareya Oasis
+      Destination order: None
+      Additional destinations: Cairo, White & Black Desert
+    - Cairo to White Desert: 7-Day Adventure (Bahariya Oasis, El-Fayoum & Pyramids) (slug: cairo-to-white-desert-7-day-adventure-bahariya-oasis-el-fayoum-pyramids)
+      Primary destination: Cairo
+      Destination order: None
+      Additional destinations: Bahareya Oasis, Fayoum, White & Black Desert

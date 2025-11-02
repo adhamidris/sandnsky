@@ -1,4 +1,5 @@
 {# templates/includes/navigation.html (example path) #}
+{% load static %}
 <header class="nav" role="banner">
   <div class="container row" role="navigation" aria-label="Primary">
     <!-- Mobile: menu toggle -->
@@ -9,7 +10,7 @@
     </button>
 
     <!-- Brand -->
-    <a href="/" class="brand">Sand &amp; Sky</a>
+    <a href="/" class="brand"><img src="https://pub-b5144fdd56fb4b018c6d025a213f59d3.r2.dev/logo4.png" width="85" height="85" alt="Sand & Sky" /></a>
 
     <!-- Desktop links -->
     <nav class="links desktop-links" aria-label="Primary">
@@ -19,16 +20,29 @@
         Home
       </a>
 
+      <a href="/destinations"
+         class="link"
+         {% if request.path|slice:":13" == '/destinations' %}aria-current="page"{% endif %}>
+        Destinations
+      </a>
+
       <a href="/trips"
          class="link"
          {% if request.path|slice:":6" == '/trips' %}aria-current="page"{% endif %}>
         Our Trips
       </a>
 
-      {% if request.path == '/' %}
-      <a href="#about" class="link">About</a>
-      <a href="#contact" class="link">Contact</a>
-      {% endif %}
+      <a href="/about"
+         class="link"
+         {% if request.path|slice:":6" == '/about' %}aria-current="page"{% endif %}>
+        About
+      </a>
+
+      <a href="/contact"
+         class="link"
+         {% if request.path|slice:":8" == '/contact' %}aria-current="page"{% endif %}>
+        Contact
+      </a>
     </nav>
 
     <!-- CTAs (Book/Tours + Cart) -->
@@ -48,16 +62,31 @@
           Home
         </a>
 
+        <a href="/destinations"
+           class="mobile-link"
+           {% if request.path|slice:":13" == '/destinations' %}aria-current="page"{% endif %}>
+          Destinations
+        </a>
+
         <a href="/trips"
            class="mobile-link"
            {% if request.path|slice:":6" == '/trips' %}aria-current="page"{% endif %}>
           Our Trips
         </a>
 
-        {% if request.path == '/' %}
-        <a href="#about" class="mobile-link" data-close-nav>About</a>
-        <a href="#contact" class="mobile-link" data-close-nav>Contact</a>
-        {% endif %}
+        <a href="/about"
+           class="mobile-link"
+           {% if request.path|slice:":6" == '/about' %}aria-current="page"{% endif %}
+           data-close-nav>
+          About
+        </a>
+
+        <a href="/contact"
+           class="mobile-link"
+           {% if request.path|slice:":8" == '/contact' %}aria-current="page"{% endif %}
+           data-close-nav>
+          Contact
+        </a>
       </nav>
 
     </div>

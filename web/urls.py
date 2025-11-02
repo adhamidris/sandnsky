@@ -1,8 +1,11 @@
 from django.urls import path
+from django.views.generic import TemplateView
 
 from .views import (
     HomePageView,
+    DestinationListView,
     TripDetailView,
+    TripReviewCreateView,
     TripListView,
     CartCheckoutView,
     CartQuickAddView,
@@ -20,9 +23,45 @@ app_name = "web"
 
 urlpatterns = [
     path("", HomePageView.as_view(), name="home"),
+    path("destinations/", DestinationListView.as_view(), name="destinations"),
+    path(
+        "booking-terms/",
+        TemplateView.as_view(template_name="booking_terms.html"),
+        name="booking-terms",
+    ),
+    path(
+        "cancellation-policy/",
+        TemplateView.as_view(template_name="cancellation_policy.html"),
+        name="cancellation-policy",
+    ),
+    path(
+        "privacy-policy/",
+        TemplateView.as_view(template_name="privacy_policy.html"),
+        name="privacy-policy",
+    ),
+    path(
+        "health-safety/",
+        TemplateView.as_view(template_name="health_safety.html"),
+        name="health-safety",
+    ),
+    path(
+        "contact/",
+        TemplateView.as_view(template_name="contact.html"),
+        name="contact",
+    ),
+    path(
+        "about/",
+        TemplateView.as_view(template_name="about.html"),
+        name="about",
+    ),
     path("blog/", BlogListView.as_view(), name="blog-list"),
     path("blog/<slug:slug>/", BlogDetailView.as_view(), name="blog-detail"),
     path("trips/", TripListView.as_view(), name="trips"),
+    path(
+        "trips/<slug:slug>/reviews/",
+        TripReviewCreateView.as_view(),
+        name="trip-review-create",
+    ),
     path("trips/<slug:slug>/", TripDetailView.as_view(), name="trip-detail"),
     path(
         "booking/cart/add/<slug:slug>/",

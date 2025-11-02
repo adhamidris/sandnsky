@@ -8,7 +8,7 @@
   <div class="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
     <div class="mx-auto max-w-3xl text-center sm:mx-0 sm:max-w-3xl sm:text-left lg:max-w-2xl">
       <span class="inline-flex items-center justify-center gap-2 rounded-full bg-primary/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-primary sm:justify-start">Journal</span>
-      <h1 class="mt-6 font-serif text-4xl leading-tight text-foreground sm:text-5xl">Stories from Sand &amp; Sky</h1>
+      <h1 class="mt-6 font-serif text-4xl leading-tight text-muted sm:text-5xl">Stories from Sand &amp; Sky</h1>
       <p class="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
         Discover curated inspiration, travel guidance, and the untold tales shaping our journeys across Egypt.
       </p>
@@ -50,7 +50,7 @@
           <img src="{{ post.image_url }}" alt="{{ post.title }}" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
           <div class="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent"></div>
           {% if post.category %}
-          <span class="absolute left-4 top-4 inline-flex items-center rounded-full bg-black/50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/85">
+          <span class="chip absolute left-4 top-4 inline-flex items-center rounded-full bg-black/50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/85">
             {{ post.category }}
           </span>
           {% endif %}

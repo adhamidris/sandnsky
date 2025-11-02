@@ -1,6 +1,7 @@
 {% load static %}
 {% if gallery_section.items or gallery_section.rows %}
-<section id="gallery" class="explore" aria-labelledby="explore-title">
+{% with extra_classes=gallery_section.section_classes|default:"" %}
+<section id="gallery" class="explore{% if extra_classes %} {{ extra_classes }}{% endif %}" aria-labelledby="explore-title">
   <div class="wrap">
     <span class="eyebrow">Gallery</span>
     <h2 id="explore-title">{{ gallery_section.title }}</h2>
@@ -80,6 +81,7 @@
     {% endif %}
   </template>
 </section>
+{% endwith %}
 {% endif %}
 
 {% block script %}
@@ -220,13 +222,36 @@
   }
 
   // Extract images array from template
+  const FILE_EXT_PATTERN = /\.(?:jpe?g|png|webp|gif|bmp|avif|heic|heif|tiff?)$/i;
+  const sanitizeLabel = (value) => {
+    if (!value) return "";
+    const trimmed = value.trim();
+    if (!trimmed) return "";
+    const base = trimmed.split(/[?#]/)[0];
+    if (FILE_EXT_PATTERN.test(base)) {
+      return "";
+    }
+    return trimmed;
+  };
+
   const nodes = tpl.content.querySelectorAll('[data-src]');
-  const imgs = Array.from(nodes).map(n => ({
-    src: n.dataset.src,
-    alt: n.dataset.alt || "",
-    title: n.dataset.title || "",
-    caption: n.dataset.caption || ""
-  })).filter(x => !!x.src);
+  const imgs = Array.from(nodes).map(n => {
+    const rawTitle = n.dataset.title || "";
+    const rawCaption = n.dataset.caption || "";
+    const rawAlt = n.dataset.alt || "";
+    const title = sanitizeLabel(rawTitle);
+    const caption = sanitizeLabel(rawCaption);
+    let alt = sanitizeLabel(rawAlt);
+    if (!alt) {
+      alt = title || caption || "Gallery image";
+    }
+    return {
+      src: n.dataset.src,
+      alt,
+      title,
+      caption
+    };
+  }).filter(x => !!x.src);
 
   if (!imgs.length) return;
 
@@ -339,6 +364,7 @@ const cards = Array.from(section.querySelectorAll('[data-gallery-card]'));
   let overlayCaption;
   let overlayPrev;
   let overlayNext;
+  let overlaySwipeBound = false;
   let lightboxIndex = 0;
 
   function ensureLightbox() {
@@ -371,7 +397,119 @@ const cards = Array.from(section.querySelectorAll('[data-gallery-card]'));
     overlayPrev = overlay.querySelector('[data-lightbox-prev]');
     overlayNext = overlay.querySelector('[data-lightbox-next]');
 
-    overlayDialog.addEventListener('click', (event) => event.stopPropagation());
+    if (!overlaySwipeBound && overlayDialog) {
+      overlaySwipeBound = true;
+      if (window.PointerEvent) {
+        const active = {
+          pointerId: null,
+          startX: 0,
+          startY: 0,
+          tracking: false,
+        };
+        const reset = () => {
+          active.pointerId = null;
+          active.startX = 0;
+          active.startY = 0;
+          active.tracking = false;
+        };
+        overlayDialog.addEventListener('pointerdown', (event) => {
+          if (event.pointerType !== 'touch' && event.pointerType !== 'pen') {
+            return;
+          }
+          active.pointerId = event.pointerId;
+          active.startX = event.clientX;
+          active.startY = event.clientY;
+          active.tracking = true;
+        });
+        overlayDialog.addEventListener('pointermove', (event) => {
+          if (!active.tracking || event.pointerId !== active.pointerId) {
+            return;
+          }
+          const dx = event.clientX - active.startX;
+          const dy = event.clientY - active.startY;
+          if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 12) {
+            event.preventDefault();
+          }
+        }, { passive: false });
+        overlayDialog.addEventListener('pointerup', (event) => {
+          if (!active.tracking || event.pointerId !== active.pointerId) {
+            return;
+          }
+          const dx = event.clientX - active.startX;
+          const dy = event.clientY - active.startY;
+          if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 60) {
+            if (dx < 0) {
+              offsetLightbox(1);
+            } else {
+              offsetLightbox(-1);
+            }
+          }
+          reset();
+        });
+        overlayDialog.addEventListener('pointercancel', reset);
+      } else {
+        const touch = {
+          startX: 0,
+          startY: 0,
+          tracking: false,
+        };
+        overlayDialog.addEventListener('touchstart', (event) => {
+          if (event.touches.length !== 1) return;
+          const t = event.touches[0];
+          touch.startX = t.clientX;
+          touch.startY = t.clientY;
+          touch.tracking = true;
+        }, { passive: true });
+        overlayDialog.addEventListener('touchmove', (event) => {
+          if (!touch.tracking || event.touches.length !== 1) return;
+          const t = event.touches[0];
+          const dx = t.clientX - touch.startX;
+          const dy = t.clientY - touch.startY;
+          if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 12) {
+            event.preventDefault();
+          }
+        }, { passive: false });
+        overlayDialog.addEventListener('touchend', (event) => {
+          if (!touch.tracking) return;
+          const t = event.changedTouches[0];
+          const dx = t.clientX - touch.startX;
+          const dy = t.clientY - touch.startY;
+          touch.tracking = false;
+          if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 60) {
+            if (dx < 0) {
+              offsetLightbox(1);
+            } else {
+              offsetLightbox(-1);
+            }
+          }
+        });
+        overlayDialog.addEventListener('touchcancel', () => {
+          touch.tracking = false;
+        });
+      }
+    }
+
+    if (overlayDialog) {
+      overlayDialog.addEventListener('click', (event) => {
+        const target = event.target;
+        const isNav = target.closest('.gallery-lightbox__nav');
+        const isExplicitClose = target.closest('[data-lightbox-close]');
+        const isMedia = target.closest('.gallery-lightbox__media');
+
+        if (isExplicitClose || isNav) {
+          event.stopPropagation();
+          return;
+        }
+
+        if (isMedia) {
+          event.stopPropagation();
+          closeLightbox();
+          return;
+        }
+
+        event.stopPropagation();
+      });
+    }
 
     overlay.addEventListener('click', (event) => {
       if (event.target === overlay || event.target.dataset.lightboxClose !== undefined) {
@@ -411,14 +549,21 @@ const cards = Array.from(section.querySelectorAll('[data-gallery-card]'));
     overlayImg.src = item.src;
     overlayImg.alt = item.alt || item.title || item.caption || 'Gallery image';
 
+    let titleText = item.title || '';
+    let captionText = item.caption || '';
+
     if (overlayTitle) {
-      overlayTitle.textContent = item.title || '';
-      overlayTitle.hidden = !overlayTitle.textContent;
+      overlayTitle.textContent = titleText;
+      const normalizedTitle = titleText.trim();
+      overlayTitle.hidden = !normalizedTitle;
+      titleText = normalizedTitle;
     }
 
     if (overlayCaption) {
-      overlayCaption.textContent = item.caption || '';
-      overlayCaption.hidden = !overlayCaption.textContent;
+      overlayCaption.textContent = captionText;
+      const normalizedCaption = captionText.trim();
+      const sameAsTitle = normalizedCaption && titleText && normalizedCaption.toLowerCase() === titleText.toLowerCase();
+      overlayCaption.hidden = !normalizedCaption || sameAsTitle;
     }
   }
 

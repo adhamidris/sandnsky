@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Destinations — Sand & Sky{% endblock %}
+
+{% block head_extra %}
+  {{ block.super }}
+  <style>
+    .destination-library {
+      background: #f9f4ec;
+      color: #1f1b12;
+      min-height: 60vh;
+    }
+    .destination-library .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 72px 20px 120px;
+    }
+    .destination-library__heading {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 40px;
+      text-align: center;
+    }
+    .destination-library__heading h1 {
+      font-family: var(--font-heading);
+      font-size: clamp(32px, 5vw, 56px);
+      font-weight: 600;
+      margin: 0;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .destination-library__count {
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 13px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(31, 27, 18, 0.65);
+    }
+    .destination-library .dest-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+    .destination-library .dest-card {
+      height: 100%;
+      border-radius: 18px;
+    }
+    .destination-library .dest-card img {
+      height: 100%;
+      min-height: 260px;
+      object-fit: cover;
+    }
+    @media (min-width: 640px) {
+      .destination-library .dest-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (min-width: 1024px) {
+      .destination-library .dest-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-auto-rows: 220px;
+        grid-auto-flow: dense;
+        gap: 26px;
+      }
+      .destination-library .dest-card {
+        position: relative;
+      }
+      .destination-library .dest-card:nth-child(6n + 1),
+      .destination-library .dest-card:nth-child(6n + 4) {
+        grid-row: span 2;
+      }
+      .destination-library .dest-card:nth-child(3n) {
+        grid-column: span 2;
+      }
+      .destination-library .dest-card:nth-child(3n) img {
+        min-height: 420px;
+      }
+    }
+    @media (max-width: 639px) {
+      .destination-library .dest-card img {
+        aspect-ratio: 4 / 5;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .destination-library .dest-card::before,
+      .destination-library .dest-card::after {
+        transition: none !important;
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <section class="destination-library destinations">
+    <div class="wrap">
+      <div class="destination-library__heading">
+        <span class="destination-library__count">{{ destination_count }} Destinations</span>
+        <h1>Destinations</h1>
+      </div>
+      {% if destinations %}
+        <div class="dest-grid">
+          {% for destination in destinations %}
+            <a
+              class="dest-card"
+              href="{{ destination.cta.href }}"
+              aria-label="{{ destination.cta.label }} for {{ destination.name }}"
+            >
+              {% if destination.image_url %}
+                <img
+                  src="{{ destination.image_url }}"
+                  alt="{{ destination.name }}"
+                  loading="lazy"
+                  decoding="async"
+                />
+              {% else %}
+                <div class="fallback" style="width:100%; height:100%; display:grid; place-items:center; background:#efe7db; color:#2b2317;">
+                  <span class="fallback-title" style="font-weight:600">{{ destination.name }}</span>
+                </div>
+              {% endif %}
+              <div class="dest-caption">
+                <h3>{{ destination.title }}</h3>
+                <p>
+                  <span class="dest-cta inline-cta">
+                    {{ destination.cta.label }}
+                  </span>
+                </p>
+              </div>
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="center-cta" style="text-align:center; color:rgba(0,0,0,.55); margin-top:24px;">
+          Destination cards will appear here once added in the dashboard.
+        </p>
+      {% endif %}
+    </div>
+  </section>
+{% endblock %}

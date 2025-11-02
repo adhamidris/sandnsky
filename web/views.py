@@ -9,7 +9,19 @@ from django.contrib import messages
 from django.core import signing
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Prefetch, Q, Min, Max, Count
+from django.db.models import (
+    Case,
+    Count,
+    F,
+    IntegerField,
+    Max,
+    Min,
+    Prefetch,
+    Q,
+    When,
+    Value,
+)
+from django.db.models.expressions import OrderBy
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
@@ -19,7 +31,7 @@ from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.template.loader import render_to_string
 
-from .forms import BookingRequestForm, BookingCartCheckoutForm
+from .forms import BookingRequestForm, BookingCartCheckoutForm, ReviewSubmissionForm
 from .booking_cart import (
     add_entry,
     build_booking_help_link,
@@ -51,6 +63,7 @@ from .models import (
     TripRelation,
     TripExtra,
     TripGalleryImage,
+    Review,
 )
 from .rewards import (
     RewardComputationError,
@@ -66,6 +79,13 @@ BOOKING_REFERENCE_SALT = "booking-success"
 BOOKING_REFERENCE_MAX_AGE = 60 * 60 * 24 * 14  # 14 days
 BOOKING_CART_REFERENCE_SALT = "booking-cart-success"
 BOOKING_CART_REFERENCE_MAX_AGE = BOOKING_REFERENCE_MAX_AGE
+
+
+def format_review_summary(count: int):
+    if count <= 0:
+        return "New — be the first to review", False
+    label = "review" if count == 1 else "reviews"
+    return (f"{count} {label} shared", True)
 
 
 def format_currency(amount, currency=DEFAULT_CURRENCY):
@@ -87,7 +107,7 @@ def duration_label(days):
     return f"{days} day{'s' if days != 1 else ''}"
 
 
-def traveler_summary(adults, children, infants, per_person_label=""):
+def traveler_summary(adults, children, infants):
     parts = []
 
     def append_part(count, label):
@@ -101,9 +121,6 @@ def traveler_summary(adults, children, infants, per_person_label=""):
 
     if not parts:
         parts.append("0 travelers")
-
-    if per_person_label:
-        parts.append(per_person_label)
 
     return " · ".join(parts)
 
@@ -127,6 +144,7 @@ def _destination_hero_context(destination):
         "title": title,
         "subtitle": subtitle,
         "image_url": destination.hero_image.url if destination.hero_image else "",
+        "mobile_image_url": destination.hero_image_mobile.url if destination.hero_image_mobile else "",
     }
 
 
@@ -158,6 +176,18 @@ def _destination_gallery_context(destination):
     if not destination:
         return []
     return _serialize_gallery_images(destination.gallery_images.all())
+
+
+def build_destination_card(destination):
+    cta_href = destination.get_absolute_url()
+    return {
+        "id": destination.pk,
+        "name": destination.name,
+        "title": destination.tagline or destination.name,
+        "description": destination.description,
+        "image_url": destination.card_image.url if destination.card_image else "",
+        "cta": {"label": destination.cta_label, "href": cta_href},
+    }
 
 
 def _trip_gallery_context(trip):
@@ -250,6 +280,7 @@ def build_trip_card(trip):
     child_price = trip.get_child_price_per_person()
     has_child_price = child_price != trip.base_price_per_person
     return {
+        "id": trip.pk,
         "slug": trip.slug,
         "title": trip.title,
         "description": trip.teaser,
@@ -420,19 +451,42 @@ class HomePageView(TemplateView):
             fallback_image = site_config.hero_image.url
             fallback_image_is_media = True
 
+        fallback_mobile_image = ""
+        fallback_mobile_image_is_media = False
+        if site_config.hero_mobile_image:
+            fallback_mobile_image = site_config.hero_mobile_image.url
+            fallback_mobile_image_is_media = True
+
         fallback_video = site_config.hero_video.url if site_config.hero_video else ""
         fallback_video_is_media = bool(site_config.hero_video)
         fallback_video_type = ""
         if site_config.hero_video:
             fallback_video_type, _ = mimetypes.guess_type(site_config.hero_video.name)
 
+        fallback_mobile_video = (
+            site_config.hero_mobile_video.url if site_config.hero_mobile_video else ""
+        )
+        fallback_mobile_video_is_media = bool(site_config.hero_mobile_video)
+        fallback_mobile_video_type = ""
+        if site_config.hero_mobile_video:
+            (
+                fallback_mobile_video_type,
+                _,
+            ) = mimetypes.guess_type(site_config.hero_mobile_video.name)
+
         hero_pairs = list(site_config.hero_pairs.all())
 
         background_image = fallback_image
         background_image_is_media = fallback_image_is_media
+        background_mobile_image = fallback_mobile_image
+        background_mobile_image_is_media = fallback_mobile_image_is_media
+
         background_video = fallback_video
         background_video_is_media = fallback_video_is_media
-        background_video_type = fallback_video_type or "video/mp4"
+        background_video_type = fallback_video_type
+        background_mobile_video = fallback_mobile_video
+        background_mobile_video_is_media = fallback_mobile_video_is_media
+        background_mobile_video_type = fallback_mobile_video_type
 
         overlays: list[dict[str, str | int | bool]] = []
 
@@ -441,12 +495,23 @@ class HomePageView(TemplateView):
                 background_image = pair.hero_image.url
                 background_image_is_media = True
 
+            if pair.hero_mobile_image and not background_mobile_image:
+                background_mobile_image = pair.hero_mobile_image.url
+                background_mobile_image_is_media = True
+
             if pair.hero_video and not background_video:
                 background_video = pair.hero_video.url
                 background_video_is_media = True
                 guessed_type, _ = mimetypes.guess_type(pair.hero_video.name)
                 if guessed_type:
                     background_video_type = guessed_type
+
+            if pair.hero_mobile_video and not background_mobile_video:
+                background_mobile_video = pair.hero_mobile_video.url
+                background_mobile_video_is_media = True
+                guessed_mobile_type, _ = mimetypes.guess_type(pair.hero_mobile_video.name)
+                if guessed_mobile_type:
+                    background_mobile_video_type = guessed_mobile_type
 
             overlay_image = ""
             overlay_is_media = False
@@ -467,6 +532,16 @@ class HomePageView(TemplateView):
                         "alt": pair.overlay_alt,
                     }
                 )
+
+        if not background_mobile_image and background_image:
+            background_mobile_image = background_image
+            background_mobile_image_is_media = background_image_is_media
+
+        if background_video and not background_video_type:
+            background_video_type = "video/mp4"
+
+        if background_mobile_video and not background_mobile_video_type:
+            background_mobile_video_type = background_video_type or "video/mp4"
 
         if not overlays and background_image:
             overlays.append(
@@ -493,9 +568,14 @@ class HomePageView(TemplateView):
             "background": {
                 "image": background_image,
                 "image_is_media": background_image_is_media,
+                "mobile_image": background_mobile_image,
+                "mobile_image_is_media": background_mobile_image_is_media,
                 "video": background_video,
                 "video_is_media": background_video_is_media,
-                "video_type": background_video_type or "video/mp4",
+                "video_type": background_video_type if background_video else "",
+                "mobile_video": background_mobile_video,
+                "mobile_video_is_media": background_mobile_video_is_media,
+                "mobile_video_type": background_mobile_video_type if background_mobile_video else "",
             },
             "overlays": overlays,
             "has_overlay": bool(overlays),
@@ -612,18 +692,7 @@ class HomePageView(TemplateView):
             .only("name", "description", "card_image", "slug", "tagline")
         )
 
-        items = []
-        for destination in featured:
-            cta_href = destination.get_absolute_url()
-            items.append(
-                {
-                    "title": destination.tagline or destination.name,
-                    "description": destination.description,
-                    "image_url": destination.card_image.url if destination.card_image else "",
-                    "cta": {"label": destination.cta_label, "href": cta_href},
-                }
-        )
-        return items
+        return [build_destination_card(destination) for destination in featured]
 
     def _trip_picks_section(self):
         base_queryset = (
@@ -743,6 +812,30 @@ class HomePageView(TemplateView):
                 }
             )
         return items
+
+
+class DestinationListView(TemplateView):
+    template_name = "destinations.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        destinations = (
+            Destination.objects.all()
+            .order_by("featured_position", "name")
+            .only(
+                "name",
+                "description",
+                "card_image",
+                "slug",
+                "tagline",
+                "is_featured",
+                "featured_position",
+            )
+        )
+        cards = [build_destination_card(destination) for destination in destinations]
+        context["destinations"] = cards
+        context["destination_count"] = len(cards)
+        return context
 
 
 class BlogListView(TemplateView):
@@ -894,6 +987,11 @@ class TripListView(TemplateView):
         filter_values = self._extract_filter_values()
         trips = self._apply_filters(trips, filter_values)
 
+        if selected_destination:
+            trips = self._order_for_destination(trips, selected_destination)
+        else:
+            trips = trips.order_by("title")
+
         paginator = Paginator(trips, 10)
         page_number = self.request.GET.get("page")
         page_obj = paginator.get_page(page_number)
@@ -935,6 +1033,9 @@ class TripListView(TemplateView):
         context["active_filters"] = filter_values
         context["default_trips_hero_image"] = (
             site_config.trips_hero_image.url if site_config.trips_hero_image else ""
+        )
+        context["default_trips_hero_image_mobile"] = (
+            site_config.trips_hero_image_mobile.url if site_config.trips_hero_image_mobile else ""
         )
         return context
 
@@ -1049,6 +1150,18 @@ class TripListView(TemplateView):
 
         return queryset
 
+    def _order_for_destination(self, queryset, destination):
+        priority_case = Case(
+            When(destination=destination, then=Value(0)),
+            default=Value(1),
+            output_field=IntegerField(),
+        )
+        return queryset.order_by(
+            priority_case,
+            OrderBy(F("destination_order"), nulls_last=True),
+            "title",
+        )
+
     def _filter_options(self, selected_destination):
         trips = self._base_queryset()
         if selected_destination:
@@ -1157,6 +1270,7 @@ class TripDetailView(TemplateView):
         context = super().get_context_data(**kwargs)
         form = kwargs.get("form") or self.get_form()
         trip = self.get_trip()
+        review_form = ReviewSubmissionForm(trip=trip)
 
         pricing = self._pricing_context(trip, form)
         other_trips = self._serialize_related_trips(trip)
@@ -1166,6 +1280,7 @@ class TripDetailView(TemplateView):
         context.update(
             trip=trip_context,
             form=form,
+            review_form=review_form,
             pricing={k: v for k, v in pricing.items() if k != "extras"},
             other_trips=other_trips,
         )
@@ -1295,14 +1410,10 @@ class TripDetailView(TemplateView):
 
         if billed_traveler_count:
             per_person_total = total / billed_traveler_count
-            per_traveler_phrase = f"{format_currency(per_person_total, currency)} per paying traveler"
         else:
             per_person_total = Decimal("0")
-            per_traveler_phrase = ""
 
-        traveler_summary_display = traveler_summary(
-            adults, children, infants, per_traveler_phrase
-        )
+        traveler_summary_display = traveler_summary(adults, children, infants)
 
         return {
             "currency": currency,
@@ -1349,14 +1460,51 @@ class TripDetailView(TemplateView):
         ]
         reviews = list(trip.reviews.all())
         review_summary, has_reviews = self._review_summary(reviews)
+        review_count = len(reviews)
 
         destinations_label = " • ".join(_all_destination_names(trip))
         gallery_items = _trip_gallery_context(trip)
+        gallery_section = None
+        if gallery_items:
+            gallery_section_items = []
+            fallback_destination = destinations_label or trip.title
+            for index, item in enumerate(gallery_items, start=1):
+                image_url = item.get("image_url")
+                if not image_url:
+                    continue
+                caption = (item.get("caption") or "").strip()
+                alt_text = caption or f"{fallback_destination} gallery image {index}"
+                gallery_section_items.append(
+                    {
+                        "image_url": image_url,
+                        "alt": alt_text,
+                        "title": caption or fallback_destination,
+                        "destination": fallback_destination,
+                        "caption": caption,
+                    }
+                )
+
+            if gallery_section_items:
+                primary_row = gallery_section_items[::2]
+                secondary_row = gallery_section_items[1::2]
+                gallery_rows = []
+                if primary_row:
+                    gallery_rows.append(primary_row)
+                if secondary_row:
+                    gallery_rows.append(secondary_row)
+                gallery_section = {
+                    "title": "Trip gallery",
+                    "subtitle": f"A glimpse into the moments guests experience on {trip.title}.",
+                    "items": gallery_section_items,
+                    "rows": gallery_rows,
+                    "section_classes": "scroll-mt-32",
+                }
 
         trip_data = {
             "title": trip.title,
             "slug": trip.slug,
             "hero_image_url": trip.hero_image.url if trip.hero_image else "",
+            "hero_image_mobile_url": trip.hero_image_mobile.url if trip.hero_image_mobile else "",
             "card_image_url": trip.card_image.url if trip.card_image else "",
             "breadcrumbs": self._breadcrumbs(trip),
             "review_summary": review_summary,
@@ -1371,9 +1519,12 @@ class TripDetailView(TemplateView):
             "not_included": excluded,
             "faqs": faqs,
             "has_reviews": has_reviews,
+            "reviews": reviews,
+            "review_count": review_count,
             "contact_actions": contact_actions(),
             "destinations": destinations_label,
             "gallery": gallery_items,
+            "gallery_section": gallery_section,
         }
         trip_data["anchor_nav"] = self._anchor_nav(trip_data, other_trips)
         return trip_data
@@ -1426,12 +1577,8 @@ class TripDetailView(TemplateView):
         ]
 
     def _review_summary(self, reviews):
-        if not reviews:
-            return "New — be the first to review", False
         count = len(reviews)
-        average = sum(review.rating for review in reviews) / count
-        summary = f"Rated {average:.1f} / 5 • {count} review{'s' if count != 1 else ''}"
-        return summary, True
+        return format_review_summary(count)
 
     def _breadcrumbs(self, trip):
         breadcrumbs = [
@@ -1473,10 +1620,72 @@ class TripDetailView(TemplateView):
         return nav
 
 
+class TripReviewCreateView(View):
+    http_method_names = ["post"]
+
+    def _is_json_request(self, request) -> bool:
+        content_type = request.META.get("CONTENT_TYPE") or request.headers.get("Content-Type", "")
+        return "application/json" in content_type.lower()
+
+    def post(self, request, slug):
+        trip = get_object_or_404(Trip.objects.only("id", "title", "slug"), slug=slug)
+
+        if self._is_json_request(request):
+            try:
+                payload = json.loads(request.body.decode("utf-8") or "{}")
+            except (TypeError, json.JSONDecodeError):
+                payload = {}
+            form = ReviewSubmissionForm(payload, trip=trip)
+        else:
+            form = ReviewSubmissionForm(request.POST, trip=trip)
+
+        if not form.is_valid():
+            return JsonResponse(
+                {
+                    "ok": False,
+                    "errors": {field: list(errors) for field, errors in form.errors.items()},
+                    "non_field_errors": list(form.non_field_errors()),
+                },
+                status=400,
+            )
+
+        review = Review.objects.create(
+            trip=trip,
+            body=form.cleaned_data["body"],
+            author_name=form.cleaned_data["author_name"],
+        )
+
+        stats = Review.objects.filter(trip=trip).aggregate(
+            count=Count("id"),
+        )
+        count = stats.get("count") or 0
+        summary, has_reviews = format_review_summary(count)
+
+        review_html = render_to_string(
+            "includes/review_item.html",
+            {"review": review},
+            request=request,
+        )
+
+        return JsonResponse(
+            {
+                "ok": True,
+                "review": {
+                    "id": review.pk,
+                    "html": review_html,
+                },
+                "summary": summary,
+                "has_reviews": has_reviews,
+                "count": count,
+            },
+            status=201,
+        )
+
+
 class CartQuickAddView(View):
     http_method_names = ["post"]
 
-    DEFAULT_ADULTS = 2
+    DEFAULT_ADULTS = 1
 
     @staticmethod
     def _find_entry_id(summary: Mapping[str, Any], trip_id: int) -> str | None:
@@ -2187,19 +2396,10 @@ class BookingSuccessView(TemplateView):
         for booking in bookings:
             trip = booking.trip
             billed_travelers = max(booking.adults + booking.children, 1)
-            if billed_travelers:
-                per_person_total = booking.grand_total / billed_travelers
-                per_person_phrase = (
-                    f"{format_currency(per_person_total, DEFAULT_CURRENCY)} per paying traveler"
-                )
-            else:
-                per_person_phrase = ""
-
             traveler_summary_display = traveler_summary(
                 booking.adults,
                 booking.children,
                 booking.infants,
-                per_person_phrase,
             )
 
             extras = [
@@ -2429,7 +2629,6 @@ class BookingStatusView(View):
                     booking.adults,
                     booking.children,
                     booking.infants,
-                    "",
                 ),
                 "grand_total": str(booking.grand_total),
                 "currency": DEFAULT_CURRENCY,
