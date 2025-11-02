@@ -45,3 +45,5 @@ local_settings.py
 /media/
 
 settings2.py
+
+/staticfiles/
