@@ -46,4 +46,5 @@ local_settings.py
 
 settings2.py
 
-/staticfiles/
+staticfiles/
+

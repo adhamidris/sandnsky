@@ -110,10 +110,13 @@
     clearBanners();
     updateToggleLabel();
     window.requestAnimationFrame(() => {
-      form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      const firstField = form.querySelector('select, textarea, input');
+      const yOffset = typeof window.scrollY === 'number' ? window.scrollY : window.pageYOffset;
+      const formRect = form.getBoundingClientRect();
+      const targetY = formRect.top + yOffset - 80;
+      window.scrollTo({ top: targetY, behavior: 'smooth' });
+      const firstField = form.querySelector('textarea, input');
       if (firstField) {
-        firstField.focus();
+        firstField.focus({ preventScroll: true });
       }
     });
   };
@@ -246,7 +249,10 @@
       if (form.classList.contains('hidden')) {
         openForm();
       } else {
-        form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const yOffset = typeof window.scrollY === 'number' ? window.scrollY : window.pageYOffset;
+        const formRect = form.getBoundingClientRect();
+        const targetY = formRect.top + yOffset - 80;
+        window.scrollTo({ top: targetY, behavior: 'smooth' });
       }
     });
   }
