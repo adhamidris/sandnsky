@@ -8,13 +8,15 @@
 {% block head_extra %}
   {{ block.super }}
   <style>
-    body.trip-detail-page .whatsapp-fab {
-      bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+    @media (max-width: 1023px) {
+      body.trip-detail-page .whatsapp-fab {
+        bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+      }
     }
 
     @media (min-width: 1024px) {
       body.trip-detail-page .whatsapp-fab {
-        bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px));
+        bottom: calc(9.5rem + env(safe-area-inset-bottom, 0px));
       }
     }
   </style>
