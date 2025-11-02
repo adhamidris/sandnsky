@@ -2352,7 +2352,8 @@
 }
 
 .about-logo {
-  background-color: #ebe2d3 !important;
+  background-color: transparent !important;
+  border: none !important;
 }
 
 .brand img {
