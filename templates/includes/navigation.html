@@ -1,4 +1,5 @@
 {# templates/includes/navigation.html (example path) #}
+{% load static %}
 <header class="nav" role="banner">
   <div class="container row" role="navigation" aria-label="Primary">
     <!-- Mobile: menu toggle -->
@@ -9,7 +10,7 @@
     </button>
 
     <!-- Brand -->
-    <a href="/" class="brand"></a>
+    <a href="/" class="brand"><img src="{% static 'https://pub-b5144fdd56fb4b018c6d025a213f59d3.r2.dev/logo.png' %}" alt="Sand & Sky" /></a>
 
     <!-- Desktop links -->
     <nav class="links desktop-links" aria-label="Primary">

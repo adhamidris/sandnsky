@@ -333,7 +333,7 @@
                     Add to booking list
                     {% endif %}
                   </button>
-                  <div class="quick-add-popover absolute left-0 right-0 z-30 mt-2 hidden rounded-xl border border-border bg-card p-4 shadow-subtle"
+                  <div class="quick-add-popover absolute left-0 right-0 z-30 hidden rounded-xl border border-border bg-card p-4 shadow-subtle"
                        data-quick-add-popover
                        role="dialog"
                        aria-label="Quick add trip details"
@@ -699,6 +699,7 @@
     left: auto;
     right: 0;
     min-width: 18rem;
+    bottom: calc(100% + 0.5rem);
   }
 
   @media (max-width: 767px) {
@@ -706,6 +707,7 @@
       left: 0;
       right: 0;
       min-width: auto;
+      bottom: calc(100% + 0.5rem);
     }
   }
 
@@ -741,6 +743,9 @@
     font-size: 0.8125rem;
     line-height: 1.4;
     z-index: 30;
+    top: auto;
+    bottom: calc(100% + 0.5rem);
+    margin-bottom: 0.5rem;
   }
 
   .quick-add-popover :is(button, input, label, p, span, dd) {
@@ -754,11 +759,6 @@
   .quick-add-popover .text-xs,
   .quick-add-popover label {
     font-size: 0.7rem;
-  }
-
-  [data-quick-add-popover][data-state="open"] {
-    position: static;
-    width: 100%;
   }
 
   .trip-cardi .trip-card__price {
