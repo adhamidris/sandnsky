@@ -2350,3 +2350,17 @@
 .footer-contact ul {
   margin-top: 0 !important;
 }
+
+.about-logo {
+  background-color: #ebe2d3 !important;
+}
+
+.brand img {
+  padding: 5px !important;
+}
+
+@media (max-width: 767px) {
+  .brand img {
+    padding: 10px !important;
+  }
+}

@@ -510,6 +510,12 @@ class Trip(models.Model):
     )
 
     teaser = models.TextField(help_text="Short blurb shown on listing cards.")
+    destination_order = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        db_index=True,
+        help_text="Optional manual ordering for destination-specific listings. Lower numbers appear first.",
+    )
     card_image = models.ImageField(upload_to="trips/cards/", blank=True,max_length=255)
     hero_image = models.ImageField(upload_to="trips/hero/", blank=True, max_length=255)
     hero_image_mobile = models.ImageField(

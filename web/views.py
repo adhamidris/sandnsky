@@ -9,7 +9,19 @@ from django.contrib import messages
 from django.core import signing
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Prefetch, Q, Min, Max, Count
+from django.db.models import (
+    Case,
+    Count,
+    F,
+    IntegerField,
+    Max,
+    Min,
+    Prefetch,
+    Q,
+    When,
+    Value,
+)
+from django.db.models.expressions import OrderBy
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
@@ -966,6 +978,11 @@ class TripListView(TemplateView):
         filter_values = self._extract_filter_values()
         trips = self._apply_filters(trips, filter_values)
 
+        if selected_destination:
+            trips = self._order_for_destination(trips, selected_destination)
+        else:
+            trips = trips.order_by("title")
+
         paginator = Paginator(trips, 10)
         page_number = self.request.GET.get("page")
         page_obj = paginator.get_page(page_number)
@@ -1123,6 +1140,18 @@ class TripListView(TemplateView):
             queryset = queryset.distinct()
 
         return queryset
+
+    def _order_for_destination(self, queryset, destination):
+        priority_case = Case(
+            When(destination=destination, then=Value(0)),
+            default=Value(1),
+            output_field=IntegerField(),
+        )
+        return queryset.order_by(
+            priority_case,
+            OrderBy(F("destination_order"), nulls_last=True),
+            "title",
+        )
 
     def _filter_options(self, selected_destination):
         trips = self._base_queryset()

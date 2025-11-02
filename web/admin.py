@@ -477,6 +477,7 @@ class TripAdmin(admin.ModelAdmin):
     list_display = (
         "title",
         "destination",
+        "destination_order",
         "duration_days",
         "group_size_max",
         "base_price_per_person",
@@ -489,7 +490,8 @@ class TripAdmin(admin.ModelAdmin):
     search_fields = ("title", "slug", "teaser", "tour_type_label", "destination__name")
     filter_horizontal = ("languages", "category_tags", "additional_destinations")
     date_hierarchy = "created_at"
-    ordering = ("title",)
+    ordering = ("destination", "destination_order", "title")
+    list_editable = ("destination_order",)
 
     autocomplete_fields = ()  # keep explicit for clarity
 
