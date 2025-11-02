@@ -4,80 +4,62 @@
   <div class="hero-media" aria-hidden="true">
     <div class="hero-slide is-active relative">
       {% with bg=hero.background %}
-        {% with mobile_image=bg.mobile_image|default:bg.image %}
-          {% if mobile_image %}
-            {% if bg.mobile_image %}
-              {% with is_media=bg.mobile_image_is_media %}
-                <img
-                  src="{% if is_media %}{{ mobile_image }}{% else %}{% static mobile_image %}{% endif %}"
-                  alt=""
-                  class="absolute inset-0 h-full w-full object-cover md:hidden"
-                  loading="eager"
-                  decoding="async"
-                />
-              {% endwith %}
-            {% else %}
-              {% with is_media=bg.image_is_media %}
-                <img
-                  src="{% if is_media %}{{ mobile_image }}{% else %}{% static mobile_image %}{% endif %}"
-                  alt=""
-                  class="absolute inset-0 h-full w-full object-cover md:hidden"
-                  loading="eager"
-                  decoding="async"
-                />
-              {% endwith %}
-            {% endif %}
-          {% endif %}
-        {% endwith %}
-
-        {% with desktop_image=bg.image|default:bg.mobile_image %}
-          {% if desktop_image %}
+        {% if bg.image or bg.mobile_image %}
+          <picture class="absolute inset-0 block h-full w-full">
             {% if bg.image %}
-              {% with is_media=bg.image_is_media %}
-                <img
-                  src="{% if is_media %}{{ desktop_image }}{% else %}{% static desktop_image %}{% endif %}"
-                  alt=""
-                  class="absolute inset-0 hidden h-full w-full object-cover md:block"
-                  loading="eager"
-                  decoding="async"
-                />
-              {% endwith %}
-            {% else %}
-              {% with is_media=bg.mobile_image_is_media %}
-                <img
-                  src="{% if is_media %}{{ desktop_image }}{% else %}{% static desktop_image %}{% endif %}"
-                  alt=""
-                  class="absolute inset-0 hidden h-full w-full object-cover md:block"
-                  loading="eager"
-                  decoding="async"
-                />
-              {% endwith %}
+              <source media="(min-width: 768px)" srcset="{% if bg.image_is_media %}{{ bg.image }}{% else %}{% static bg.image %}{% endif %}">
             {% endif %}
-          {% endif %}
-        {% endwith %}
+            {% if bg.mobile_image %}
+              <source media="(max-width: 767px)" srcset="{% if bg.mobile_image_is_media %}{{ bg.mobile_image }}{% else %}{% static bg.mobile_image %}{% endif %}">
+            {% endif %}
+            {% with fallback_image=bg.image|default:bg.mobile_image %}
+              <img
+                src="{% if bg.image and bg.image_is_media %}{{ bg.image }}{% elif bg.image %}{% static bg.image %}{% elif bg.mobile_image_is_media %}{{ bg.mobile_image }}{% else %}{% static bg.mobile_image %}{% endif %}"
+                alt=""
+                class="h-full w-full object-cover"
+                loading="eager"
+                decoding="async"
+              />
+            {% endwith %}
+          </picture>
+        {% endif %}
 
         {% if bg.mobile_video %}
-          <video
-            class="absolute inset-0 h-full w-full object-cover md:hidden"
-            autoplay loop muted playsinline
-            preload="auto"
-            data-hero-video
-            aria-hidden="true">
-            <source src="{% if bg.mobile_video_is_media %}{{ bg.mobile_video }}{% else %}{% static bg.mobile_video %}{% endif %}" type="{{ bg.mobile_video_type|default:'video/mp4' }}" />
-            Your browser does not support the background video.
-          </video>
+          <div class="absolute inset-0 md:hidden">
+            <video
+              class="h-full w-full object-cover"
+              autoplay loop muted playsinline
+              preload="auto"
+              data-hero-video
+              aria-hidden="true"
+              {% with poster_image=bg.mobile_image|default:bg.image %}
+                {% if poster_image %}
+                  poster="{% if bg.mobile_image and bg.mobile_image_is_media %}{{ bg.mobile_image }}{% elif bg.mobile_image %}{% static bg.mobile_image %}{% elif bg.image and bg.image_is_media %}{{ bg.image }}{% elif bg.image %}{% static bg.image %}{% endif %}"
+                {% endif %}
+              {% endwith %}>
+              <source src="{% if bg.mobile_video_is_media %}{{ bg.mobile_video }}{% else %}{% static bg.mobile_video %}{% endif %}" type="{{ bg.mobile_video_type|default:'video/mp4' }}" />
+              Your browser does not support the background video.
+            </video>
+          </div>
         {% endif %}
 
         {% if bg.video %}
-          <video
-            class="absolute inset-0 hidden h-full w-full object-cover md:block"
-            autoplay loop muted playsinline
-            preload="auto"
-            data-hero-video
-            aria-hidden="true">
-            <source src="{% if bg.video_is_media %}{{ bg.video }}{% else %}{% static bg.video %}{% endif %}" type="{{ bg.video_type|default:'video/mp4' }}" />
-            Your browser does not support the background video.
-          </video>
+          <div class="absolute inset-0 hidden md:block">
+            <video
+              class="h-full w-full object-cover"
+              autoplay loop muted playsinline
+              preload="auto"
+              data-hero-video
+              aria-hidden="true"
+              {% with poster_image=bg.image|default:bg.mobile_image %}
+                {% if poster_image %}
+                  poster="{% if bg.image and bg.image_is_media %}{{ bg.image }}{% elif bg.image %}{% static bg.image %}{% elif bg.mobile_image_is_media %}{{ bg.mobile_image }}{% else %}{% static bg.mobile_image %}{% endif %}"
+                {% endif %}
+              {% endwith %}>
+              <source src="{% if bg.video_is_media %}{{ bg.video }}{% else %}{% static bg.video %}{% endif %}" type="{{ bg.video_type|default:'video/mp4' }}" />
+              Your browser does not support the background video.
+            </video>
+          </div>
         {% endif %}
       {% endwith %}
     </div>

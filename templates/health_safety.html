@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Health, Safety &amp; Child Policy — Sand &amp; Sky Tours{% endblock %}
+
+{% block head_extra %}
+  {{ block.super }}
+  <style>
+    .safety-wrapper {
+      background: #faf5ec;
+      color: #1f1b12;
+    }
+    .safety-container {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: clamp(64px, 10vw, 120px) 24px 96px;
+    }
+    .safety-eyebrow {
+      display: inline-block;
+      font: 600 11px/1 "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: rgba(31, 27, 18, 0.6);
+      margin-bottom: 12px;
+    }
+    .safety-title {
+      font-family: var(--font-heading, "Cormorant Garamond"), serif;
+      font-size: clamp(36px, 6vw, 56px);
+      line-height: 1.04;
+      margin: 0 0 18px;
+      text-transform: uppercase;
+    }
+    .safety-updated {
+      margin: 0 0 40px;
+      font-size: 13px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(31, 27, 18, 0.5);
+    }
+    .safety-section {
+      margin-bottom: 44px;
+    }
+    .safety-section:last-of-type {
+      margin-bottom: 0;
+    }
+    .safety-section h2 {
+      font-family: var(--font-heading, "Cormorant Garamond"), serif;
+      font-size: clamp(24px, 3vw, 32px);
+      margin: 0 0 12px;
+    }
+    .safety-section h3 {
+      font-size: 18px;
+      letter-spacing: 0.02em;
+      margin: 16px 0 10px;
+      text-transform: uppercase;
+    }
+    .safety-section p,
+    .safety-section ul {
+      font-size: 16px;
+      line-height: 1.7;
+      color: rgba(31, 27, 18, 0.82);
+      margin: 0 0 16px;
+    }
+    .safety-section ul {
+      padding-left: 20px;
+      list-style: disc;
+    }
+    .safety-section a {
+      color: #8a3d28;
+      text-decoration: underline;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 4px;
+    }
+    @media (max-width: 640px) {
+      .safety-container {
+        padding: 56px 20px 80px;
+      }
+      .safety-section ul {
+        padding-left: 18px;
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <article class="safety-wrapper">
+    <div class="safety-container">
+      <span class="safety-eyebrow">Travel Assurance</span>
+      <h1 class="safety-title">Health, Safety &amp; Minor Policies</h1>
+      <p class="safety-updated">Last updated: 15 September 2024</p>
+
+      <section class="safety-section" id="health-safety">
+        <h2>6) Health, Safety &amp; Liability Waiver</h2>
+        <h3>Inherent Risks</h3>
+        <p>
+          Our experiences take place in dynamic desert and coastal environments. Travelers may encounter intense heat and sun exposure, uneven or rocky terrain, dust and blowing sand, off-road driving, boat journeys, wildlife, and remote regions with limited immediate medical facilities.
+        </p>
+
+        <h3>Your Responsibilities</h3>
+        <ul>
+          <li>Arrive prepared with suitable clothing, sun protection, and sturdy footwear.</li>
+          <li>Disclose any relevant medical conditions and carry personal medications.</li>
+          <li>Stay hydrated and follow all guidance provided by Sand &amp; Sky staff and licensed guides.</li>
+        </ul>
+
+        <h3>Emergencies &amp; Evacuations</h3>
+        <p>
+          We partner with vetted operators and carry basic first-aid provisions. In the event of a serious incident, emergency evacuation or advanced medical care may be required at the traveler’s expense. We strongly recommend comprehensive travel insurance that covers medical evacuation—see our Booking Terms for further detail.
+        </p>
+
+        <h3>Liability</h3>
+        <p>
+          To the fullest extent permitted under Egyptian law, Sand &amp; Sky Tours’ liability is limited to direct losses up to the total amount you have paid to us for the applicable tour.
+        </p>
+      </section>
+
+      <section class="safety-section" id="child-policy">
+        <h2>7) Child &amp; Minor Policy</h2>
+        <p>
+          We welcome families on many itineraries and outline the specifics for each departure:
+        </p>
+        <ul>
+          <li><strong>Age limits:</strong> Minimum ages are noted on each tour page. Activities involving dunes, off-road driving, or higher exertion may require participants to be 12+.</li>
+          <li><strong>Supervision:</strong> Travelers under 18 must be accompanied by a responsible adult at all times.</li>
+          <li><strong>Car seats:</strong> Available on request when reserved at least 48 hours in advance. Additional fees may apply.</li>
+          <li><strong>Discounts:</strong> Any child or minor pricing will be listed on the individual tour page where applicable.</li>
+        </ul>
+      </section>
+
+      <section class="safety-section" id="questions">
+        <h3>Questions?</h3>
+        <p>
+          Reach our team at <a href="mailto:hello@sandandskytours.com">hello@sandandskytours.com</a> for further information about health, safety, or family travel arrangements.
+        </p>
+      </section>
+    </div>
+  </article>
+{% endblock %}

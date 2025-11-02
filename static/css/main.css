@@ -575,12 +575,25 @@
     .hero-content { padding-top: 72px !important; height: 70vh !important; }
     .hero-content .container { padding-left: 10px !important; }
   
+
+    .hero-copy { 
+
+      justify-self: center !important;
+      align-self: center !important;
+      height: 100% !important;
+      margin-top: 150px !important;
+    }
+
     .hero-copy h1 {
       font-size: 30px;
       font-weight: 200;
       max-width: 75% !important;
+      justify-self: center !important;
+      align-self: center !important;
+      text-align: center !important;
       width: 100% !important;
       font-family: var(--font-heading) !important;
+      opacity: 0.75 !important;
     }
   
     .hero-media, .hero-overlay { max-height: 70vh; }

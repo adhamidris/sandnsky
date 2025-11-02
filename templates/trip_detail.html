@@ -117,6 +117,17 @@
           <span aria-hidden="true">↘</span>
         </a>
         {% endif %}
+
+        <div class="rounded-md border border-white/10 bg-white/10 p-4 text-xs leading-relaxed text-white/80 sm:text-sm">
+          <strong class="font-semibold text-white">Flexible travel:</strong> Free date change ≥7 days before departure · see our
+          <a href="{% url 'web:cancellation-policy' %}" class="inline-flex items-center gap-1 text-white underline decoration-white/40 decoration-1 underline-offset-4 hover:text-primary">
+            Cancellation &amp; Refund Policy
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-3 w-3">
+              <path d="M7 7h10v10" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="m7 17 10-10" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </a>
+        </div>
       </div>
 
       <aside class=" hidden lg:block lg:shrink-0 lg:basis-80">

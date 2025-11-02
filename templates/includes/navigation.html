@@ -19,6 +19,12 @@
         Home
       </a>
 
+      <a href="/destinations"
+         class="link"
+         {% if request.path|slice:":13" == '/destinations' %}aria-current="page"{% endif %}>
+        Destinations
+      </a>
+
       <a href="/trips"
          class="link"
          {% if request.path|slice:":6" == '/trips' %}aria-current="page"{% endif %}>
@@ -46,6 +52,12 @@
            class="mobile-link"
            {% if request.path == '/' %}aria-current="page"{% endif %}>
           Home
+        </a>
+
+        <a href="/destinations"
+           class="mobile-link"
+           {% if request.path|slice:":13" == '/destinations' %}aria-current="page"{% endif %}>
+          Destinations
         </a>
 
         <a href="/trips"

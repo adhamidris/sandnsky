@@ -161,6 +161,18 @@ def _destination_gallery_context(destination):
     return _serialize_gallery_images(destination.gallery_images.all())
 
 
+def build_destination_card(destination):
+    cta_href = destination.get_absolute_url()
+    return {
+        "id": destination.pk,
+        "name": destination.name,
+        "title": destination.tagline or destination.name,
+        "description": destination.description,
+        "image_url": destination.card_image.url if destination.card_image else "",
+        "cta": {"label": destination.cta_label, "href": cta_href},
+    }
+
+
 def _trip_gallery_context(trip):
     if not trip:
         return []
@@ -662,18 +674,7 @@ class HomePageView(TemplateView):
             .only("name", "description", "card_image", "slug", "tagline")
         )
 
-        items = []
-        for destination in featured:
-            cta_href = destination.get_absolute_url()
-            items.append(
-                {
-                    "title": destination.tagline or destination.name,
-                    "description": destination.description,
-                    "image_url": destination.card_image.url if destination.card_image else "",
-                    "cta": {"label": destination.cta_label, "href": cta_href},
-                }
-        )
-        return items
+        return [build_destination_card(destination) for destination in featured]
 
     def _trip_picks_section(self):
         base_queryset = (
@@ -793,6 +794,30 @@ class HomePageView(TemplateView):
                 }
             )
         return items
+
+
+class DestinationListView(TemplateView):
+    template_name = "destinations.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        destinations = (
+            Destination.objects.all()
+            .order_by("featured_position", "name")
+            .only(
+                "name",
+                "description",
+                "card_image",
+                "slug",
+                "tagline",
+                "is_featured",
+                "featured_position",
+            )
+        )
+        cards = [build_destination_card(destination) for destination in destinations]
+        context["destinations"] = cards
+        context["destination_count"] = len(cards)
+        return context
 
 
 class BlogListView(TemplateView):
