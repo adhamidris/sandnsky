@@ -564,6 +564,15 @@
           <button type="submit" class="filter-submit inline-flex items-center justify-center rounded-full px-5 py-2 text-sm font-semibold shadow-subtle transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Apply filters</button>
           <a href="{% url 'web:trips' %}" class="filter-reset text-sm font-semibold transition" data-filter-reset>Reset</a>
         </div>
+
+        <button type="button"
+                class="mobile-filter-close mt-6 flex w-full items-center justify-center gap-2 rounded-full border border-border/70 bg-background px-5 py-2 text-sm font-semibold text-foreground transition hover:border-primary/40 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary lg:hidden"
+                data-filter-close>
+          <span>Close filters</span>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m6 6 12 12M18 6 6 18" />
+          </svg>
+        </button>
       </form>
     </aside>
     <div class="fixed inset-0 z-40 hidden bg-black/40 backdrop-blur-sm" data-filter-overlay></div>

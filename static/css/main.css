@@ -1991,6 +1991,15 @@
   background: transparent !important;
 }
 
+.mobile-filter-close {
+  background-color: #1A2B4A !important;
+  color: white !important;
+}
+
+.mobile-filter-close span {
+  color: white !important;
+}
+
 .desti p {
   color: #1A2B4A !important;
 }
