@@ -194,20 +194,27 @@
 }
 
 .trip-card__cta-primary {
-  background: transparent !important;
+  background:#1a2b4a !important;
+  color:#fff !important;
+  border-color:#1a2b4a !important;
+  box-shadow:0 12px 24px rgba(26,43,74,.18) !important;
 }
 
 .trip-card__cta-secondary {
-  background-color: #1a2a4b !important;
-  color: white !important;
+  background:#f5f1e8 !important;
+  color:#1a2b4a;
+  border-color:rgba(201,169,97,.5);
 }
 
 .trip-card__cta-primary:hover {
-  color: #C9A961 !important;
+  background:#243b65 !important;
+  transform:translateY(-2px) !important;
 }
 
 .trip-card__cta-secondary:hover {
-  background: #C9A961 !important;
+  background:#c9a961 !important;
+  border-color:#c9a961 !important;
+  color:#1a2b4a !important;
 }
 
 .trip-card__badge{
@@ -870,7 +877,6 @@
     justify-content:center;
     width:100%;
     border-radius:999px;
-    border:1px solid transparent;
     font:600 11px/1 Inter,system-ui;
     letter-spacing:.12em;
     text-transform:uppercase;
@@ -2264,4 +2270,10 @@
 
 #trip-filter-panel {
     background-color: white !important;
+}
+
+@media (max-width: 767px) {
+  #destination-nav {
+    display: none !important;
+  }
 }
