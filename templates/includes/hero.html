@@ -77,6 +77,11 @@
         <h1 class="font-serif text-white drop-shadow-lg">
           {{ hero.title }}
         </h1>
+        <div class="mobile-hero-cta">
+          <a href="{{ hero.primary_cta.href }}" class="btn btn-primary">
+            {{ hero.primary_cta.label }}
+          </a>
+        </div>
         <!-- <p class="subcopy">
           {{ hero.subtitle }}
         </p> -->
@@ -106,11 +111,11 @@
       </aside>
     {% endif %} -->
 
-    <div class="actions mobile-hero-cta">
+    <!-- <div class="actions mobile-hero-cta">
       <a href="{{ hero.primary_cta.href }}" class="btn btn-primary">
         {{ hero.primary_cta.label }}
       </a>
-    </div>
+    </div> -->
   </div>
 
 
