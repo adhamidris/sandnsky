@@ -2487,9 +2487,9 @@
   border: none !important;
 }
 
-.brand img {
+/* .brand img {
   padding: 5px !important;
-}
+} */
 
 @media (max-width: 767px) {
   .brand img {
