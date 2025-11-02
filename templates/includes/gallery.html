@@ -1,6 +1,7 @@
 {% load static %}
 {% if gallery_section.items or gallery_section.rows %}
-<section id="gallery" class="explore" aria-labelledby="explore-title">
+{% with extra_classes=gallery_section.section_classes|default:"" %}
+<section id="gallery" class="explore{% if extra_classes %} {{ extra_classes }}{% endif %}" aria-labelledby="explore-title">
   <div class="wrap">
     <span class="eyebrow">Gallery</span>
     <h2 id="explore-title">{{ gallery_section.title }}</h2>
@@ -80,6 +81,7 @@
     {% endif %}
   </template>
 </section>
+{% endwith %}
 {% endif %}
 
 {% block script %}

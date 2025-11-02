@@ -1430,6 +1430,41 @@ class TripDetailView(TemplateView):
 
         destinations_label = " • ".join(_all_destination_names(trip))
         gallery_items = _trip_gallery_context(trip)
+        gallery_section = None
+        if gallery_items:
+            gallery_section_items = []
+            fallback_destination = destinations_label or trip.title
+            for index, item in enumerate(gallery_items, start=1):
+                image_url = item.get("image_url")
+                if not image_url:
+                    continue
+                caption = (item.get("caption") or "").strip()
+                alt_text = caption or f"{fallback_destination} gallery image {index}"
+                gallery_section_items.append(
+                    {
+                        "image_url": image_url,
+                        "alt": alt_text,
+                        "title": caption or fallback_destination,
+                        "destination": fallback_destination,
+                        "caption": caption,
+                    }
+                )
+
+            if gallery_section_items:
+                primary_row = gallery_section_items[::2]
+                secondary_row = gallery_section_items[1::2]
+                gallery_rows = []
+                if primary_row:
+                    gallery_rows.append(primary_row)
+                if secondary_row:
+                    gallery_rows.append(secondary_row)
+                gallery_section = {
+                    "title": "Trip gallery",
+                    "subtitle": f"A glimpse into the moments guests experience on {trip.title}.",
+                    "items": gallery_section_items,
+                    "rows": gallery_rows,
+                    "section_classes": "scroll-mt-32",
+                }
 
         trip_data = {
             "title": trip.title,
@@ -1453,6 +1488,7 @@ class TripDetailView(TemplateView):
             "contact_actions": contact_actions(),
             "destinations": destinations_label,
             "gallery": gallery_items,
+            "gallery_section": gallery_section,
         }
         trip_data["anchor_nav"] = self._anchor_nav(trip_data, other_trips)
         return trip_data
