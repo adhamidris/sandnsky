@@ -31,10 +31,17 @@
         Our Trips
       </a>
 
-      {% if request.path == '/' %}
-      <a href="#about" class="link">About</a>
-      <a href="#contact" class="link">Contact</a>
-      {% endif %}
+      <a href="/about"
+         class="link"
+         {% if request.path|slice:":6" == '/about' %}aria-current="page"{% endif %}>
+        About
+      </a>
+
+      <a href="/contact"
+         class="link"
+         {% if request.path|slice:":8" == '/contact' %}aria-current="page"{% endif %}>
+        Contact
+      </a>
     </nav>
 
     <!-- CTAs (Book/Tours + Cart) -->
@@ -66,10 +73,19 @@
           Our Trips
         </a>
 
-        {% if request.path == '/' %}
-        <a href="#about" class="mobile-link" data-close-nav>About</a>
-        <a href="#contact" class="mobile-link" data-close-nav>Contact</a>
-        {% endif %}
+        <a href="/about"
+           class="mobile-link"
+           {% if request.path|slice:":6" == '/about' %}aria-current="page"{% endif %}
+           data-close-nav>
+          About
+        </a>
+
+        <a href="/contact"
+           class="mobile-link"
+           {% if request.path|slice:":8" == '/contact' %}aria-current="page"{% endif %}
+           data-close-nav>
+          Contact
+        </a>
       </nav>
 
     </div>

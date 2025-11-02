@@ -43,6 +43,16 @@ urlpatterns = [
         TemplateView.as_view(template_name="health_safety.html"),
         name="health-safety",
     ),
+    path(
+        "contact/",
+        TemplateView.as_view(template_name="contact.html"),
+        name="contact",
+    ),
+    path(
+        "about/",
+        TemplateView.as_view(template_name="about.html"),
+        name="about",
+    ),
     path("blog/", BlogListView.as_view(), name="blog-list"),
     path("blog/<slug:slug>/", BlogDetailView.as_view(), name="blog-detail"),
     path("trips/", TripListView.as_view(), name="trips"),
