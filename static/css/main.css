@@ -616,7 +616,7 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      min-height: clamp(60vh, 78svh, 88svh);
+      min-height: clamp(65vh, 82svh, 92svh);
     }
   
     .hero-content {
