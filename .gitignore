@@ -43,3 +43,5 @@ local_settings.py
 # Media files (optional - you might want to track some)
 # media/
 /media/
+
+settings2.py
