@@ -178,30 +178,6 @@
     </div>
   </div>
 
-  <div class="booking-floater hidden lg:flex justify-end" data-booking-floater aria-hidden="true">
-    <div class="booking-floater-container flex w-auto max-w-[34rem] items-center justify-between gap-6 rounded-full bg-white/95 px-10 py-4 text-sm text-foreground shadow-2xl ring-1 ring-black/5 backdrop-blur">
-      <div class="booking-floater-texts flex flex-col text-left">
-        <span class="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">From</span>
-        <span class="text-lg font-semibold text-foreground">{{ pricing.base_price_display }}</span>
-        {% if pricing.has_child_price %}
-        <span class="text-xs text-muted-foreground">Children (3–11): {{ pricing.child_price_display }}</span>
-        {% endif %}
-        <span class="text-xs text-muted-foreground">{{ trip.tour_length }}</span>
-      </div>
-      <button type="button" class="floater-booking-btn inline-flex items-center gap-3 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-mobile-sheet-open aria-controls="booking-drawer" aria-expanded="false">
-        <span>{% if trip_in_cart %}Review &amp; confirm{% else %}Book this trip{% endif %}</span>
-        <span aria-hidden="true" class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary/15 text-primary-foreground">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m9 6 6 6-6 6" />
-          </svg>
-        </span>
-      </button>
-      {% if trip_in_cart %}
-      <span class="already-in-cart-2 text-xs font-medium text-primary/80">This trip is already in your booking list.</span>
-      {% endif %}
-    </div>
-  </div>
-
   <noscript>
     <div class="mt-10 rounded-2xl border border-border bg-white p-6 text-sm text-foreground shadow-2xl">
       <div class="space-y-1">
@@ -253,19 +229,43 @@
       </div>
     </div>
   </noscript>
-
-  <div class="lg:hidden">
-    <div class="floating-book-mob fixed inset-x-4 bottom-4 z-40 flex items-center justify-between rounded-full bg-white px-5 py-3 shadow-xl">
-      <div class="floating-book-mob-text text-sm">
-        <p class="font-semibold text-foreground">{{ pricing.base_price_display }}</p>
-        <p class="text-xs text-muted-foreground">{{ trip.tour_length }}</p>
-      </div>
-      <button type="button" class="floating-mob-btn rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-mobile-sheet-open aria-expanded="false" aria-controls="booking-drawer">
-        Book
-      </button>
-    </div>
-  </div>
 </header>
+
+<div class="booking-floater hidden lg:flex justify-end" data-booking-floater aria-hidden="true" style="z-index: 9999;">
+  <div class="booking-floater-container flex w-auto max-w-[34rem] items-center justify-between gap-6 rounded-full bg-white/95 px-10 py-4 text-sm text-foreground shadow-2xl ring-1 ring-black/5 backdrop-blur">
+    <div class="booking-floater-texts flex flex-col text-left">
+      <span class="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">From</span>
+      <span class="text-lg font-semibold text-foreground">{{ pricing.base_price_display }}</span>
+      {% if pricing.has_child_price %}
+      <span class="text-xs text-muted-foreground">Children (3–11): {{ pricing.child_price_display }}</span>
+      {% endif %}
+      <span class="text-xs text-muted-foreground">{{ trip.tour_length }}</span>
+    </div>
+    <button type="button" class="floater-booking-btn inline-flex items-center gap-3 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-mobile-sheet-open aria-controls="booking-drawer" aria-expanded="false">
+      <span>{% if trip_in_cart %}Review &amp; confirm{% else %}Book this trip{% endif %}</span>
+      <span aria-hidden="true" class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary/15 text-primary-foreground">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m9 6 6 6-6 6" />
+        </svg>
+      </span>
+    </button>
+    {% if trip_in_cart %}
+    <span class="already-in-cart-2 text-xs font-medium text-primary/80">This trip is already in your booking list.</span>
+    {% endif %}
+  </div>
+</div>
+
+<div class="lg:hidden">
+  <div class="floating-book-mob fixed inset-x-4 bottom-4 z-40 flex items-center justify-between rounded-full bg-white px-5 py-3 shadow-xl" style="z-index: 9999;">
+    <div class="floating-book-mob-text text-sm">
+      <p class="font-semibold text-foreground">{{ pricing.base_price_display }}</p>
+      <p class="text-xs text-muted-foreground">{{ trip.tour_length }}</p>
+    </div>
+    <button type="button" class="floating-mob-btn rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-mobile-sheet-open aria-expanded="false" aria-controls="booking-drawer">
+      Book
+    </button>
+  </div>
+</div>
 
 <div class="booking-drawer" data-mobile-sheet-container aria-hidden="true">
   <div class="booking-card__overlay booking-drawer__overlay" data-mobile-sheet-overlay aria-hidden="true"></div>

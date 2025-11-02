@@ -221,20 +221,11 @@
       }
     };
   
-    const startFloaterObserver = () => {
-      if (!floater || !summaryCard) return;
-      stopFloaterObserver();
-      floaterObserver = new IntersectionObserver((entries) => {
-        const entry = entries[0];
-        const summaryVisible = entry ? entry.isIntersecting : false;
-        setFloaterVisibility(!summaryVisible);
-      }, {
-        root: null,
-        threshold: 0,
-        rootMargin: '0px 0px -20% 0px',
-      });
-      floaterObserver.observe(summaryCard);
-    };
+  const startFloaterObserver = () => {
+    if (!floater) return;
+    stopFloaterObserver();
+    setFloaterVisibility(true);
+  };
   
     const updateFloaterForViewport = () => {
       if (!floater) return;

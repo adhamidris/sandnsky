@@ -1370,9 +1370,13 @@
     }
   }
   
-  .monogram{font-family:"Libre Baskerville",serif; font-size:72px; line-height:1; letter-spacing:.02em; color:#efe7db}
-  .footer-brand h3{font-family:"Libre Baskerville",serif; margin:8px 0 8px; font-size:24px}
-  .footer-brand p{color:rgba(255,255,255,.78); margin:0 0 18px}
+  .footer-brand__grid{display:grid; grid-template-columns:auto 1fr; gap:18px; align-items:flex-start}
+  @media (max-width:640px){
+    .footer-brand__grid{grid-template-columns:1fr; gap:16px}
+  }
+  .monogram{font-family:"Libre Baskerville",serif; font-size:64px; line-height:1; letter-spacing:.02em; color:#efe7db}
+  .footer-brand h3{font-family:"Libre Baskerville",serif; margin:0; font-size:24px}
+  .footer-brand p{color:rgba(255,255,255,.78); margin:12px 0 0}
   .footer-contact{display:flex; flex-direction:column; gap:14px;}
   .footer-contact h4{font:700 12px/1 Inter,system-ui; letter-spacing:.18em; text-transform:uppercase; color:rgba(255,255,255,.62); margin:0 0 12px}
   .input-row{display:grid; grid-template-columns:1fr 1fr; gap:10px}
@@ -2251,6 +2255,10 @@
   color: white !important;
 }
 
+.booking-floater {
+  z-index: 400 !important;
+}
+
 .booking-floater-container {
   background-color: #1A2B4A !important;
 }
@@ -2269,6 +2277,7 @@
 
 .floating-book-mob {
   background-color: #1A2B4A !important;
+  z-index: 9999 !important;
 }
 
 .floating-book-mob-text p {
@@ -2318,4 +2327,8 @@
 
 .trip-card__language-chip {
   border: none !important;
+}
+
+.footer-contact ul {
+  margin-top: 0 !important;
 }
