@@ -87,7 +87,7 @@ def duration_label(days):
     return f"{days} day{'s' if days != 1 else ''}"
 
 
-def traveler_summary(adults, children, infants, per_person_label=""):
+def traveler_summary(adults, children, infants):
     parts = []
 
     def append_part(count, label):
@@ -101,9 +101,6 @@ def traveler_summary(adults, children, infants, per_person_label=""):
 
     if not parts:
         parts.append("0 travelers")
-
-    if per_person_label:
-        parts.append(per_person_label)
 
     return " · ".join(parts)
 
@@ -1373,14 +1370,10 @@ class TripDetailView(TemplateView):
 
         if billed_traveler_count:
             per_person_total = total / billed_traveler_count
-            per_traveler_phrase = f"{format_currency(per_person_total, currency)} per paying traveler"
         else:
             per_person_total = Decimal("0")
-            per_traveler_phrase = ""
 
-        traveler_summary_display = traveler_summary(
-            adults, children, infants, per_traveler_phrase
-        )
+        traveler_summary_display = traveler_summary(adults, children, infants)
 
         return {
             "currency": currency,
@@ -1591,7 +1584,7 @@ class TripDetailView(TemplateView):
 class CartQuickAddView(View):
     http_method_names = ["post"]
 
-    DEFAULT_ADULTS = 2
+    DEFAULT_ADULTS = 1
 
     @staticmethod
     def _find_entry_id(summary: Mapping[str, Any], trip_id: int) -> str | None:
@@ -2302,19 +2295,10 @@ class BookingSuccessView(TemplateView):
         for booking in bookings:
             trip = booking.trip
             billed_travelers = max(booking.adults + booking.children, 1)
-            if billed_travelers:
-                per_person_total = booking.grand_total / billed_travelers
-                per_person_phrase = (
-                    f"{format_currency(per_person_total, DEFAULT_CURRENCY)} per paying traveler"
-                )
-            else:
-                per_person_phrase = ""
-
             traveler_summary_display = traveler_summary(
                 booking.adults,
                 booking.children,
                 booking.infants,
-                per_person_phrase,
             )
 
             extras = [
@@ -2544,7 +2528,6 @@ class BookingStatusView(View):
                     booking.adults,
                     booking.children,
                     booking.infants,
-                    "",
                 ),
                 "grand_total": str(booking.grand_total),
                 "currency": DEFAULT_CURRENCY,

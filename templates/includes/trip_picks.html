@@ -113,6 +113,9 @@
                         type="submit"
                         class="trip-picks__action-btn {% if trip.in_cart %}trip-picks__action-btn--remove{% else %}trip-picks__action-btn--secondary{% endif %}"
                         data-cart-toggle-button
+                        data-trip-id="{{ trip.id }}"
+                        data-cart-label-added="Remove from booking list"
+                        data-cart-label-removed="Add to booking list"
                         data-cart-state="{% if trip.in_cart %}added{% else %}removed{% endif %}"
                         data-cart-class-added="trip-picks__action-btn--remove"
                         data-cart-class-removed="trip-picks__action-btn--secondary"
@@ -290,9 +293,44 @@
       }
     });
 
+    const addedLabel = button.getAttribute('data-cart-label-added') || 'Remove from booking list';
+    const removedLabel = button.getAttribute('data-cart-label-removed') || 'Add to booking list';
     button.setAttribute('data-cart-state', inCart ? 'added' : 'removed');
     button.setAttribute('aria-expanded', 'false');
-    button.textContent = inCart ? 'Remove from booking list' : 'Add to booking list';
+    button.textContent = inCart ? addedLabel : removedLabel;
+  };
+
+  const syncCartButtons = (payload) => {
+    if (!payload) return;
+    const buttons = Array.from(document.querySelectorAll('[data-cart-toggle-button][data-trip-id]'));
+    if (!buttons.length) return;
+
+    const tripIds = [];
+    if (payload.cart_summary && Array.isArray(payload.cart_summary.entries)) {
+      payload.cart_summary.entries.forEach((entry) => {
+        if (!entry) return;
+        const parsed = parseInt(entry.trip_id, 10);
+        if (!Number.isNaN(parsed) && !tripIds.includes(parsed)) {
+          tripIds.push(parsed);
+        }
+      });
+    }
+    const hasSummary = tripIds.length > 0;
+    const targetTripId = payload.trip_id !== undefined ? parseInt(payload.trip_id, 10) : NaN;
+
+    buttons.forEach((button) => {
+      const attr = button.getAttribute('data-trip-id');
+      if (!attr) return;
+      const tripId = parseInt(attr, 10);
+      if (Number.isNaN(tripId)) return;
+      let inCart = false;
+      if (hasSummary) {
+        inCart = tripIds.includes(tripId);
+      } else if (!Number.isNaN(targetTripId) && tripId === targetTripId) {
+        inCart = !!payload.in_cart;
+      }
+      setCartButtonState(button, inCart);
+    });
   };
 
   const updateNavCart = (data) => {
@@ -351,6 +389,9 @@
         }
         delete navcart.dataset.toast;
       }
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('booking:cart-update', { detail: data }));
     }
   };
 
@@ -416,7 +457,7 @@
     };
 
     const ensureTravelerValues = () => {
-      ensureTravelerValue(travelerInputs.adults, 2, 1);
+      ensureTravelerValue(travelerInputs.adults, 1, 1);
       ensureTravelerValue(travelerInputs.children, 0, 0);
       ensureTravelerValue(travelerInputs.infants, 0, 0);
     };
@@ -614,11 +655,15 @@
 
   const initQuickAdd = () => {
     const forms = Array.from(section.querySelectorAll('[data-cart-toggle]'));
-    if (!forms.length) {
-      return;
-    }
-    forms.forEach(bindQuickAddForm);
-  };
+  if (!forms.length) {
+    return;
+  }
+  forms.forEach(bindQuickAddForm);
+};
+
+window.addEventListener('booking:cart-update', (event) => {
+  syncCartButtons(event && event.detail);
+});
 
   const activate = (slug) => {
     if (!slug) return;

@@ -87,6 +87,66 @@
       if (e.key === 'Escape') close();
     });
 
+    const getTokens = (button, attr) => {
+      const value = button?.getAttribute(attr);
+      if (!value) return [];
+      return value
+        .split(/\s+/)
+        .map((token) => token.trim())
+        .filter(Boolean);
+    };
+
+    const applyButtonState = (button, inCart) => {
+      if (!button) return;
+      const addedTokens = getTokens(button, 'data-cart-class-added');
+      const removedTokens = getTokens(button, 'data-cart-class-removed');
+      const allTokens = [...addedTokens, ...removedTokens];
+      allTokens.forEach((token) => token && button.classList.remove(token));
+      const targetTokens = inCart ? addedTokens : removedTokens;
+      targetTokens.forEach((token) => token && button.classList.add(token));
+      const addedLabel = button.getAttribute('data-cart-label-added') || 'Remove from booking list';
+      const removedLabel = button.getAttribute('data-cart-label-removed') || 'Add to booking list';
+      button.textContent = inCart ? addedLabel : removedLabel;
+      button.setAttribute('data-cart-state', inCart ? 'added' : 'removed');
+      button.setAttribute('aria-expanded', 'false');
+    };
+
+    const broadcastCartUpdate = (payload) => {
+      if (typeof window === 'undefined' || !payload) return;
+      window.dispatchEvent(new CustomEvent('booking:cart-update', { detail: payload }));
+    };
+
+    const syncCartToggleButtons = (payload) => {
+      if (!payload) return;
+      const buttons = document.querySelectorAll('[data-cart-toggle-button][data-trip-id]');
+      if (!buttons.length) return;
+
+      const entryIds = new Set();
+      if (payload.cart_summary && Array.isArray(payload.cart_summary.entries)) {
+        payload.cart_summary.entries.forEach((entry) => {
+          const tripId = Number(entry?.trip_id);
+          if (!Number.isNaN(tripId) && tripId > 0) {
+            entryIds.add(tripId);
+          }
+        });
+      }
+
+      const applyBySet = entryIds.size > 0;
+      const targetTripId = Number(payload.trip_id);
+
+      buttons.forEach((button) => {
+        const tripIdAttr = Number(button.getAttribute('data-trip-id'));
+        if (Number.isNaN(tripIdAttr) || tripIdAttr <= 0) {
+          return;
+        }
+        if (applyBySet) {
+          applyButtonState(button, entryIds.has(tripIdAttr));
+        } else if (!Number.isNaN(targetTripId) && tripIdAttr === targetTripId) {
+          applyButtonState(button, !!payload.in_cart);
+        }
+      });
+    };
+
     const updateCartUI = (payload) => {
       if (!payload) return;
 
@@ -118,6 +178,9 @@
       if (panel && panelHtml) {
         panel.innerHTML = panelHtml;
       }
+
+      syncCartToggleButtons(payload);
+      broadcastCartUpdate(payload);
     };
 
     const showToast = (message, icon = '✓') => {

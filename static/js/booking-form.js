@@ -82,9 +82,6 @@
       });
   
       const grandTotalCents = baseTotalCents + extrasTotalCents;
-      const perPersonCents = billedTravelerCount > 0 ? Math.round(grandTotalCents / billedTravelerCount) : 0;
-      const perPersonLabel = billedTravelerCount > 0 ? `${formatCurrencyFromCents(perPersonCents)} per paying traveler` : '';
-  
       const summaryParts = [];
       const pushPart = (count, label) => {
         if (count > 0) {
@@ -100,9 +97,7 @@
         summaryParts.push('0 travelers');
       }
   
-      const summary = perPersonLabel && summaryParts.length
-        ? `${summaryParts.join(' · ')} · ${perPersonLabel}`
-        : summaryParts.join(' · ');
+      const summary = summaryParts.join(' · ');
   
       setCurrency(baseOutputs, baseTotalCents);
       setCurrency(adultOutputs, adultTotalCents);
