@@ -1530,12 +1530,8 @@ window.addEventListener('booking:cart-update', function (event) {
   function updateNavCart(data) {
     var badge = document.querySelector('[data-cart-count-badge]');
     if (badge) {
-      if (data.cart_count > 0) {
-        badge.textContent = data.cart_count;
-        badge.classList.remove('hidden');
-      } else {
-        badge.classList.add('hidden');
-      }
+      badge.textContent = String(data.cart_count);
+      badge.classList.remove('hidden');
     }
 
     var label = document.querySelector('[data-cart-label-text]');

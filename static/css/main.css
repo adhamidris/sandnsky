@@ -2365,3 +2365,19 @@
     padding: 10px !important;
   }
 }
+
+.trip-picks__meta {
+  justify-content: space-between !important;
+}
+
+.trip-picks__body {
+  padding: 15px !important;
+}
+
+.trip-picks__title {
+  display: -webkit-box;
+  -webkit-line-clamp: 3; /* number of lines before truncating */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

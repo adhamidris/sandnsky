@@ -156,13 +156,8 @@
 
       const countBadge = cart.querySelector('[data-cart-count-badge]');
       if (countBadge) {
-        if (count > 0) {
-          countBadge.textContent = count;
-          countBadge.classList.remove('hidden');
-        } else {
-          countBadge.textContent = '';
-          countBadge.classList.add('hidden');
-        }
+        countBadge.textContent = String(count);
+        countBadge.classList.remove('hidden');
       }
 
       const labelText = cart.querySelector('[data-cart-label-text]');

@@ -52,13 +52,13 @@
               <article class="trip-picks__card">
                 <a href="{% url 'web:trip-detail' trip.slug %}" class="trip-picks__link">
                   <div class="trip-picks__media">
-                    {% if trip.languages %}
+                    <!-- {% if trip.languages %}
                     <ul class="trip-picks__languages" aria-label="Available languages">
                       {% for language in trip.languages %}
                       <li class="trip-picks__language-chip">{{ language }}</li>
                       {% endfor %}
                     </ul>
-                    {% endif %}
+                    {% endif %} -->
                     <div class="trip-picks__media-inner">
                       {% if trip.image_url %}
                       <img src="{{ trip.image_url }}" alt="{{ trip.title }}" loading="lazy" class="trip-picks__image" />
@@ -79,12 +79,10 @@
                     {% endif %} -->
                     <div class="trip-picks__meta">
                       <span>{{ trip.duration }}</span>
-                      <span>{{ trip.group_size }}</span>
-                    </div>
-                    <div class="trip-picks__footer">
+                      <!-- <span>{{ trip.group_size }}</span> -->
                       <span>{{ trip.location }}</span>
                       <span class="trip-picks__price">
-                        {{ trip.price }}
+                        <span class="block text-[11px] text-muted-foreground">Adult: {{ trip.price }}</span>
                         {% if trip.has_child_price and trip.child_price %}
                         <span class="block text-[11px] text-muted-foreground">Children: {{ trip.child_price }}</span>
                         {% endif %}
@@ -339,13 +337,8 @@
     }
     const badge = document.querySelector('[data-cart-count-badge]');
     if (badge) {
-      if (data.cart_count > 0) {
-        badge.textContent = data.cart_count;
-        badge.classList.remove('hidden');
-      } else {
-        badge.textContent = '';
-        badge.classList.add('hidden');
-      }
+      badge.textContent = String(data.cart_count);
+      badge.classList.remove('hidden');
     }
 
     const label = document.querySelector('[data-cart-label-text]');

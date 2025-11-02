@@ -272,6 +272,7 @@ def build_trip_card(trip):
     child_price = trip.get_child_price_per_person()
     has_child_price = child_price != trip.base_price_per_person
     return {
+        "id": trip.pk,
         "slug": trip.slug,
         "title": trip.title,
         "description": trip.teaser,
