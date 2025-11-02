@@ -1601,6 +1601,54 @@
   .navcart-secondary{display:flex; gap:8px}
   .navcart-secondary a{flex:1; display:inline-flex; align-items:center; justify-content:center; border:1px solid var(--border); border-radius:10px; padding:9px 10px; font:700 12px/1 Inter,system-ui; color:#fff; text-decoration:none}
   .navcart-secondary a:hover{border-color:rgba(234,220,194,.45); color:var(--accent)}
+  .navcart-empty{
+    text-align:center;
+    padding:18px 0;
+    display:grid;
+    gap:12px;
+    justify-items:center;
+    color:rgba(255,255,255,.82);
+  }
+  .navcart-empty__icon{
+    display:grid;
+    place-items:center;
+    width:48px;
+    height:48px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,.18);
+    background:rgba(255,255,255,.08);
+    color:rgba(255,255,255,.78);
+  }
+  .navcart-empty__title{
+    margin:0;
+    font:600 13px/1.3 Inter,system-ui;
+    color:rgba(255,255,255,.88);
+  }
+  .navcart-empty__message{
+    margin:0;
+    max-width:14rem;
+    font-size:12px;
+    line-height:1.45;
+    color:rgba(255,255,255,.68);
+  }
+  .navcart-empty__cta{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:9px 16px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,.22);
+    background:rgba(255,255,255,.06);
+    color:rgba(255,255,255,.9);
+    font:600 12px/1 Inter,system-ui;
+    text-decoration:none;
+    transition:border-color .18s ease, background .18s ease, color .18s ease;
+  }
+  .navcart-empty__cta:hover{
+    border-color:rgba(255,255,255,.38);
+    background:rgba(255,255,255,.12);
+    color:#fff;
+  }
   
   @media (max-width:767px){
     .navcart-panel{
@@ -2379,4 +2427,18 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.navcart-empty__title, .navcart-empty__message {
+  color: white !important;
+}
+
+.navcart-empty__cta {
+  border-color: #C9A961 !important;
+  background: #C9A961 !important;
+}
+
+.navcart-empty__icon {
+  background-color: #C9A961 !important;
+  color: white !important;
 }
