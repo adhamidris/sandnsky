@@ -6,8 +6,17 @@
 {% block content %}
 {% if destination_hero %}
 <section id="page-top" class="relative isolate overflow-hidden bg-black text-white scroll-mt-32">
-  {% if destination_hero.image_url %}
-  <img src="{{ destination_hero.image_url }}" alt="{{ destination_hero.title }}" class="absolute inset-0 h-full w-full object-cover" />
+  {% if destination_hero.image_url or destination_hero.mobile_image_url %}
+  {% with mobile_src=destination_hero.mobile_image_url|default:destination_hero.image_url %}
+    {% if mobile_src %}
+    <img src="{{ mobile_src }}" alt="{{ destination_hero.title }}" class="absolute inset-0 h-full w-full object-cover md:hidden" />
+    {% endif %}
+  {% endwith %}
+  {% with desktop_src=destination_hero.image_url|default:destination_hero.mobile_image_url %}
+    {% if desktop_src %}
+    <img src="{{ desktop_src }}" alt="{{ destination_hero.title }}" class="absolute inset-0 hidden h-full w-full object-cover md:block" />
+    {% endif %}
+  {% endwith %}
   {% else %}
   <div class="absolute inset-0 bg-gradient-to-br from-primary/70 via-primary/60 to-black opacity-90"></div>
   {% endif %}
@@ -55,7 +64,12 @@
 </section>
 {% elif default_trips_hero_image %}
 <section id="page-top" class="relative isolate overflow-hidden bg-black text-white scroll-mt-32">
-  <img src="{{ default_trips_hero_image }}" alt="Trips hero" class="absolute inset-0 h-full w-full object-cover" />
+  {% with mobile_src=default_trips_hero_image_mobile|default:default_trips_hero_image %}
+    {% if mobile_src %}
+    <img src="{{ mobile_src }}" alt="Trips hero" class="absolute inset-0 h-full w-full object-cover md:hidden" />
+    {% endif %}
+  {% endwith %}
+  <img src="{{ default_trips_hero_image }}" alt="Trips hero" class="absolute inset-0 hidden h-full w-full object-cover md:block" />
   <div class="absolute inset-0 bg-gradient-to-b from-black/25 via-black/10 to-black/60"></div>
   <div class="relative mx-auto max-w-7xl px-4 pb-28 pt-32 sm:px-6 lg:px-8">
     <div class="max-w-3xl space-y-6">
@@ -218,7 +232,7 @@
       </div>
 
       {% if trips %}
-      <div class="flex flex-wrap items-center justify-center gap-3 md:justify-end">
+      <div class="hidden w-full flex-wrap items-center justify-center gap-3 md:flex md:w-auto md:justify-end">
         <span class="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">View</span>
         <div class="trip-view-toggle" data-trip-view-toggle role="group" aria-label="Choose trips layout">
           <button type="button" class="trip-view-toggle__btn is-active" data-view="grid" aria-pressed="true">Grid</button>
@@ -287,10 +301,10 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14" />
                   </svg>
                   <dd class="trip-card__value trip-card__price text-[13px]">
-                    <span class="trip-card__prefix text-muted-foreground">Starts from</span>
-                    {{ trip.price }}
+                    <span class="trip-card__prefix text-muted-foreground">adult {{ trip.price }}</span>
+                    
                     {% if trip.has_child_price and trip.child_price %}
-                    <span class="trip-card__child text-[11px] text-muted-foreground block">Children: {{ trip.child_price }}</span>
+                    <span class="trip-card__prefix text-muted-foreground">Child {{ trip.child_price }}</span>
                     {% endif %}
                   </dd>
                 </div>
@@ -863,6 +877,7 @@
   var BASE_SCROLL_OFFSET = 24;
   var TRIP_VIEW_STORAGE_KEY = 'trip-view-mode';
   var desktopMediaQuery = typeof window.matchMedia === 'function' ? window.matchMedia('(min-width: 1024px)') : null;
+  var tripViewDesktopMediaQuery = typeof window.matchMedia === 'function' ? window.matchMedia('(min-width: 768px)') : null;
   var mobileFilterKeydownBound = false;
   var mobileFilterMediaBound = false;
   var mobileFilterMediaHandler = null;
@@ -1087,7 +1102,9 @@
   }
 
   function applyTripView(mode) {
-    var view = mode === 'list' ? 'list' : 'grid';
+    var listToggle = document.querySelector('[data-trip-view-toggle] [data-view="list"]');
+    var allowListView = !!listToggle && (!tripViewDesktopMediaQuery || tripViewDesktopMediaQuery.matches);
+    var view = mode === 'list' && allowListView ? 'list' : 'grid';
     var grid = document.querySelector('[data-trip-grid]');
     if (grid) {
       if (view === 'list') {
@@ -1104,6 +1121,10 @@
       button.classList.toggle('is-active', isActive);
       button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
     });
+
+    if (mode === 'list' && view !== 'list') {
+      storeTripView('grid');
+    }
   }
 
   function initTripViewToggle() {
@@ -1134,6 +1155,17 @@
       storeTripView(view);
       applyTripView(view);
     });
+  }
+
+  if (tripViewDesktopMediaQuery) {
+    var reapplyTripView = function () {
+      applyTripView(getStoredTripView());
+    };
+    if (typeof tripViewDesktopMediaQuery.addEventListener === 'function') {
+      tripViewDesktopMediaQuery.addEventListener('change', reapplyTripView);
+    } else if (typeof tripViewDesktopMediaQuery.addListener === 'function') {
+      tripViewDesktopMediaQuery.addListener(reapplyTripView);
+    }
   }
 
   if (!('fetch' in window) || !('URLSearchParams' in window) || !('FormData' in window)) {

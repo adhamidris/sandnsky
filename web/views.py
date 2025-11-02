@@ -127,6 +127,7 @@ def _destination_hero_context(destination):
         "title": title,
         "subtitle": subtitle,
         "image_url": destination.hero_image.url if destination.hero_image else "",
+        "mobile_image_url": destination.hero_image_mobile.url if destination.hero_image_mobile else "",
     }
 
 
@@ -420,19 +421,42 @@ class HomePageView(TemplateView):
             fallback_image = site_config.hero_image.url
             fallback_image_is_media = True
 
+        fallback_mobile_image = ""
+        fallback_mobile_image_is_media = False
+        if site_config.hero_mobile_image:
+            fallback_mobile_image = site_config.hero_mobile_image.url
+            fallback_mobile_image_is_media = True
+
         fallback_video = site_config.hero_video.url if site_config.hero_video else ""
         fallback_video_is_media = bool(site_config.hero_video)
         fallback_video_type = ""
         if site_config.hero_video:
             fallback_video_type, _ = mimetypes.guess_type(site_config.hero_video.name)
 
+        fallback_mobile_video = (
+            site_config.hero_mobile_video.url if site_config.hero_mobile_video else ""
+        )
+        fallback_mobile_video_is_media = bool(site_config.hero_mobile_video)
+        fallback_mobile_video_type = ""
+        if site_config.hero_mobile_video:
+            (
+                fallback_mobile_video_type,
+                _,
+            ) = mimetypes.guess_type(site_config.hero_mobile_video.name)
+
         hero_pairs = list(site_config.hero_pairs.all())
 
         background_image = fallback_image
         background_image_is_media = fallback_image_is_media
+        background_mobile_image = fallback_mobile_image
+        background_mobile_image_is_media = fallback_mobile_image_is_media
+
         background_video = fallback_video
         background_video_is_media = fallback_video_is_media
-        background_video_type = fallback_video_type or "video/mp4"
+        background_video_type = fallback_video_type
+        background_mobile_video = fallback_mobile_video
+        background_mobile_video_is_media = fallback_mobile_video_is_media
+        background_mobile_video_type = fallback_mobile_video_type
 
         overlays: list[dict[str, str | int | bool]] = []
 
@@ -441,12 +465,23 @@ class HomePageView(TemplateView):
                 background_image = pair.hero_image.url
                 background_image_is_media = True
 
+            if pair.hero_mobile_image and not background_mobile_image:
+                background_mobile_image = pair.hero_mobile_image.url
+                background_mobile_image_is_media = True
+
             if pair.hero_video and not background_video:
                 background_video = pair.hero_video.url
                 background_video_is_media = True
                 guessed_type, _ = mimetypes.guess_type(pair.hero_video.name)
                 if guessed_type:
                     background_video_type = guessed_type
+
+            if pair.hero_mobile_video and not background_mobile_video:
+                background_mobile_video = pair.hero_mobile_video.url
+                background_mobile_video_is_media = True
+                guessed_mobile_type, _ = mimetypes.guess_type(pair.hero_mobile_video.name)
+                if guessed_mobile_type:
+                    background_mobile_video_type = guessed_mobile_type
 
             overlay_image = ""
             overlay_is_media = False
@@ -467,6 +502,16 @@ class HomePageView(TemplateView):
                         "alt": pair.overlay_alt,
                     }
                 )
+
+        if not background_mobile_image and background_image:
+            background_mobile_image = background_image
+            background_mobile_image_is_media = background_image_is_media
+
+        if background_video and not background_video_type:
+            background_video_type = "video/mp4"
+
+        if background_mobile_video and not background_mobile_video_type:
+            background_mobile_video_type = background_video_type or "video/mp4"
 
         if not overlays and background_image:
             overlays.append(
@@ -493,9 +538,14 @@ class HomePageView(TemplateView):
             "background": {
                 "image": background_image,
                 "image_is_media": background_image_is_media,
+                "mobile_image": background_mobile_image,
+                "mobile_image_is_media": background_mobile_image_is_media,
                 "video": background_video,
                 "video_is_media": background_video_is_media,
-                "video_type": background_video_type or "video/mp4",
+                "video_type": background_video_type if background_video else "",
+                "mobile_video": background_mobile_video,
+                "mobile_video_is_media": background_mobile_video_is_media,
+                "mobile_video_type": background_mobile_video_type if background_mobile_video else "",
             },
             "overlays": overlays,
             "has_overlay": bool(overlays),
@@ -936,6 +986,9 @@ class TripListView(TemplateView):
         context["default_trips_hero_image"] = (
             site_config.trips_hero_image.url if site_config.trips_hero_image else ""
         )
+        context["default_trips_hero_image_mobile"] = (
+            site_config.trips_hero_image_mobile.url if site_config.trips_hero_image_mobile else ""
+        )
         return context
 
     def _base_queryset(self):
@@ -1357,6 +1410,7 @@ class TripDetailView(TemplateView):
             "title": trip.title,
             "slug": trip.slug,
             "hero_image_url": trip.hero_image.url if trip.hero_image else "",
+            "hero_image_mobile_url": trip.hero_image_mobile.url if trip.hero_image_mobile else "",
             "card_image_url": trip.card_image.url if trip.card_image else "",
             "breadcrumbs": self._breadcrumbs(trip),
             "review_summary": review_summary,

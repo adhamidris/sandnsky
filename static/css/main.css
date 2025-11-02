@@ -2277,3 +2277,20 @@
     display: none !important;
   }
 }
+
+
+@media (max-width: 768px) {
+  .trip-card__meta {
+    display: flex !important;
+    justify-content: space-between !important;
+  }
+
+  .trip-card__meta-item {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+}
+
+.trip-card__language-chip {
+  border: none !important;
+}

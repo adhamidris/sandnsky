@@ -69,6 +69,12 @@ class Destination(models.Model):
     description = models.TextField(blank=True)
     card_image = models.ImageField(upload_to="destinations/", blank=True, max_length=255)
     hero_image = models.ImageField(upload_to="destinations/hero/", blank=True, max_length=255)
+    hero_image_mobile = models.ImageField(
+        upload_to="destinations/hero/mobile/",
+        blank=True,
+        max_length=255,
+        help_text="Optional image optimized for mobile destination hero.",
+    )
     hero_subtitle = models.TextField(blank=True)
     is_featured = models.BooleanField(default=False, db_index=True)
     featured_position = models.PositiveSmallIntegerField(default=0)
@@ -305,13 +311,31 @@ class SiteConfiguration(models.Model):
     hero_secondary_cta_label = models.CharField(max_length=100, default="Learn More")
     hero_secondary_cta_href = models.CharField(max_length=255, default="#about")
     hero_image = models.ImageField(upload_to="site/hero/", blank=True, max_length=255)
+    hero_mobile_image = models.ImageField(
+        upload_to="site/hero/mobile/",
+        blank=True,
+        max_length=255,
+        help_text="Fallback image shown on mobile when no hero pairs exist.",
+    )
     hero_video = models.FileField(
         upload_to="site/hero/videos/",
         blank=True,
         validators=[FileExtensionValidator(["mp4", "webm", "mov"])],
         help_text="Video shown on desktop hero. Prefer optimized MP4/WebM under 10 MB.",
     )
+    hero_mobile_video = models.FileField(
+        upload_to="site/hero/videos/mobile/",
+        blank=True,
+        validators=[FileExtensionValidator(["mp4", "webm", "mov"])],
+        help_text="Mobile-friendly hero video used when no hero pairs exist.",
+    )
     trips_hero_image = models.ImageField(upload_to="site/trips_hero/", blank=True, max_length=255)
+    trips_hero_image_mobile = models.ImageField(
+        upload_to="site/trips_hero/mobile/",
+        blank=True,
+        max_length=255,
+        help_text="Optional hero image displayed on mobile for the trips page.",
+    )
     gallery_background_image = models.ImageField(
         upload_to="site/gallery/frame/",
         blank=True,
@@ -359,6 +383,18 @@ class SiteHeroPair(models.Model):
         validators=[FileExtensionValidator(["mp4", "webm", "mov"])],
         help_text="Optional background video. Keep under 10 MB for best performance.",
     )
+    hero_mobile_image = models.ImageField(
+        upload_to="site/hero/pairs/mobile/",
+        blank=True,
+        help_text="Mobile-specific hero image override.",
+        max_length=255,
+    )
+    hero_mobile_video = models.FileField(
+        upload_to="site/hero/pairs/videos/mobile/",
+        blank=True,
+        validators=[FileExtensionValidator(["mp4", "webm", "mov"])],
+        help_text="Mobile-specific background video override.",
+    )
     overlay_image = models.ImageField(
         upload_to="site/hero/pairs/overlay/",
         blank=True,
@@ -385,11 +421,21 @@ class SiteHeroPair(models.Model):
                 base = self.hero_image.name
             elif self.overlay_image:
                 base = self.overlay_image.name
+            elif self.hero_mobile_video:
+                base = self.hero_mobile_video.name
+            elif self.hero_mobile_image:
+                base = self.hero_mobile_image.name
         return base or f"Hero pair #{self.pk or 0}"
 
     @property
     def has_media(self) -> bool:
-        return bool(self.hero_image or self.hero_video or self.overlay_image)
+        return bool(
+            self.hero_image
+            or self.hero_video
+            or self.hero_mobile_image
+            or self.hero_mobile_video
+            or self.overlay_image
+        )
 
     @property
     def has_overlay(self) -> bool:
@@ -466,6 +512,12 @@ class Trip(models.Model):
     teaser = models.TextField(help_text="Short blurb shown on listing cards.")
     card_image = models.ImageField(upload_to="trips/cards/", blank=True,max_length=255)
     hero_image = models.ImageField(upload_to="trips/hero/", blank=True, max_length=255)
+    hero_image_mobile = models.ImageField(
+        upload_to="trips/hero/mobile/",
+        blank=True,
+        max_length=255,
+        help_text="Optional hero image tailored for mobile devices.",
+    )
 
     duration_days = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(1)]

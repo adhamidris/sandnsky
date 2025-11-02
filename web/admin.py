@@ -53,6 +53,8 @@ class SiteHeroPairInline(admin.StackedInline):
         "position",
         "hero_image",
         "hero_video",
+        "hero_mobile_image",
+        "hero_mobile_video",
         "overlay_image",
         "overlay_alt",
     )
@@ -296,7 +298,7 @@ class DestinationAdmin(admin.ModelAdmin):
         ),
         (
             "Media",
-            {"fields": ("card_image", "hero_image")},
+            {"fields": ("card_image", "hero_image", "hero_image_mobile")},
         ),
         (
             "Hero Content",
@@ -372,7 +374,9 @@ class SiteConfigurationAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "hero_image",
+                    "hero_mobile_image",
                     "hero_video",
+                    "hero_mobile_video",
                 ),
                 "description": "Optional default media used only if no hero pairs exist.",
                 "classes": ("collapse",),
@@ -383,6 +387,7 @@ class SiteConfigurationAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "trips_hero_image",
+                    "trips_hero_image_mobile",
                 )
             },
         ),
