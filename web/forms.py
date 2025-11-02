@@ -15,7 +15,7 @@ class BookingRequestForm(forms.Form):
         widget=forms.DateInput(attrs={"type": "date"}),
         error_messages={"required": "Choose your date to see availability."},
     )
-    adults = forms.IntegerField(label="Adults", min_value=1, initial=2)
+    adults = forms.IntegerField(label="Adults", min_value=1, initial=1)
     children = forms.IntegerField(label="Children", min_value=0, initial=0, required=False)
     infants = forms.IntegerField(label="Infants", min_value=0, initial=0, required=False)
     extras = forms.MultipleChoiceField(

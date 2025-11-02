@@ -261,6 +261,9 @@
   align-items:center;
   gap:12px;
 }
+.trip-pagination__nav{
+  margin-top:0;
+}
 .trip-pagination__link{
   display:inline-flex;
   align-items:center;
@@ -294,6 +297,21 @@
   letter-spacing:.08em;
   text-transform:uppercase;
   color:rgba(17,17,17,.64);
+}
+
+@media (max-width: 767px){
+  .trip-pagination{
+    justify-content:center;
+    text-align:center;
+  }
+  .trip-pagination__summary{
+    width:100%;
+    text-align:center;
+  }
+  .trip-pagination__nav{
+    justify-content:center;
+    width:100%;
+  }
 }
 
   
