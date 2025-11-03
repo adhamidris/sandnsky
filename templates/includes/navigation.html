@@ -28,11 +28,11 @@
 
       <a href="/trips"
          class="link"
-         {% if request.path|slice:":6" == '/trips' %}aria-current="page"{% endif %}>
+         {% if request.path|slice:":6" == '/trips' and request.GET.collection|default:'' != 'packages' %}aria-current="page"{% endif %}>
         Our Trips
       </a>
 
-      <a href="/trips?collection=packages"
+      <a href="/trips?collection=packages#trip-list"
          class="link"
          {% if request.path|slice:":6" == '/trips' and request.GET.collection|default:'' == 'packages' %}aria-current="page"{% endif %}>
         Packages
@@ -70,11 +70,11 @@
 
         <a href="/trips"
            class="mobile-link"
-           {% if request.path|slice:":6" == '/trips' %}aria-current="page"{% endif %}>
+           {% if request.path|slice:":6" == '/trips' and request.GET.collection|default:'' != 'packages' %}aria-current="page"{% endif %}>
           Our Trips
         </a>
 
-        <a href="/trips?collection=packages"
+        <a href="/trips?collection=packages#trip-list"
            class="mobile-link"
            {% if request.path|slice:":6" == '/trips' and request.GET.collection|default:'' == 'packages' %}aria-current="page"{% endif %}
            data-close-nav>
