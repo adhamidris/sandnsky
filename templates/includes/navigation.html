@@ -32,10 +32,10 @@
         Our Trips
       </a>
 
-      <a href="/about"
+      <a href="/trips?collection=packages"
          class="link"
-         {% if request.path|slice:":6" == '/about' %}aria-current="page"{% endif %}>
-        About
+         {% if request.path|slice:":6" == '/trips' and request.GET.collection|default:'' == 'packages' %}aria-current="page"{% endif %}>
+        Packages
       </a>
 
       <a href="/contact"
@@ -74,11 +74,11 @@
           Our Trips
         </a>
 
-        <a href="/about"
+        <a href="/trips?collection=packages"
            class="mobile-link"
-           {% if request.path|slice:":6" == '/about' %}aria-current="page"{% endif %}
+           {% if request.path|slice:":6" == '/trips' and request.GET.collection|default:'' == 'packages' %}aria-current="page"{% endif %}
            data-close-nav>
-          About
+          Packages
         </a>
 
         <a href="/contact"
