@@ -50,6 +50,11 @@ urlpatterns = [
         name="contact",
     ),
     path(
+        "sahari/",
+        TemplateView.as_view(template_name="sahari.html"),
+        name="sahari",
+    ),
+    path(
         "about/",
         TemplateView.as_view(template_name="about.html"),
         name="about",
