@@ -8,6 +8,31 @@
 {% block head_extra %}
   {{ block.super }}
   <style>
+    [data-read-more] {
+      position: relative;
+    }
+
+    [data-read-more-content] {
+      transition: max-height .3s ease;
+    }
+
+    [data-read-more][data-state="collapsed"] [data-read-more-content] {
+      overflow: hidden;
+    }
+
+    [data-read-more-fade] {
+      display: none;
+      pointer-events: none;
+    }
+
+    [data-read-more][data-state="collapsed"] [data-read-more-fade] {
+      display: block;
+      height: 4rem;
+      margin-top: -3rem;
+      background: linear-gradient(180deg, rgba(250, 248, 244, 0) 0%, rgba(250, 248, 244, 0.92) 65%, rgba(250, 248, 244, 1) 100%);
+      border-radius: 0 0 1rem 1rem;
+    }
+
     @media (max-width: 1023px) {
       body.trip-detail-page .whatsapp-fab {
         bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
@@ -414,10 +439,33 @@
   <div class="trip-highlights mx-auto max-w-7xl space-y-6">
     <h2 class="font-serif text-3xl text-foreground">About this experience</h2>
     <p class="text-sm text-muted-foreground">Understand the rhythm of the day, how we host, and what makes this itinerary different.</p>
-    <div class="mt-6 space-y-4 text-base text-muted-foreground">
-      {% for paragraph in trip.overview_paragraphs %}
-      <p>{{ paragraph }}</p>
-      {% endfor %}
+    <div class="mt-6" data-read-more data-collapsed-height="160" data-state="expanded">
+      <div id="trip-about-content" class="space-y-4 text-base text-muted-foreground" data-read-more-content>
+        {% for paragraph in trip.overview_paragraphs %}
+        <p>{{ paragraph }}</p>
+        {% endfor %}
+      </div>
+      <div data-read-more-fade aria-hidden="true"></div>
+      <button type="button"
+              class="mt-4 inline-flex items-center gap-2 rounded-full border border-border/60 bg-background px-4 py-2 text-sm font-semibold text-primary transition hover:text-primary/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              data-read-more-toggle
+              data-read-more-collapsed="Read more"
+              data-read-more-expanded="Read less"
+              aria-controls="trip-about-content"
+              aria-expanded="false"
+              hidden>
+        <span data-read-more-label>Read more</span>
+        <svg xmlns="http://www.w3.org/2000/svg"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="1.5"
+             class="h-4 w-4 transition-transform duration-300"
+             aria-hidden="true"
+             data-read-more-icon>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
     </div>
   </div>
 </section>
@@ -694,5 +742,124 @@
 
 {% block scripts %}
 {{ block.super }}
+<script>
+(function () {
+  function parseCollapsedHeight(root) {
+    var attribute = parseInt(root.getAttribute('data-collapsed-height'), 10);
+    return Number.isFinite(attribute) && attribute > 0 ? attribute : 168;
+  }
+
+  function setFadeVisibility(root, expanded) {
+    var fade = root.querySelector('[data-read-more-fade]');
+    if (!fade) {
+      return;
+    }
+    fade.style.display = expanded ? 'none' : '';
+  }
+
+  function setIconRotation(icon, expanded) {
+    if (!icon) {
+      return;
+    }
+    icon.style.transform = expanded ? 'rotate(180deg)' : '';
+  }
+
+  function updateButtonLabel(toggle, label, expanded) {
+    if (!label || !toggle) {
+      return;
+    }
+    var expandedText = toggle.getAttribute('data-read-more-expanded') || 'Read less';
+    var collapsedText = toggle.getAttribute('data-read-more-collapsed') || 'Read more';
+    label.textContent = expanded ? expandedText : collapsedText;
+  }
+
+  function setState(root, content, toggle, icon, label, expanded, animate) {
+    var collapsedHeight = parseCollapsedHeight(root);
+    var duration = 320;
+
+    if (expanded) {
+      root.dataset.state = 'expanded';
+      toggle.setAttribute('aria-expanded', 'true');
+      setFadeVisibility(root, true);
+      updateButtonLabel(toggle, label, true);
+      setIconRotation(icon, true);
+      if (animate) {
+        var startHeight = content.scrollHeight;
+        content.style.maxHeight = collapsedHeight + 'px';
+        window.requestAnimationFrame(function () {
+          content.style.maxHeight = startHeight + 'px';
+        });
+        window.setTimeout(function () {
+          content.style.maxHeight = '';
+        }, duration);
+      } else {
+        content.style.maxHeight = '';
+      }
+    } else {
+      root.dataset.state = 'collapsed';
+      toggle.setAttribute('aria-expanded', 'false');
+      setFadeVisibility(root, false);
+      updateButtonLabel(toggle, label, false);
+      setIconRotation(icon, false);
+      var targetHeight = collapsedHeight + 'px';
+      if (animate) {
+        var fullHeight = content.scrollHeight;
+        content.style.maxHeight = fullHeight + 'px';
+        window.requestAnimationFrame(function () {
+          content.style.maxHeight = targetHeight;
+        });
+      } else {
+        content.style.maxHeight = targetHeight;
+      }
+    }
+  }
+
+  function initReadMoreSection(root) {
+    if (!root) {
+      return;
+    }
+    var content = root.querySelector('[data-read-more-content]');
+    var toggle = root.querySelector('[data-read-more-toggle]');
+    if (!content || !toggle) {
+      return;
+    }
+    var label = toggle.querySelector('[data-read-more-label]');
+    var icon = toggle.querySelector('[data-read-more-icon]');
+    var collapsedHeight = parseCollapsedHeight(root);
+    var shouldCollapse = content.scrollHeight > collapsedHeight + 20;
+
+    if (!shouldCollapse) {
+      root.dataset.state = 'expanded';
+      toggle.hidden = true;
+      setFadeVisibility(root, true);
+      return;
+    }
+
+    toggle.hidden = false;
+    setState(root, content, toggle, icon, label, false, false);
+
+    toggle.addEventListener('click', function () {
+      var expanded = root.dataset.state === 'expanded';
+      setState(root, content, toggle, icon, label, !expanded, true);
+    });
+  }
+
+  function initReadMoreSections() {
+    var sections = document.querySelectorAll('[data-read-more]');
+    if (!sections.length) {
+      return;
+    }
+    sections.forEach(function (section) {
+      initReadMoreSection(section);
+    });
+  }
+
+  if (document.readyState !== 'loading') {
+    initReadMoreSections();
+  } else {
+    document.addEventListener('DOMContentLoaded', initReadMoreSections, { once: true });
+  }
+})();
+</script>
 <script src="{% static 'js/reviews.js' %}"></script>
 {% endblock %}
