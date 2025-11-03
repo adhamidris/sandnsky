@@ -527,6 +527,7 @@
               <h2 class="checkout-trip-title font-serif text-xl text-foreground">{{ entry.trip_title }}</h2>
               <ul class="checkout-trip-meta text-sm text-muted-foreground">
                 {% if entry.travel_date_display %}<li><span class="font-medium text-foreground">Trip date:</span> {{ entry.travel_date_display }}</li>{% endif %}
+                {% if entry.option_label %}<li><span class="font-medium text-foreground">Experience:</span> {{ entry.option_label }}</li>{% endif %}
                 <li><span class="font-medium text-foreground">Travelers:</span> {{ entry.traveler_label }}</li>
               </ul>
               <div class="checkout-trip-pricing text-xs text-muted-foreground">

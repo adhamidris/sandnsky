@@ -155,11 +155,20 @@
             <div class="space-y-5">
               <div class="space-y-1">
                 <p class="text-charo text-xs uppercase tracking-wide text-muted-foreground">From</p>
-                <p class="text-bluish text-3xl font-serif text-primary">{{ pricing.base_price_display }}</p>
+                <p class="text-bluish text-3xl font-serif text-primary"><span data-booking-base-price>{{ pricing.base_price_display }}</span></p>
                 <p class="text-charo text-xs text-muted-foreground">Per traveler · Taxes included</p>
-                {% if pricing.has_child_price %}
-                <p class="text-charo text-xs text-muted-foreground">Children (3–11): {{ pricing.child_price_display }}</p>
-                {% endif %}
+                <p
+                  class="text-charo text-xs text-muted-foreground {% if not pricing.has_child_price %}hidden{% endif %}"
+                  data-booking-child-price-note
+                >
+                  Children (3–11): <span data-booking-child-price>{{ pricing.child_price_display }}</span>
+                </p>
+                <p
+                  class="text-charo text-xs text-muted-foreground {% if not trip.selected_option_label %}hidden{% endif %}"
+                  data-booking-option-label
+                >
+                  Experience: <span data-booking-option-label-text>{{ trip.selected_option_label }}</span>
+                </p>
               </div>
 
               <dl class="small-booking-dl space-y-3">
@@ -254,10 +263,10 @@
   <div class="booking-floater-container flex w-auto max-w-[34rem] items-center justify-between gap-6 rounded-full bg-white/95 px-10 py-4 text-sm text-foreground shadow-2xl ring-1 ring-black/5 backdrop-blur">
     <div class="booking-floater-texts flex flex-col text-left">
       <span class="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">From</span>
-      <span class="text-lg font-semibold text-foreground">{{ pricing.base_price_display }}</span>
-      {% if pricing.has_child_price %}
-      <span class="text-xs text-muted-foreground">Children (3–11): {{ pricing.child_price_display }}</span>
-      {% endif %}
+      <span class="text-lg font-semibold text-foreground"><span data-booking-base-price>{{ pricing.base_price_display }}</span></span>
+      <span class="text-xs text-muted-foreground {% if not pricing.has_child_price %}hidden{% endif %}" data-booking-child-price-note>
+        Children (3–11): <span data-booking-child-price>{{ pricing.child_price_display }}</span>
+      </span>
       <span class="text-xs text-muted-foreground">{{ trip.tour_length }}</span>
     </div>
     <button type="button" class="floater-booking-btn inline-flex items-center gap-3 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-mobile-sheet-open aria-controls="booking-drawer" aria-expanded="false">
@@ -275,9 +284,9 @@
 </div>
 
 <div class="lg:hidden">
-  <div class="floating-book-mob fixed inset-x-4 bottom-4 z-40 flex items-center justify-between rounded-full bg-white px-5 py-3 shadow-xl" style="z-index: 9999;">
+    <div class="floating-book-mob fixed inset-x-4 bottom-4 z-40 flex items-center justify-between rounded-full bg-white px-5 py-3 shadow-xl" style="z-index: 9999;">
     <div class="floating-book-mob-text text-sm">
-      <p class="font-semibold text-foreground">{{ pricing.base_price_display }}</p>
+      <p class="font-semibold text-foreground"><span data-booking-base-price>{{ pricing.base_price_display }}</span></p>
       <p class="text-xs text-muted-foreground">{{ trip.tour_length }}</p>
     </div>
     <button type="button" class="floating-mob-btn rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-mobile-sheet-open aria-expanded="false" aria-controls="booking-drawer">
@@ -326,10 +335,12 @@
                 <span>Adults (<span data-booking-adult-count>{{ pricing.adults }}</span>)</span>
                 <span data-booking-adult>{{ pricing.adult_total_display }}</span>
               </div>
+              {% if trip.allow_children %}
               <div class="flex items-center justify-between {% if not pricing.children %}hidden{% endif %}" data-booking-child-row>
                 <span>Children (<span data-booking-child-count>{{ pricing.children }}</span>)</span>
                 <span data-booking-child>{{ pricing.child_total_display }}</span>
               </div>
+              {% endif %}
               <div class="flex items-center justify-between">
                 <span>Base</span>
                 <span data-booking-base>{{ pricing.base_total_display }}</span>

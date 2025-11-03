@@ -17,6 +17,9 @@ We're excited to confirm your trip \"{{ trip.title }}\" scheduled for {{ booking
 Booking summary:
 - Reference: {{ booking.reference_code }}
 - Travelers: {{ booking.adults }} adult{{ booking.adults|pluralize }}{% if booking.children %}, {{ booking.children }} child{{ booking.children|pluralize:"ren" }}{% endif %}{% if booking.infants %}, {{ booking.infants }} infant{{ booking.infants|pluralize }}{% endif %}
+{% if booking.trip_option_label %}
+- Experience: {{ booking.trip_option_label }}
+{% endif %}
 - Total: {{ booking.grand_total|floatformat:2 }}
 
 {% if extras %}
@@ -600,6 +603,19 @@ class Trip(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    allow_children = models.BooleanField(
+        default=True,
+        help_text="Allow child travelers to be booked for this trip.",
+    )
+    allow_infants = models.BooleanField(
+        default=True,
+        help_text="Allow infant travelers to be booked for this trip.",
+    )
+    minimum_age = models.PositiveSmallIntegerField(
+        blank=True,
+        null=True,
+        help_text="Minimum age required for participants (leave blank if none).",
+    )
 
     class Meta:
         ordering = ["title"]
@@ -806,6 +822,30 @@ class TripFAQ(models.Model):
         return f"FAQ #{self.position} · {self.trip.title}"
 
 
+class TripBookingOption(models.Model):
+    trip = models.ForeignKey(
+        Trip,
+        on_delete=models.CASCADE,
+        related_name="booking_options",
+    )
+    name = models.CharField(max_length=150)
+    price_per_person = models.DecimalField(max_digits=10, decimal_places=2)
+    child_price_per_person = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Override child rate just for this option. Leave blank to match the trip's child price.",
+    )
+    position = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ["position", "id"]
+
+    def __str__(self) -> str:
+        return f"{self.name} · {self.trip.title}"
+
+
 class TripExtra(models.Model):
     trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name="extras")
     name = models.CharField(max_length=150)
@@ -956,6 +996,26 @@ class Booking(models.Model):
         CANCELLED = "cancelled", "Cancelled"
 
     trip = models.ForeignKey(Trip, on_delete=models.PROTECT, related_name="bookings")
+    trip_option = models.ForeignKey(
+        "TripBookingOption",
+        on_delete=models.SET_NULL,
+        related_name="bookings",
+        null=True,
+        blank=True,
+        help_text="Selected booking option, if any, at the time of booking.",
+    )
+    trip_option_label = models.CharField(
+        max_length=150,
+        blank=True,
+        help_text="Snapshot of the option name chosen by the guest.",
+    )
+    trip_option_price_per_person = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Per-person rate for the selected option when the booking was created.",
+    )
     travel_date = models.DateField()
 
     adults = models.PositiveSmallIntegerField(default=1)

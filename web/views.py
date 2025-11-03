@@ -1312,6 +1312,7 @@ class TripDetailView(TemplateView):
                 "inclusions",
                 "exclusions",
                 "faqs",
+                "booking_options",
                 "extras",
                 "reviews",
                 Prefetch(
@@ -1344,6 +1345,10 @@ class TripDetailView(TemplateView):
             (str(extra.pk), extra.name)
             for extra in trip.extras.order_by("position", "id")
         ]
+        option_choices = [
+            (str(option.pk), option.name)
+            for option in trip.booking_options.order_by("position", "id")
+        ]
         if data is not None:
             initial = None
         else:
@@ -1353,11 +1358,17 @@ class TripDetailView(TemplateView):
                 value = contact_initial.get(field)
                 if value:
                     initial[field] = value
+            if option_choices and "option" not in initial:
+                initial["option"] = option_choices[0][0]
         return BookingRequestForm(
             data=data,
             initial=initial,
             extra_choices=extra_choices,
+            option_choices=option_choices,
             require_contact=require_contact,
+            allow_children=getattr(trip, "allow_children", True),
+            allow_infants=getattr(trip, "allow_infants", True),
+            minimum_age=getattr(trip, "minimum_age", None),
         )
 
     def get_context_data(self, **kwargs):
@@ -1370,6 +1381,9 @@ class TripDetailView(TemplateView):
         other_trips = self._serialize_related_trips(trip)
         trip_context = self._serialize_trip(trip, other_trips)
         trip_context["extras"] = pricing["extras"]
+        trip_context["booking_options"] = pricing["booking_options"]
+        trip_context["selected_option_id"] = pricing.get("selected_option_id")
+        trip_context["selected_option_label"] = pricing.get("selected_option_label")
 
         context.update(
             trip=trip_context,
@@ -1460,7 +1474,35 @@ class TripDetailView(TemplateView):
     def _pricing_context(self, trip, form):
         currency = getattr(trip, "currency", DEFAULT_CURRENCY)
         adult_price = trip.base_price_per_person
-        child_price = trip.get_child_price_per_person()
+        default_child_price = trip.get_child_price_per_person()
+        child_price = default_child_price
+        allow_children = getattr(trip, "allow_children", True)
+        allow_infants = getattr(trip, "allow_infants", True)
+        options = list(trip.booking_options.all())
+
+        selected_option_id = None
+        selected_option = None
+
+        if options:
+            raw_value = None
+            if "option" in form.fields:
+                raw_value = form["option"].value()
+            if raw_value in {None, ""}:
+                raw_value = str(options[0].pk)
+            try:
+                selected_option_id = int(raw_value)
+            except (TypeError, ValueError):
+                selected_option_id = options[0].pk
+            for option in options:
+                if option.pk == selected_option_id:
+                    selected_option = option
+                    break
+            if selected_option is None:
+                selected_option = options[0]
+                selected_option_id = selected_option.pk
+            adult_price = selected_option.price_per_person
+            if selected_option.child_price_per_person is not None:
+                child_price = selected_option.child_price_per_person
 
         def extract_int(field_name, fallback):
             value = form[field_name].value()
@@ -1472,6 +1514,11 @@ class TripDetailView(TemplateView):
         adults = max(extract_int("adults", form.fields["adults"].initial), 1)
         children = extract_int("children", form.fields["children"].initial)
         infants = extract_int("infants", form.fields["infants"].initial)
+
+        if not allow_children:
+            children = 0
+        if not allow_infants:
+            infants = 0
 
         billed_traveler_count = max(adults + children, 1)
         adult_total = adult_price * Decimal(adults)
@@ -1500,6 +1547,28 @@ class TripDetailView(TemplateView):
                 }
             )
 
+        options_with_state = []
+        for option in options:
+            option_child_price = (
+                option.child_price_per_person
+                if option.child_price_per_person is not None
+                else default_child_price
+            )
+            options_with_state.append(
+                {
+                    "id": option.pk,
+                    "label": option.name,
+                    "price": option.price_per_person,
+                    "price_display": format_currency(option.price_per_person, currency),
+                    "child_price": option_child_price,
+                    "child_price_display": format_currency(option_child_price, currency)
+                    if option.child_price_per_person is not None
+                    else "",
+                    "selected": option.pk == selected_option_id,
+                    "has_child_override": option.child_price_per_person is not None,
+                }
+            )
+
         total = base_total + extras_total
 
         if billed_traveler_count:
@@ -1509,6 +1578,9 @@ class TripDetailView(TemplateView):
 
         traveler_summary_display = traveler_summary(adults, children, infants)
 
+        has_child_price = allow_children and child_price != adult_price
+        child_price_display = format_currency(child_price, currency) if has_child_price else ""
+
         return {
             "currency": currency,
             "currency_symbol": CURRENCY_SYMBOLS.get(currency.upper(), ""),
@@ -1517,8 +1589,8 @@ class TripDetailView(TemplateView):
             "adult_price": adult_price,
             "adult_price_display": format_currency(adult_price, currency),
             "child_price": child_price,
-            "child_price_display": format_currency(child_price, currency),
-            "has_child_price": child_price != adult_price,
+            "child_price_display": child_price_display,
+            "has_child_price": has_child_price,
             "traveler_count": billed_traveler_count,
             "billed_traveler_count": billed_traveler_count,
             "adults": adults,
@@ -1538,6 +1610,11 @@ class TripDetailView(TemplateView):
             "per_person_display": format_currency(per_person_total, currency),
             "traveler_summary_display": traveler_summary_display,
             "extras": extras_with_state,
+            "booking_options": options_with_state,
+            "selected_option_id": selected_option_id,
+            "selected_option_label": selected_option.name if selected_option else "",
+            "allow_children": allow_children,
+            "allow_infants": allow_infants,
         }
 
 
@@ -1619,6 +1696,9 @@ class TripDetailView(TemplateView):
             "destinations": destinations_label,
             "gallery": gallery_items,
             "gallery_section": gallery_section,
+            "allow_children": getattr(trip, "allow_children", True),
+            "allow_infants": getattr(trip, "allow_infants", True),
+            "minimum_age": getattr(trip, "minimum_age", None),
         }
         trip_data["anchor_nav"] = self._anchor_nav(trip_data, other_trips)
         return trip_data
@@ -1690,6 +1770,9 @@ class TripDetailView(TemplateView):
             {"icon": "🧭", "label": trip.tour_type_label, "sr": "Tour type"},
             {"icon": "👥", "label": f"Up to {trip.group_size_max} guests", "sr": "Group size"},
         ]
+        min_age = getattr(trip, "minimum_age", None)
+        if isinstance(min_age, int) and min_age > 0:
+            facts.append({"icon": "🎯", "label": f"{min_age}+ years", "sr": "Minimum age"})
         if languages_label:
             facts.append({"icon": "🗣", "label": languages_label, "sr": "Languages"})
         return facts
@@ -1930,34 +2013,43 @@ class CartQuickAddView(View):
                 adults_count = max_group_size_int
             cleaned_data["adults"] = adults_count
 
+            allow_children = getattr(trip, "allow_children", True)
+            allow_infants = getattr(trip, "allow_infants", True)
+
             children_count = cleaned_data["children"]
-            children_raw = request.POST.get("children")
-            if children_raw is not None:
-                try:
-                    children_count = int(children_raw)
-                except (TypeError, ValueError):
+            if allow_children:
+                children_raw = request.POST.get("children")
+                if children_raw is not None:
+                    try:
+                        children_count = int(children_raw)
+                    except (TypeError, ValueError):
+                        children_count = 0
+                if children_count < 0:
                     children_count = 0
-            if children_count < 0:
-                children_count = 0
-            if max_group_size_int:
-                available_children = max_group_size_int - adults_count
-                if available_children < 0:
-                    available_children = 0
-                children_count = min(children_count, available_children)
+                if max_group_size_int:
+                    available_children = max_group_size_int - adults_count
+                    if available_children < 0:
+                        available_children = 0
+                    children_count = min(children_count, available_children)
+                else:
+                    children_count = min(children_count, 12)
             else:
-                children_count = min(children_count, 12)
+                children_count = 0
             cleaned_data["children"] = children_count
 
             infants_count = cleaned_data["infants"]
-            infants_raw = request.POST.get("infants")
-            if infants_raw is not None:
-                try:
-                    infants_count = int(infants_raw)
-                except (TypeError, ValueError):
+            if allow_infants:
+                infants_raw = request.POST.get("infants")
+                if infants_raw is not None:
+                    try:
+                        infants_count = int(infants_raw)
+                    except (TypeError, ValueError):
+                        infants_count = 0
+                if infants_count < 0:
                     infants_count = 0
-            if infants_count < 0:
+                infants_count = min(infants_count, 6)
+            else:
                 infants_count = 0
-            infants_count = min(infants_count, 6)
             cleaned_data["infants"] = infants_count
 
             # ensure unique by clearing any lingering duplicates
@@ -2178,7 +2270,7 @@ class CartCheckoutView(TemplateView):
             for entry in entries
             if isinstance(entry, Mapping) and entry.get("trip_id") is not None
         }
-        trips = Trip.objects.filter(pk__in=trip_ids)
+        trips = Trip.objects.filter(pk__in=trip_ids).prefetch_related("booking_options")
         trip_map = {trip.pk: trip for trip in trips}
 
         created_bookings = []
@@ -2241,7 +2333,7 @@ class CartCheckoutView(TemplateView):
                     extras_total = Decimal("0")
                     for extra_data in entry.get("extras", []):
                         extras_total += cents_to_decimal(extra_data.get("price_cents"))
-                    grand_total = (base_total + extras_total).quantize(Decimal("0.01"))
+                grand_total = (base_total + extras_total).quantize(Decimal("0.01"))
 
                 entry_message = (entry.get("message") or "").strip()
                 note_sections = []
@@ -2250,6 +2342,40 @@ class CartCheckoutView(TemplateView):
                 if notes:
                     note_sections.append(f"Additional notes:\n{notes}")
                 special_requests = "\n\n".join(note_sections)
+
+                option_data = entry.get("option") or {}
+                option_pricing = pricing
+                option_label = (
+                    option_data.get("label")
+                    or option_pricing.get("option_label")
+                    or ""
+                )
+                option_price_per_person = None
+                price_cents_raw = option_data.get("price_cents")
+                if price_cents_raw is not None:
+                    option_price_per_person = cents_to_decimal(price_cents_raw)
+                elif option_pricing.get("option_price_cents") is not None:
+                    option_price_per_person = cents_to_decimal(option_pricing["option_price_cents"])
+
+                option_id_raw = (
+                    option_data.get("id")
+                    or entry.get("option_id")
+                    or option_pricing.get("option_id")
+                )
+                option_instance = None
+                try:
+                    option_id = int(option_id_raw)
+                except (TypeError, ValueError):
+                    option_id = None
+                if option_id:
+                    for candidate in trip.booking_options.all():
+                        if candidate.pk == option_id:
+                            option_instance = candidate
+                            break
+                    if option_instance and not option_label:
+                        option_label = option_instance.name
+                    if option_instance and option_price_per_person is None:
+                        option_price_per_person = option_instance.price_per_person
 
                 create_kwargs = dict(
                     trip=trip,
@@ -2264,6 +2390,9 @@ class CartCheckoutView(TemplateView):
                     base_subtotal=base_total,
                     extras_subtotal=extras_total,
                     grand_total=grand_total,
+                    trip_option=option_instance,
+                    trip_option_label=option_label or "",
+                    trip_option_price_per_person=option_price_per_person,
                 )
 
                 if group_reference:

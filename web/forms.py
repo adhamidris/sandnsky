@@ -36,8 +36,28 @@ class BookingRequestForm(forms.Form):
         widget=forms.Textarea(attrs={"rows": 4}),
     )
 
-    def __init__(self, *args, extra_choices=None, require_contact=True, **kwargs):
+    def __init__(
+        self,
+        *args,
+        extra_choices=None,
+        option_choices=None,
+        require_contact=True,
+        allow_children=True,
+        allow_infants=True,
+        minimum_age=None,
+        **kwargs,
+    ):
+        self.allow_children = bool(allow_children)
+        self.allow_infants = bool(allow_infants)
+        self.minimum_age = minimum_age if isinstance(minimum_age, int) else None
         super().__init__(*args, **kwargs)
+
+        if extra_choices is None:
+            extra_choices = []
+        if option_choices is None:
+            option_choices = []
+
+        self.option_choices = option_choices
 
         classes = _default_classes()
         today = timezone.localdate()
@@ -73,17 +93,54 @@ class BookingRequestForm(forms.Form):
             self.initial["date"] = today
             self.fields["date"].initial = today
 
-        if extra_choices is None:
-            extra_choices = []
         self.fields["extras"].choices = extra_choices
         self.fields["extras"].widget.attrs["class"] = "space-y-3"
 
-        self.order_fields(
+        if option_choices:
+            option_field = forms.ChoiceField(
+                label="Experience",
+                choices=option_choices,
+                required=True,
+            )
+            self.fields["option"] = option_field
+            if not self.is_bound:
+                initial_option = self.initial.get("option") or option_choices[0][0]
+                self.initial["option"] = initial_option
+                self.fields["option"].initial = initial_option
+
+        if not self.allow_children:
+            self.initial["children"] = 0
+            self.fields["children"].initial = 0
+            self.fields["children"].widget.attrs.update(
+                {
+                    "value": "0",
+                    "readonly": "readonly",
+                    "aria-disabled": "true",
+                    "data-disabled": "true",
+                }
+            )
+        if not self.allow_infants:
+            self.initial["infants"] = 0
+            self.fields["infants"].initial = 0
+            self.fields["infants"].widget.attrs.update(
+                {
+                    "value": "0",
+                    "readonly": "readonly",
+                    "aria-disabled": "true",
+                    "data-disabled": "true",
+                }
+            )
+
+        ordering = [
+            "date",
+            "adults",
+            "children",
+            "infants",
+        ]
+        if option_choices:
+            ordering.append("option")
+        ordering.extend(
             [
-                "date",
-                "adults",
-                "children",
-                "infants",
                 "extras",
                 "name",
                 "email",
@@ -91,6 +148,30 @@ class BookingRequestForm(forms.Form):
                 "message",
             ]
         )
+        self.order_fields(ordering)
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        adults = cleaned_data.get("adults") or 0
+        if adults < 1:
+            cleaned_data["adults"] = 1
+
+        if not self.allow_children:
+            cleaned_data["children"] = 0
+        else:
+            children = cleaned_data.get("children") or 0
+            if children < 0:
+                cleaned_data["children"] = 0
+
+        if not self.allow_infants:
+            cleaned_data["infants"] = 0
+        else:
+            infants = cleaned_data.get("infants") or 0
+            if infants < 0:
+                cleaned_data["infants"] = 0
+
+        return cleaned_data
 
 
 class BookingCartCheckoutForm(forms.Form):

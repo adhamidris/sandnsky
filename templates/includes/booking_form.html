@@ -7,6 +7,7 @@
   data-base-price="{{ pricing.adult_price|floatformat:'-2' }}"
   data-adult-price="{{ pricing.adult_price|floatformat:'-2' }}"
   data-child-price="{{ pricing.child_price|floatformat:'-2' }}"
+  data-selected-option="{{ pricing.selected_option_id|default_if_none:'' }}"
   data-currency-symbol="{{ pricing.currency_symbol }}"
 >
   {% csrf_token %}
@@ -42,7 +43,10 @@
         <div>
           <p class="text-sm font-medium">Adults</p>
           <p class="text-xs text-muted-foreground">
-            12+ years{% if pricing.adult_price_display %} · {{ pricing.adult_price_display }}{% endif %}
+            {% if trip.minimum_age %}{{ trip.minimum_age }}+ years{% else %}12+ years{% endif %}
+            <span data-booking-adult-price-wrapper class="{% if not pricing.adult_price_display %}hidden{% endif %}">
+              · <span data-booking-adult-price>{{ pricing.adult_price_display }}</span>
+            </span>
           </p>
         </div>
         <div class="flex items-center gap-2" data-counter>
@@ -51,11 +55,15 @@
           <button type="button" class="h-8 w-8 rounded-full border border-border text-lg" data-counter-inc aria-label="Increase adults">+</button>
         </div>
       </div>
+      {% if trip.allow_children %}
       <div class="flex items-center justify-between rounded-lg border border-border bg-background px-3 py-2">
         <div>
           <p class="text-sm font-medium">Children</p>
           <p class="text-xs text-muted-foreground">
-            3–11 years{% if pricing.has_child_price %} · {{ pricing.child_price_display }}{% endif %}
+            3–11 years
+            <span data-booking-child-price-wrapper class="{% if not pricing.has_child_price %}hidden{% endif %}">
+              · <span data-booking-child-price>{{ pricing.child_price_display }}</span>
+            </span>
           </p>
         </div>
         <div class="flex items-center gap-2" data-counter>
@@ -64,6 +72,13 @@
           <button type="button" class="h-8 w-8 rounded-full border border-border text-lg" data-counter-inc aria-label="Increase children">+</button>
         </div>
       </div>
+      {% else %}
+      <div class="rounded-lg border border-border bg-background px-3 py-3 text-xs text-muted-foreground">
+        This experience is adults-only. Guests must be {% if trip.minimum_age %}{{ trip.minimum_age }}+{% else %}18+{% endif %} on jump day.
+      </div>
+      {% endif %}
+
+      {% if trip.allow_infants %}
       <div class="flex items-center justify-between rounded-lg border border-border bg-background px-3 py-2">
         <div>
           <p class="text-sm font-medium">Infants</p>
@@ -80,12 +95,55 @@
           <button type="button" class="h-8 w-8 rounded-full border border-border text-lg" data-counter-inc aria-label="Increase infants">+</button>
         </div>
       </div>
+      {% endif %}
     </div>
   </div>
 
+  {% if trip.booking_options %}
   <div class="space-y-3">
     <div class="flex items-center justify-between">
-      <h3 class="text-sm font-semibold text-foreground">3. Extras</h3>
+      <h3 class="text-sm font-semibold text-foreground">3. Experiences</h3>
+      <span class="text-xs text-muted-foreground">Choose your preferred package</span>
+    </div>
+    <div class="space-y-2" data-booking-option-list>
+      {% for option in trip.booking_options %}
+      <label
+        class="flex items-start justify-between gap-4 rounded-lg border border-border bg-background px-4 py-3 transition {% if option.selected %}ring-1 ring-primary/40{% endif %}"
+        data-booking-option
+        data-option-id="{{ option.id }}"
+        data-option-label="{{ option.label }}"
+        data-selected="{{ option.selected|yesno:'true,false' }}"
+      >
+        <span class="flex items-start gap-3">
+          <input
+            type="radio"
+            name="option"
+            value="{{ option.id }}"
+            {% if option.selected %}checked{% endif %}
+            class="mt-1 h-4 w-4 border-border text-primary focus:ring-primary"
+            data-option-price="{{ option.price|floatformat:'-2' }}"
+            data-option-child-price="{{ option.child_price|floatformat:'-2' }}"
+          />
+          <span class="text-sm text-foreground">
+            <span class="font-medium">{{ option.label }}</span>
+            {% if option.has_child_override %}
+            <span class="mt-1 block text-xs text-muted-foreground">Children: {{ option.child_price_display }}</span>
+            {% endif %}
+          </span>
+        </span>
+        <span class="text-sm font-semibold text-foreground">{{ option.price_display }}</span>
+      </label>
+      {% endfor %}
+    </div>
+    {% if form.option.errors %}
+    <p class="text-sm text-red-600">{{ form.option.errors|striptags }}</p>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <div class="space-y-3">
+    <div class="flex items-center justify-between">
+      <h3 class="text-sm font-semibold text-foreground">{% if trip.booking_options %}4{% else %}3{% endif %}. Extras</h3>
       <span class="text-xs text-muted-foreground">Optional add-ons</span>
     </div>
     <div class="space-y-2">

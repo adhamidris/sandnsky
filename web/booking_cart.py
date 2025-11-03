@@ -10,7 +10,7 @@ from urllib.parse import quote_plus
 
 from django.utils import timezone
 
-from .models import Trip, TripExtra
+from .models import Trip, TripBookingOption, TripExtra
 from .rewards import (
     CartEntrySnapshot,
     RewardCalculation,
@@ -303,11 +303,31 @@ def _selected_extras(trip: Trip, extras_ids: List[int]) -> List[TripExtra]:
     )
 
 
+def _booking_options(trip: Trip) -> List[TripBookingOption]:
+    return list(trip.booking_options.all())
+
+
+def _pick_booking_option(options: Sequence[TripBookingOption], option_id: Optional[int]) -> Optional[TripBookingOption]:
+    if not options:
+        return None
+    if option_id is not None:
+        for option in options:
+            if option.pk == option_id:
+                return option
+    return options[0]
+
+
 def build_cart_entry(trip: Trip, cleaned_data: Dict[str, Any]) -> Dict[str, Any]:
     date = cleaned_data["date"]
     adults = int(cleaned_data.get("adults") or 0)
     children = int(cleaned_data.get("children") or 0)
     infants = int(cleaned_data.get("infants") or 0)
+    allow_children = getattr(trip, "allow_children", True)
+    allow_infants = getattr(trip, "allow_infants", True)
+    if not allow_children:
+        children = 0
+    if not allow_infants:
+        infants = 0
     if adults + children <= 0:
         adults = 1
     billed_traveler_count = max(adults + children, 1)
@@ -322,6 +342,17 @@ def build_cart_entry(trip: Trip, cleaned_data: Dict[str, Any]) -> Dict[str, Any]
 
     selected_extras = _selected_extras(trip, extras_ids)
 
+    option_raw = cleaned_data.get("option")
+    if isinstance(option_raw, (list, tuple)):
+        option_raw = option_raw[0] if option_raw else None
+    try:
+        option_id = int(option_raw)
+    except (TypeError, ValueError):
+        option_id = None
+
+    options = _booking_options(trip)
+    selected_option = _pick_booking_option(options, option_id)
+
     adult_price = getattr(trip, "base_price_per_person", Decimal("0"))
     if not isinstance(adult_price, Decimal):
         adult_price = Decimal(str(adult_price or 0))
@@ -334,6 +365,26 @@ def build_cart_entry(trip: Trip, cleaned_data: Dict[str, Any]) -> Dict[str, Any]
         child_price = adult_price
     if not isinstance(child_price, Decimal):
         child_price = Decimal(str(child_price or 0))
+
+    option_payload: Optional[Dict[str, Any]] = None
+    if selected_option is not None:
+        option_adult_price = selected_option.price_per_person
+        if not isinstance(option_adult_price, Decimal):
+            option_adult_price = Decimal(str(option_adult_price or 0))
+        adult_price = option_adult_price
+
+        option_child_price = selected_option.child_price_per_person
+        if option_child_price is not None:
+            if not isinstance(option_child_price, Decimal):
+                option_child_price = Decimal(str(option_child_price or 0))
+            child_price = option_child_price
+
+        option_payload = {
+            "id": selected_option.pk,
+            "label": selected_option.name,
+            "price_cents": _decimal_to_cents(option_adult_price),
+            "child_price_cents": _decimal_to_cents(child_price),
+        }
 
     currency = getattr(trip, "currency", DEFAULT_CURRENCY)
 
@@ -390,6 +441,16 @@ def build_cart_entry(trip: Trip, cleaned_data: Dict[str, Any]) -> Dict[str, Any]
         },
         "created_at": timezone.now().isoformat(),
     }
+
+    if option_payload:
+        entry["option"] = option_payload
+        entry["option_id"] = option_payload["id"]
+        entry["option_label"] = option_payload["label"]
+        pricing = entry["pricing"]
+        pricing["option_id"] = option_payload["id"]
+        pricing["option_label"] = option_payload["label"]
+        pricing["option_price_cents"] = option_payload["price_cents"]
+        pricing["option_child_price_cents"] = option_payload["child_price_cents"]
 
     return entry
 
@@ -450,6 +511,23 @@ def _serialize_summary_entry(entry: Dict[str, Any]) -> Dict[str, Any]:
     child_total_cents = _safe_int(pricing.get("child_total_cents"))
     has_child_price = child_price_cents != adult_price_cents
 
+    option_label = ""
+    option_id = pricing.get("option_id")
+    try:
+        option_id = int(option_id) if option_id is not None else None
+    except (TypeError, ValueError):
+        option_id = None
+    option_label = (
+        (entry.get("option") or {}).get("label")
+        or entry.get("option_label")
+        or pricing.get("option_label")
+        or ""
+    )
+    option_price_cents = _safe_int(pricing.get("option_price_cents") or adult_price_cents)
+    option_child_price_cents = _safe_int(
+        pricing.get("option_child_price_cents") or child_price_cents
+    )
+
     summary = {
         "id": entry.get("id"),
         "trip_id": entry.get("trip_id"),
@@ -473,6 +551,13 @@ def _serialize_summary_entry(entry: Dict[str, Any]) -> Dict[str, Any]:
         "has_child_price": has_child_price,
         "billed_traveler_count": billed_traveler_count,
     }
+
+    if option_label:
+        summary["option_id"] = option_id
+        summary["option_label"] = option_label
+        summary["option_price_display"] = _format_money_cents(option_price_cents) if option_price_cents else ""
+        if option_child_price_cents and option_child_price_cents != option_price_cents:
+            summary["option_child_price_display"] = _format_money_cents(option_child_price_cents)
 
     applied_reward = entry.get("applied_reward")
     if applied_reward:

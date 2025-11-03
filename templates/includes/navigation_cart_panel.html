@@ -21,6 +21,9 @@
               <p class="navcart-date meta" style="text-transform:uppercase; letter-spacing:.18em; font-size:11px">{{ entry.travel_date_display }}</p>
             {% endif %}
             <p class="navcart-label meta">{{ entry.traveler_label }}</p>
+            {% if entry.option_label %}
+              <p class="navcart-option meta" style="font-size:12px; color:rgba(255,255,255,.75);">Experience: {{ entry.option_label }}</p>
+            {% endif %}
             {% if entry.trip_slug %}
               <a class="navcart-viewtrip" href="{% url 'web:trip-detail' entry.trip_slug %}"
                  style="display:inline-flex; gap:6px; align-items:center; font-weight:700; font-size:12px; color:#C9A961; text-decoration:none">

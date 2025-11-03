@@ -21,6 +21,7 @@ from .models import (
     TripInclusion,
     TripExclusion,
     TripFAQ,
+    TripBookingOption,
     TripExtra,
     TripGalleryImage,
     TripRelation,
@@ -146,6 +147,13 @@ class TripFAQInline(admin.TabularInline):
     extra = 0
     fields = ("question", "answer", "position")
     ordering = ("position",)
+
+
+class TripBookingOptionInline(admin.TabularInline):
+    model = TripBookingOption
+    extra = 0
+    fields = ("name", "price_per_person", "child_price_per_person", "position")
+    ordering = ("position", "id")
 
 
 class TripExtraInline(admin.TabularInline):
@@ -470,6 +478,7 @@ class TripAdmin(admin.ModelAdmin):
         TripInclusionInline,
         TripExclusionInline,
         TripFAQInline,
+        TripBookingOptionInline,
         TripExtraInline,
         TripRelationInline,
     ]
@@ -528,6 +537,7 @@ class BookingAdmin(admin.ModelAdmin):
 
     list_display = (
         "trip",
+        "trip_option_label",
         "travel_date",
         "status",
         "full_name",
@@ -549,6 +559,9 @@ class BookingAdmin(admin.ModelAdmin):
         "base_subtotal",
         "extras_subtotal",
         "grand_total",
+        "trip_option",
+        "trip_option_label",
+        "trip_option_price_per_person",
         "created_at",
         "status_updated_at",
     )
