@@ -730,13 +730,13 @@ class HomePageView(TemplateView):
             ),
             (
                 "one-day",
-                "1Day Tours",
+                "1Day",
                 base_queryset.filter(duration_days=1).order_by("title"),
                 None,
             ),
             (
                 "multi-day",
-                "Multi-Days Tours",
+                "Multi-Days",
                 base_queryset.filter(duration_days__gte=2).order_by(
                     "duration_days", "title"
                 ),
@@ -750,7 +750,7 @@ class HomePageView(TemplateView):
             ),
             (
                 "luxury",
-                "Luxury Tours",
+                "Luxury",
                 base_queryset.filter(category_tags__slug="luxury")
                 .distinct()
                 .order_by("-base_price_per_person"),
@@ -995,10 +995,10 @@ class TripListView(TemplateView):
     COLLECTION_OPTIONS = [
         ("all", "All Trips"),
         ("recommended", "Recommended"),
-        ("one-day", "1Day Tours"),
-        ("multi-day", "Multi-Days Tours"),
+        ("one-day", "1Day"),
+        ("multi-day", "Multi-Days"),
         ("packages", "Packages"),
-        ("luxury", "Luxury Tours"),
+        ("luxury", "Luxury"),
     ]
 
     def get_context_data(self, **kwargs):

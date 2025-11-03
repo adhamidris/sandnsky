@@ -2657,4 +2657,13 @@
 
 .trip-picks__toggle-group {
   justify-content: center !important;
+  padding: 5px !important;
+}
+
+.trip-collections-mobile{
+  padding: 10px !important;
+}
+
+.trip-collections-mobile .trip-picks__toggle-group a {
+  padding: 12px !important;
 }
