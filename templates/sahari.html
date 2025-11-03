@@ -1,0 +1,593 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Desert Wanderings | Egyptian Sahara Expeditions</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --sand-50: #faf8f3;
+      --sand-100: #f5f1e8;
+      --sand-200: #ebe4d3;
+      --sand-300: #ddd1b8;
+      --sand-400: #c9b99a;
+      --sand-500: #b39d7a;
+      --sand-600: #8d7a5e;
+      --sand-700: #6b5d49;
+      --sand-800: #4a4034;
+      --sand-900: #2d271f;
+      
+      --desert-gold: #d4af37;
+      --desert-bronze: #b8860b;
+      --night-sky: #1a1614;
+      
+      --font-body: 'Inter', -apple-system, system-ui, sans-serif;
+      --font-heading: 'Playfair Display', Georgia, serif;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: var(--font-body);
+      color: var(--sand-900);
+      background: var(--sand-50);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    /* Hero Section */
+    .desert-hero {
+      position: relative;
+      height: 85vh;
+      min-height: 600px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background: linear-gradient(135deg, var(--sand-800) 0%, var(--sand-700) 100%);
+    }
+    
+    .desert-hero__bg {
+      position: absolute;
+      inset: 0;
+      background: url('https://pub-b5144fdd56fb4b018c6d025a213f59d3.r2.dev/sandnsky.jpg') center/cover;
+      opacity: 0.3;
+      z-index: 0;
+    }
+    
+    .desert-hero__overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, transparent 0%, rgba(26, 22, 20, 0.7) 100%);
+      z-index: 1;
+    }
+    
+    .desert-hero__content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 0 24px;
+      max-width: 900px;
+    }
+    
+    .desert-hero__eyebrow {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--desert-gold);
+      margin-bottom: 24px;
+      opacity: 0.9;
+    }
+    
+    .desert-hero__title {
+      font-family: var(--font-heading);
+      font-size: clamp(42px, 7vw, 72px);
+      font-weight: 600;
+      line-height: 1.1;
+      color: var(--sand-50);
+      margin-bottom: 28px;
+      letter-spacing: -0.02em;
+    }
+    
+    .desert-hero__subtitle {
+      font-size: clamp(16px, 2vw, 20px);
+      line-height: 1.7;
+      color: rgba(245, 241, 232, 0.85);
+      max-width: 680px;
+      margin: 0 auto 42px;
+    }
+    
+    .desert-hero__cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 42px;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: var(--night-sky);
+      background: var(--sand-50);
+      border: 2px solid transparent;
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+    
+    .desert-hero__cta:hover {
+      background: transparent;
+      border-color: var(--sand-50);
+      color: var(--sand-50);
+      transform: translateY(-2px);
+    }
+    
+    /* Section Container */
+    .section {
+      padding: clamp(64px, 10vw, 120px) 24px;
+    }
+    
+    .section--alt {
+      background: linear-gradient(to bottom, var(--sand-100) 0%, var(--sand-50) 100%);
+    }
+    
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+    
+    .section__header {
+      text-align: center;
+      margin-bottom: clamp(48px, 8vw, 72px);
+    }
+    
+    .section__eyebrow {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--desert-bronze);
+      margin-bottom: 16px;
+    }
+    
+    .section__title {
+      font-family: var(--font-heading);
+      font-size: clamp(32px, 5vw, 48px);
+      font-weight: 600;
+      line-height: 1.2;
+      color: var(--sand-900);
+      margin-bottom: 18px;
+      letter-spacing: -0.01em;
+    }
+    
+    .section__subtitle {
+      font-size: clamp(16px, 1.8vw, 18px);
+      line-height: 1.7;
+      color: var(--sand-700);
+      max-width: 640px;
+      margin: 0 auto;
+    }
+    
+    /* Destinations Grid */
+    .destinations-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 32px;
+    }
+    
+    .destination-card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 4px;
+      background: white;
+      box-shadow: 0 4px 24px rgba(26, 22, 20, 0.08);
+      transition: all 0.4s ease;
+      height: 420px;
+      cursor: pointer;
+    }
+    
+    .destination-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 48px rgba(26, 22, 20, 0.15);
+    }
+    
+    .destination-card__image {
+      width: 100%;
+      height: 280px;
+      object-fit: cover;
+      transition: transform 0.6s ease;
+    }
+    
+    .destination-card:hover .destination-card__image {
+      transform: scale(1.08);
+    }
+    
+    .destination-card__content {
+      padding: 24px;
+    }
+    
+    .destination-card__location {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--desert-bronze);
+      margin-bottom: 8px;
+    }
+    
+    .destination-card__title {
+      font-family: var(--font-heading);
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 1.3;
+      color: var(--sand-900);
+      margin-bottom: 8px;
+    }
+    
+    .destination-card__description {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--sand-700);
+    }
+    
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 80px 24px;
+      color: var(--sand-600);
+    }
+    
+    .empty-state__icon {
+      font-size: 64px;
+      margin-bottom: 24px;
+      opacity: 0.3;
+    }
+    
+    .empty-state__title {
+      font-family: var(--font-heading);
+      font-size: 24px;
+      color: var(--sand-700);
+      margin-bottom: 12px;
+    }
+    
+    .empty-state__text {
+      font-size: 16px;
+      color: var(--sand-600);
+      max-width: 420px;
+      margin: 0 auto;
+    }
+    
+    /* Trips Section */
+    .trips-list {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+    
+    .trip-card {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 32px;
+      background: white;
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(26, 22, 20, 0.08);
+      transition: all 0.4s ease;
+    }
+    
+    .trip-card:hover {
+      box-shadow: 0 8px 36px rgba(26, 22, 20, 0.12);
+      transform: translateX(8px);
+    }
+    
+    .trip-card__image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      min-height: 280px;
+    }
+    
+    .trip-card__content {
+      padding: 32px 32px 32px 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    
+    .trip-card__meta {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--desert-bronze);
+    }
+    
+    .trip-card__title {
+      font-family: var(--font-heading);
+      font-size: 28px;
+      font-weight: 600;
+      line-height: 1.3;
+      color: var(--sand-900);
+      margin-bottom: 14px;
+    }
+    
+    .trip-card__description {
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--sand-700);
+      margin-bottom: 24px;
+    }
+    
+    .trip-card__features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    
+    .trip-card__feature {
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      background: var(--sand-100);
+      color: var(--sand-800);
+      border-radius: 2px;
+    }
+    
+    .trip-card__cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      align-self: flex-start;
+      padding: 12px 28px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: var(--sand-50);
+      background: var(--sand-900);
+      border: 2px solid var(--sand-900);
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+    
+    .trip-card__cta:hover {
+      background: transparent;
+      color: var(--sand-900);
+    }
+    
+    /* Gallery Grid */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    
+    .gallery-item {
+      position: relative;
+      overflow: hidden;
+      border-radius: 4px;
+      aspect-ratio: 4/3;
+      cursor: pointer;
+      background: var(--sand-200);
+    }
+    
+    .gallery-item__image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.6s ease;
+    }
+    
+    .gallery-item:hover .gallery-item__image {
+      transform: scale(1.1);
+    }
+    
+    .gallery-item__overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(26, 22, 20, 0.8) 0%, transparent 50%);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      display: flex;
+      align-items: flex-end;
+      padding: 24px;
+    }
+    
+    .gallery-item:hover .gallery-item__overlay {
+      opacity: 1;
+    }
+    
+    .gallery-item__caption {
+      color: var(--sand-50);
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+    
+    /* Responsive */
+    @media (max-width: 968px) {
+      .trip-card {
+        grid-template-columns: 1fr;
+      }
+      
+      .trip-card__content {
+        padding: 32px;
+      }
+    }
+    
+    @media (max-width: 640px) {
+      .section {
+        padding: 48px 20px;
+      }
+      
+      .desert-hero {
+        height: 70vh;
+        min-height: 500px;
+      }
+      
+      .destinations-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .gallery-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  
+  <!-- Hero Section -->
+  <section class="desert-hero">
+    <div class="desert-hero__bg"></div>
+    <div class="desert-hero__overlay"></div>
+    <div class="desert-hero__content">
+      <span class="desert-hero__eyebrow">Egyptian Expeditions</span>
+      <h1 class="desert-hero__title">Wander the Eternal Sands</h1>
+      <p class="desert-hero__subtitle">
+        Embark on journeys where silence speaks volumes and every dune tells a story—curated expeditions through Egypt's most magnificent desert landscapes.
+      </p>
+      <a href="#destinations" class="desert-hero__cta">
+        Explore Destinations
+        <span>→</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- Destinations Section -->
+  <section id="destinations" class="section">
+    <div class="container">
+      <div class="section__header">
+        <span class="section__eyebrow">Discover</span>
+        <h2 class="section__title">Desert Destinations</h2>
+        <p class="section__subtitle">
+          From the Western Desert's white chalk formations to the vast Sinai wilderness, explore Egypt's most breathtaking desert landscapes.
+        </p>
+      </div>
+      
+      {% if destinations %}
+        <div class="destinations-grid">
+          {% for destination in destinations %}
+            <article class="destination-card">
+              <img src="{{ destination.image.url }}" alt="{{ destination.name }}" class="destination-card__image">
+              <div class="destination-card__content">
+                <span class="destination-card__location">{{ destination.region }}</span>
+                <h3 class="destination-card__title">{{ destination.name }}</h3>
+                <p class="destination-card__description">{{ destination.description|truncatewords:15 }}</p>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-state__icon">🏜️</div>
+          <h3 class="empty-state__title">No Destinations Yet</h3>
+          <p class="empty-state__text">
+            Desert destinations will appear here once they're added to the system.
+          </p>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- Trips Section -->
+  <section id="trips" class="section section--alt">
+    <div class="container">
+      <div class="section__header">
+        <span class="section__eyebrow">Adventures</span>
+        <h2 class="section__title">Curated Expeditions</h2>
+        <p class="section__subtitle">
+          Meticulously crafted journeys that blend adventure, luxury, and cultural immersion in Egypt's most remote and stunning desert regions.
+        </p>
+      </div>
+      
+      {% if trips %}
+        <div class="trips-list">
+          {% for trip in trips %}
+            <article class="trip-card">
+              <img src="{{ trip.image.url }}" alt="{{ trip.title }}" class="trip-card__image">
+              <div class="trip-card__content">
+                <div class="trip-card__meta">
+                  <span>{{ trip.duration }} Days</span>
+                  <span>{{ trip.difficulty }}</span>
+                </div>
+                <h3 class="trip-card__title">{{ trip.title }}</h3>
+                <p class="trip-card__description">{{ trip.description|truncatewords:25 }}</p>
+                <div class="trip-card__features">
+                  {% for feature in trip.features %}
+                    <span class="trip-card__feature">{{ feature }}</span>
+                  {% endfor %}
+                </div>
+                <a href="{% url 'trip_detail' trip.slug %}" class="trip-card__cta">
+                  View Expedition
+                  <span>→</span>
+                </a>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-state__icon">🧭</div>
+          <h3 class="empty-state__title">No Expeditions Available</h3>
+          <p class="empty-state__text">
+            Curated desert expeditions will be displayed here once they're created.
+          </p>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- Gallery Section -->
+  <section id="gallery" class="section">
+    <div class="container">
+      <div class="section__header">
+        <span class="section__eyebrow">Captured Moments</span>
+        <h2 class="section__title">Desert Chronicles</h2>
+        <p class="section__subtitle">
+          A visual journey through golden dunes, star-lit camps, and the raw beauty of Egypt's desert wilderness.
+        </p>
+      </div>
+      
+      {% if gallery_images %}
+        <div class="gallery-grid">
+          {% for image in gallery_images %}
+            <div class="gallery-item">
+              <img src="{{ image.image.url }}" alt="{{ image.caption }}" class="gallery-item__image">
+              <div class="gallery-item__overlay">
+                <span class="gallery-item__caption">{{ image.caption }}</span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-state__icon">📸</div>
+          <h3 class="empty-state__title">Gallery Coming Soon</h3>
+          <p class="empty-state__text">
+            Desert photography and expedition moments will be showcased here.
+          </p>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+
+</body>
+</html>

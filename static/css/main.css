@@ -1744,7 +1744,6 @@
     width: 100%;
     max-width: 100%;
   }
-
   
   .sahari-banner__eyebrow {
     display: inline-block;
@@ -1789,7 +1788,7 @@
   
   .sahari-banner__subtitle {
     margin: 0;
-    max-width: 100%; /* Changed from 46ch */
+    max-width: 100%;
     font-size: clamp(15px,1.6vw,17px);
     line-height: 1.7;
     background: linear-gradient(
@@ -1808,6 +1807,60 @@
     animation-delay: 1s;
   }
   
+  .sahari-banner__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 12px 32px;
+    font: 600 14px/1 Inter, system-ui;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: #fff6dd;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 246, 221, 0.3);
+    border-radius: 2px;
+    backdrop-filter: blur(8px);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .sahari-banner__cta::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      transparent 100%
+    );
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+  }
+  
+  .sahari-banner__cta:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 246, 221, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+  
+  .sahari-banner__cta:hover::before {
+    transform: translateX(100%);
+  }
+  
+  .sahari-banner__cta-arrow {
+    display: inline-block;
+    transition: transform 0.3s ease;
+  }
+  
+  .sahari-banner__cta:hover .sahari-banner__cta-arrow {
+    transform: translateX(4px);
+  }
+  
   @keyframes shine {
     0% {
       background-position: 200% center;
@@ -1819,9 +1872,13 @@
   
   @media (max-width:640px) {
     .sahari-banner__copy {
-      align-items: flex-start;
       gap: 14px;
       padding: 28px;
+    }
+    
+    .sahari-banner__cta {
+      padding: 10px 24px;
+      font-size: 13px;
     }
   }
   /* features */
