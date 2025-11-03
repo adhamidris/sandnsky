@@ -23,9 +23,16 @@
     /* Nav */
     --nav-h: 64px;
     --nav-h-lg: 76px;
+    --nav-sticky-offset: calc(var(--nav-h) + 20px);
     --nav-bg: rgba(194,192,162,.95);
     --nav-bg-mobile: rgba(194,192,162,.98);
     --nav-blur: 10px;
+  }
+  
+  @media (min-width:768px){
+    :root{
+      --nav-sticky-offset: calc(var(--nav-h-lg) + 28px);
+    }
   }
   
   /* Resets & Base */
@@ -74,9 +81,9 @@
   backdrop-filter: saturate(120%) blur(var(--nav-blur));
 }
 
-.nav + main{ padding-top: var(--nav-h); }
+.nav + main{ padding-top: var(--nav-sticky-offset, var(--nav-h)); }
 @media (min-width:768px){
-  .nav + main{ padding-top: var(--nav-h-lg); }
+  .nav + main{ padding-top: var(--nav-sticky-offset, var(--nav-h-lg)); }
 }
 
 /* Booking drawer must sit above nav when open (Tailwind pages) */
@@ -87,13 +94,7 @@
 /* Secondary nav bars on Tailwind pages */
 .tailwind-subnav{
   background: #edece7 !important;
-  top: var(--nav-h, 64px) !important;
-}
-
-@media (min-width:768px){
-  .tailwind-subnav{
-    top: var(--nav-h-lg, 76px) !important;
-  }
+  top: var(--nav-sticky-offset, var(--nav-h, 64px)) !important;
 }
 
 /* ==============================
@@ -2572,4 +2573,8 @@
 .quick-add-card-media img {
   min-height: 120px !important;
   height: 100% !important;
+}
+
+.desktop-links a{
+  font-size: 1rem !important;
 }

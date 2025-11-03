@@ -1,3 +1,26 @@
+  // ===== Sync nav offset with actual header height =====
+  (function () {
+    const root = document.documentElement;
+    const header = document.querySelector('header.nav');
+    if (!root || !header) return;
+
+    const applyOffset = () => {
+      const height = header.getBoundingClientRect().height;
+      if (!height || !Number.isFinite(height)) return;
+      root.style.setProperty('--nav-sticky-offset', `${Math.round(height)}px`);
+    };
+
+    applyOffset();
+
+    if (typeof ResizeObserver === 'function') {
+      const observer = new ResizeObserver(() => applyOffset());
+      observer.observe(header);
+      window.addEventListener('beforeunload', () => observer.disconnect());
+    } else {
+      window.addEventListener('resize', applyOffset);
+    }
+  })();
+
   (function () {
     const el = document.getElementById('countdown');
     if (!el) return;
