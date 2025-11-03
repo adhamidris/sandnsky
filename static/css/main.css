@@ -938,7 +938,18 @@
     border-radius:999px;
     box-shadow:0 18px 40px rgba(0,0,0,.08);
   }
+  .trip-collections-mobile .trip-picks__toggle-group{
+    justify-content:flex-start;
+    box-shadow:0 16px 34px rgba(0,0,0,.06);
+  }
+  .trip-collections-desktop .trip-picks__toggle-group{
+    justify-content:flex-end;
+  }
   .trip-picks__toggle{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    text-decoration:none;
     position:relative;
     border:0;
     border-radius:999px;
@@ -1156,6 +1167,15 @@
 .trip-picks__card:focus-within{
   transform:translateY(-4px);
 }
+.trip-picks__card--package{
+  border-color:rgba(234,220,194,.28);
+  background:#fff;
+  box-shadow:none;
+}
+.trip-picks__card--package:hover,
+.trip-picks__card--package:focus-within{
+  box-shadow:none;
+}
   .trip-picks__link{
     display:flex;
     flex-direction:column;
@@ -1193,6 +1213,42 @@
     flex-direction:column;
     gap:12px;
     flex:1;
+  }
+  .trip-picks__package-banner{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    padding:14px 16px;
+    border-radius:16px;
+    border:1px solid rgba(234,220,194,.26);
+    background:rgba(234,220,194,.18);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.45);
+  }
+  .trip-picks__package-eyebrow{
+    font:600 11px/1 Inter,system-ui;
+    letter-spacing:.28em;
+    text-transform:uppercase;
+    color:#4a3f35;
+  }
+  .trip-picks__package-route{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:10px;
+    font:600 14px/1.4 Inter,system-ui;
+    color:#1a2b4a;
+  }
+  .trip-picks__package-stop{
+    padding:6px 12px;
+    border-radius:999px;
+    background:rgba(255,255,255,.8);
+    border:1px solid rgba(26,43,74,.12);
+    box-shadow:0 6px 14px rgba(26,43,74,.08);
+  }
+  .trip-picks__package-separator{
+    font-size:16px;
+    opacity:.55;
+    color:#4a3f35;
   }
   .trip-picks__badge{
     display:inline-flex;
@@ -1242,6 +1298,26 @@
     line-height:1.5;
     font-size:14px;
   }
+  .trip-picks__description--package{
+    color:#41372f;
+  }
+@media (max-width:767px){
+  .trip-picks__package-banner{
+    padding:12px 14px;
+    gap:8px;
+  }
+  .trip-picks__package-route{
+    gap:6px;
+  }
+  .trip-picks__package-stop{
+    padding:4px 8px;
+    font-size:11px;
+    box-shadow:0 3px 8px rgba(26,43,74,.08);
+  }
+  .trip-picks__package-separator{
+    font-size:13px;
+  }
+}
   .trip-picks__meta{
     display:flex;
     flex-wrap:wrap;
@@ -2577,4 +2653,8 @@
 
 .desktop-links a{
   font-size: 1rem !important;
+}
+
+.trip-picks__toggle-group {
+  justify-content: center !important;
 }

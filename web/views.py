@@ -64,6 +64,7 @@ from .models import (
     TripExtra,
     TripGalleryImage,
     Review,
+    PACKAGE_TRIP_CATEGORY_SLUG,
 )
 from .rewards import (
     RewardComputationError,
@@ -126,12 +127,20 @@ def traveler_summary(adults, children, infants):
 
 
 def _all_destination_names(trip):
+    get_names = getattr(trip, "get_destination_names", None)
+    if callable(get_names):
+        return get_names()
     names = []
-    if trip.destination_id and trip.destination.name not in names:
-        names.append(trip.destination.name)
-    for destination in trip.additional_destinations.all():
-        if destination.name not in names:
-            names.append(destination.name)
+    primary = getattr(trip, "destination", None)
+    primary_name = getattr(primary, "name", None)
+    if primary_name and primary_name not in names:
+        names.append(primary_name)
+    additional = getattr(trip, "additional_destinations", None)
+    if additional is not None:
+        for destination in additional.all():
+            destination_name = getattr(destination, "name", None)
+            if destination_name and destination_name not in names:
+                names.append(destination_name)
     return names
 
 
@@ -270,6 +279,7 @@ def build_trip_card(trip):
     primary_category = next((category.name for category in trip.category_tags.all()), "")
     image_url = trip.card_image.url if trip.card_image else ""
     destination_names = _all_destination_names(trip)
+    route_display = " → ".join(destination_names) if len(destination_names) > 1 else ""
     languages = [language.code.upper() for language in trip.languages.all() if language.code]
     if not destination_names:
         destinations_label = ""
@@ -286,6 +296,9 @@ def build_trip_card(trip):
         "description": trip.teaser,
         "image_url": image_url,
         "category": primary_category,
+        "is_package_trip": getattr(trip, "is_package_trip", False),
+        "route": route_display,
+        "route_steps": destination_names,
         "duration": duration_label(trip.duration_days),
         "group_size": f"Up to {trip.group_size_max} guests",
         "location": destinations_label,
@@ -713,11 +726,13 @@ class HomePageView(TemplateView):
                 "recommended",
                 "Recommended",
                 base_queryset.order_by("-created_at"),
+                None,
             ),
             (
                 "one-day",
                 "1Day Tours",
                 base_queryset.filter(duration_days=1).order_by("title"),
+                None,
             ),
             (
                 "multi-day",
@@ -725,6 +740,13 @@ class HomePageView(TemplateView):
                 base_queryset.filter(duration_days__gte=2).order_by(
                     "duration_days", "title"
                 ),
+                None,
+            ),
+            (
+                "packages",
+                "Packages",
+                base_queryset.order_by("-duration_days", "title"),
+                lambda trip: trip.total_destination_count() > 2,
             ),
             (
                 "luxury",
@@ -732,27 +754,33 @@ class HomePageView(TemplateView):
                 base_queryset.filter(category_tags__slug="luxury")
                 .distinct()
                 .order_by("-base_price_per_person"),
+                None,
             ),
         ]
 
         toggles = []
         seen_slugs = set()
-        for slug, label, queryset in toggles_config:
+        for slug, label, queryset, predicate in toggles_config:
             if slug in seen_slugs:
                 continue
             seen_slugs.add(slug)
-            trips = [
-                {
-                    **build_trip_card(trip),
-                    "in_cart": trip.slug in cart_trip_slugs,
-                }
-                for trip in queryset[:limit_per_toggle]
-            ]
+            cards = []
+            for trip in queryset:
+                if predicate and not predicate(trip):
+                    continue
+                cards.append(
+                    {
+                        **build_trip_card(trip),
+                        "in_cart": trip.slug in cart_trip_slugs,
+                    }
+                )
+                if len(cards) >= limit_per_toggle:
+                    break
             toggles.append(
                 {
                     "slug": slug,
                     "label": label,
-                    "cards": trips,
+                    "cards": cards,
                 }
             )
 
@@ -964,6 +992,14 @@ class TripListView(TemplateView):
         {"value": "medium", "label": "9 – 16 guests", "min": 9, "max": 16},
         {"value": "large", "label": "17+ guests", "min": 17, "max": None},
     ]
+    COLLECTION_OPTIONS = [
+        ("all", "All Trips"),
+        ("recommended", "Recommended"),
+        ("one-day", "1Day Tours"),
+        ("multi-day", "Multi-Days Tours"),
+        ("packages", "Packages"),
+        ("luxury", "Luxury Tours"),
+    ]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -985,12 +1021,13 @@ class TripListView(TemplateView):
             destination_hero = _destination_hero_context(selected_destination)
 
         filter_values = self._extract_filter_values()
+        active_collection = filter_values.get("collection", "all")
         trips = self._apply_filters(trips, filter_values)
 
         if selected_destination:
             trips = self._order_for_destination(trips, selected_destination)
         else:
-            trips = trips.order_by("title")
+            trips = self._order_for_collection(trips, active_collection)
 
         paginator = Paginator(trips, 10)
         page_number = self.request.GET.get("page")
@@ -1031,6 +1068,8 @@ class TripListView(TemplateView):
         context["destination_gallery"] = _destination_gallery_context(selected_destination)
         context["filter_options"] = self._filter_options(selected_destination)
         context["active_filters"] = filter_values
+        context["active_collection"] = active_collection
+        context["collection_toggles"] = self._collection_toggle_links(active_collection)
         context["default_trips_hero_image"] = (
             site_config.trips_hero_image.url if site_config.trips_hero_image else ""
         )
@@ -1067,6 +1106,7 @@ class TripListView(TemplateView):
 
         duration_choices = {bucket["value"] for bucket in self.DURATION_BUCKETS}
         group_choices = {bucket["value"] for bucket in self.GROUP_SIZE_BUCKETS}
+        collection_choices = {slug for slug, _ in self.COLLECTION_OPTIONS}
 
         return {
             "search": (params.get("search") or "").strip(),
@@ -1088,6 +1128,11 @@ class TripListView(TemplateView):
                 for value in params.getlist("group_size")
                 if value in group_choices
             ],
+            "collection": (
+                params.get("collection")
+                if params.get("collection") in collection_choices - {"all"}
+                else "all"
+            ),
         }
 
     def _apply_filters(self, queryset, filters):
@@ -1130,6 +1175,20 @@ class TripListView(TemplateView):
                     group_q |= condition
             queryset = queryset.filter(group_q)
 
+        collection = filters.get("collection", "all")
+        if collection == "one-day":
+            queryset = queryset.filter(duration_days=1)
+        elif collection == "multi-day":
+            queryset = queryset.filter(duration_days__gte=2)
+        elif collection == "packages":
+            queryset = queryset.filter(
+                category_tags__slug=PACKAGE_TRIP_CATEGORY_SLUG
+            )
+            needs_distinct = True
+        elif collection == "luxury":
+            queryset = queryset.filter(category_tags__slug="luxury")
+            needs_distinct = True
+
         search = filters.get("search")
         if search:
             terms = [term for term in search.split() if term]
@@ -1161,6 +1220,41 @@ class TripListView(TemplateView):
             OrderBy(F("destination_order"), nulls_last=True),
             "title",
         )
+
+    def _order_for_collection(self, queryset, collection):
+        if collection == "recommended":
+            return queryset.order_by("-created_at", "title")
+        if collection == "multi-day":
+            return queryset.order_by("duration_days", "title")
+        if collection == "packages":
+            return queryset.order_by("-duration_days", "title")
+        if collection == "luxury":
+            return queryset.order_by("-base_price_per_person", "title")
+        return queryset.order_by("title")
+
+    def _collection_toggle_links(self, active_slug):
+        active_slug = active_slug or "all"
+        base_params = self.request.GET.copy()
+        base_params.pop("page", None)
+
+        toggles = []
+        for slug, label in self.COLLECTION_OPTIONS:
+            params = base_params.copy()
+            if slug == "all":
+                params.pop("collection", None)
+            else:
+                params["collection"] = slug
+            query_string = params.urlencode()
+            href = f"{self.request.path}?{query_string}" if query_string else self.request.path
+            toggles.append(
+                {
+                    "slug": slug,
+                    "label": label,
+                    "href": href,
+                    "is_active": slug == active_slug,
+                }
+            )
+        return toggles
 
     def _filter_options(self, selected_destination):
         trips = self._base_queryset()

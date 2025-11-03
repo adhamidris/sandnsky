@@ -1,31 +1,13 @@
-from django.db.models.signals import post_delete, post_save
+from django.db.models.signals import m2m_changed
 from django.dispatch import receiver
 
-from .models import RewardPhase, RewardPhaseTrip
+from .models import Trip
 
 
-def _invalidate_reward_cache():
-    # Import locally to avoid circular dependency during app loading.
-    from .rewards import invalidate_reward_phase_cache
-
-    invalidate_reward_phase_cache()
-
-
-@receiver(post_save, sender=RewardPhase)
-def reward_phase_saved(sender, **kwargs):
-    _invalidate_reward_cache()
-
-
-@receiver(post_delete, sender=RewardPhase)
-def reward_phase_deleted(sender, **kwargs):
-    _invalidate_reward_cache()
-
-
-@receiver(post_save, sender=RewardPhaseTrip)
-def reward_phase_trip_saved(sender, **kwargs):
-    _invalidate_reward_cache()
-
-
-@receiver(post_delete, sender=RewardPhaseTrip)
-def reward_phase_trip_deleted(sender, **kwargs):
-    _invalidate_reward_cache()
+@receiver(m2m_changed, sender=Trip.additional_destinations.through)
+def handle_additional_destinations_change(sender, instance, action, **kwargs):
+    if action not in {"post_add", "post_remove", "post_clear"}:
+        return
+    if not isinstance(instance, Trip):
+        return
+    instance.sync_package_trip_category()

@@ -49,7 +49,7 @@
           <div class="trip-picks__viewport" data-trip-viewport>
             <div class="trip-picks__track" data-trip-track>
               {% for trip in toggle.cards %}
-              <article class="trip-picks__card">
+              <article class="trip-picks__card{% if trip.is_package_trip %} trip-picks__card--package{% endif %}">
                 <a href="{% url 'web:trip-detail' trip.slug %}" class="trip-picks__link">
                   <div class="trip-picks__media">
                     <!-- {% if trip.languages %}
@@ -70,12 +70,25 @@
                     </div>
                   </div>
                   <div class="trip-picks__body">
-                    {% if trip.category %}
-                    <span class="trip-picks__badge">{{ trip.category }}</span>
+                    {% if trip.is_package_trip and trip.route_steps %}
+                    <div class="trip-picks__package-banner" aria-label="Trip route">
+                      <span class="trip-picks__package-eyebrow">Signature route</span>
+                      <div class="trip-picks__package-route">
+                        {% for stop in trip.route_steps %}
+                        <span class="trip-picks__package-stop">{{ stop }}</span>
+                        <!-- {% if not forloop.last %}
+                        <span class="trip-picks__package-separator" aria-hidden="true">→</span>
+                        {% endif %} -->
+                        {% endfor %}
+                      </div>
+                    </div>
                     {% endif %}
+                    <!-- {% if trip.category %}
+                    <span class="trip-picks__badge">{{ trip.category }}</span>
+                    {% endif %} -->
                     <h3 class="trip-picks__title">{{ trip.title }}</h3>
-                    <!-- {% if trip.description %}
-                    <p class="trip-picks__description">{{ trip.description }}</p>
+                    <!-- {% if trip.is_package_trip and trip.description %}
+                    <p class="trip-picks__description trip-picks__description--package">{{ trip.description }}</p>
                     {% endif %} -->
                     <div class="trip-picks__meta">
                       <span>{{ trip.duration }}</span>

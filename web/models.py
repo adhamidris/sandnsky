@@ -1,3 +1,6 @@
+from functools import lru_cache
+from typing import Iterable, List
+
 from django.db import models
 from django.core.validators import FileExtensionValidator, MaxValueValidator, MinValueValidator
 from django.db.models import Q
@@ -56,6 +59,33 @@ class DestinationName(models.TextChoices):
 
 
 ALLOWED_DESTINATIONS = [choice.value for choice in DestinationName]
+
+PACKAGE_DESTINATION_EQUIVALENCE_GROUPS = [
+    frozenset({DestinationName.WHITE_BLACK.value, DestinationName.BAHAREYA.value}),
+    frozenset({DestinationName.CAIRO.value, DestinationName.GIZA.value}),
+]
+
+
+def _unique_preserve_order(values: Iterable[str]) -> List[str]:
+    seen = set()
+    result: List[str] = []
+    for value in values:
+        if not value or value in seen:
+            continue
+        seen.add(value)
+        result.append(value)
+    return result
+
+
+def _count_package_destinations(names: Iterable[str]) -> int:
+    remaining = {name for name in names if name}
+    count = 0
+    for group in PACKAGE_DESTINATION_EQUIVALENCE_GROUPS:
+        if remaining & group:
+            count += 1
+            remaining -= group
+    count += len(remaining)
+    return count
 
 
 class Destination(models.Model):
@@ -179,6 +209,19 @@ class TripCategory(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+
+PACKAGE_TRIP_CATEGORY_SLUG = "package-trip"
+PACKAGE_TRIP_CATEGORY_NAME = "Package Trip"
+
+
+@lru_cache(maxsize=1)
+def get_package_trip_category():
+    category, _ = TripCategory.objects.get_or_create(
+        slug=PACKAGE_TRIP_CATEGORY_SLUG,
+        defaults={"name": PACKAGE_TRIP_CATEGORY_NAME},
+    )
+    return category
 
 
 class Language(models.Model):
@@ -571,6 +614,26 @@ class Trip(models.Model):
         if not self.slug:
             self.slug = _generate_unique_slug(self, self.title)
         super().save(*args, **kwargs)
+        self.sync_package_trip_category()
+
+    def get_destination_names(self) -> List[str]:
+        primary = self.__dict__.get("destination")
+        primary_name = getattr(primary, "name", None) or ""
+        if not primary_name and self.destination_id:
+            primary_name = (
+                Destination.objects.filter(pk=self.destination_id)
+                .values_list("name", flat=True)
+                .first()
+                or ""
+            )
+        names: List[str] = [primary_name] if primary_name else []
+
+        if self.pk:
+            for destination in self.additional_destinations.all():
+                if destination and destination.name:
+                    names.append(destination.name)
+
+        return _unique_preserve_order(names)
 
     def get_child_price_per_person(self):
         """
@@ -587,6 +650,28 @@ class Trip(models.Model):
         if child_price is None:
             return False
         return child_price != self.base_price_per_person
+
+    def total_destination_count(self) -> int:
+        names = self.get_destination_names()
+        return _count_package_destinations(names)
+
+    def sync_package_trip_category(self):
+        if not self.pk:
+            return
+
+        category = get_package_trip_category()
+        total_destinations = self.total_destination_count()
+        is_tagged = self.category_tags.filter(pk=category.pk).exists()
+
+        if total_destinations > 2:
+            if not is_tagged:
+                self.category_tags.add(category)
+        elif is_tagged:
+            self.category_tags.remove(category)
+
+    @property
+    def is_package_trip(self) -> bool:
+        return self.total_destination_count() > 2
 
 
 class TripGalleryImage(models.Model):
