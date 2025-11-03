@@ -406,6 +406,97 @@
     opacity: 1;
   }
 
+  @keyframes luxury-text-shine{
+    0%{ background-position:-120% 50%; }
+    50%{ background-position:120% 50%; }
+    100%{ background-position:220% 50%; }
+  }
+
+  .luxury-link{
+    position:relative;
+    color:#f3dca1;
+    font-weight:600;
+    letter-spacing:.05em;
+    text-shadow:0 0 8px rgba(255,233,170,.55);
+    overflow:hidden;
+  }
+
+  .luxury-link[aria-current="page"]{
+    color:#fff3c0;
+    text-shadow:0 0 10px rgba(255,240,190,.7);
+  }
+
+  @supports (-webkit-background-clip: text) {
+    .luxury-link{
+      background-image:linear-gradient(
+        120deg,
+        #8a641c 0%,
+        #d6ae52 20%,
+        #fff2be 45%,
+        #d6ae52 70%,
+        #8a641c 100%
+      );
+      background-size:200% 100%;
+      -webkit-background-clip:text;
+      color:transparent;
+      -webkit-text-fill-color:transparent;
+      animation:luxury-text-shine 4.5s linear infinite;
+    }
+    .luxury-link[aria-current="page"]{
+      background-image:linear-gradient(
+        120deg,
+        #b27b2f 0%,
+        #ffe9b0 40%,
+        #fff8d6 60%,
+        #ffe9b0 80%,
+        #b27b2f 100%
+      );
+    }
+  }
+
+  @supports (background-clip: text) and (not (-webkit-background-clip: text)) {
+    .luxury-link{
+      background-image:linear-gradient(
+        120deg,
+        #8a641c 0%,
+        #d6ae52 20%,
+        #fff2be 45%,
+        #d6ae52 70%,
+        #8a641c 100%
+      );
+      background-size:200% 100%;
+      background-clip:text;
+      color:transparent;
+      animation:luxury-text-shine 4.5s linear infinite;
+    }
+    .luxury-link[aria-current="page"]{
+      background-image:linear-gradient(
+        120deg,
+        #b27b2f 0%,
+        #ffe9b0 40%,
+        #fff8d6 60%,
+        #ffe9b0 80%,
+        #b27b2f 100%
+      );
+    }
+  }
+
+  .link.luxury-link[aria-current="page"]::after{
+    background:rgba(255,236,180,.7);
+    opacity:1;
+  }
+
+  .mobile-link.luxury-link[aria-current="page"]{
+    background:rgba(255,236,186,.18);
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .luxury-link{
+      animation:none;
+      background-position:50% 50%;
+    }
+  }
+
   /* --- 2.2 CTA + Cart (Visible on mobile; main CTA hidden) --- */
   .nav .cta{
     display:flex;

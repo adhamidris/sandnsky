@@ -40,7 +40,7 @@
       </a>
 
       <a href="/trips?collection=luxury#trip-list"
-         class="link"
+         class="link luxury-link"
          {% if request.path|slice:":6" == '/trips' and current_collection == 'luxury' %}aria-current="page"{% endif %}>
         Luxury
       </a>
@@ -85,7 +85,7 @@
         </a>
 
         <a href="/trips?collection=luxury#trip-list"
-           class="mobile-link"
+           class="mobile-link luxury-link"
            {% if request.path|slice:":6" == '/trips' and current_collection == 'luxury' %}aria-current="page"{% endif %}
            data-close-nav>
           Luxury

@@ -256,6 +256,53 @@
     });
   })();
 
+  // ===== Trip listing card navigation =====
+  (function () {
+    const cards = document.querySelectorAll('[data-trip-card-href]');
+    if (!cards.length) return;
+
+    const INTERACTIVE_SELECTOR = [
+      'a',
+      'button',
+      'input',
+      'select',
+      'textarea',
+      '[data-cart-toggle-button]',
+      '[data-quick-add-trigger]',
+      '[data-quick-add-step]',
+      '[data-quick-add-confirm]',
+      '[data-quick-add-cancel]',
+    ].join(', ');
+
+    const shouldIgnore = (target) => {
+      if (!target) return false;
+      return Boolean(target.closest(INTERACTIVE_SELECTOR));
+    };
+
+    cards.forEach((card) => {
+      const href = card.getAttribute('data-trip-card-href');
+      if (!href) return;
+
+      card.addEventListener('click', (event) => {
+        if (event.defaultPrevented) return;
+        if (shouldIgnore(event.target)) return;
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button === 1) {
+          window.open(href, '_blank');
+          return;
+        }
+        window.location.href = href;
+      });
+
+      card.addEventListener('keydown', (event) => {
+        if (event.defaultPrevented) return;
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        if (document.activeElement !== card) return;
+        event.preventDefault();
+        window.location.href = href;
+      });
+    });
+  })();
+
   // ===== Testimonials carousel (manual navigation) =====
   (function () {
     const carousels = document.querySelectorAll('[data-testimonials]');
