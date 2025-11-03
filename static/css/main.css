@@ -2423,10 +2423,6 @@
   text-decoration: underline !important;
 }
 
-.text-bluish {
-  color:  white !important;
-}
-
 .text-charo {
   color: white !important;
 }
@@ -2462,6 +2458,10 @@
 
 .small-booking-main {
   background-color: #1A2B4A !important;
+}
+
+.small-booking-main p {
+  color: white !important;
 }
 
 .trip-highlights h2 {
