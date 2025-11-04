@@ -390,7 +390,7 @@
     .trip-carousel {
       position: relative;
       overflow-x: auto;
-      padding: 0; /* avoid affecting inner width calc */
+      padding: 0;
       margin: 0;
       scroll-snap-type: x mandatory;
       scrollbar-width: none;
@@ -666,8 +666,8 @@
       }
 
       .trip-carousel {
-        margin: 0 -20px;
-        padding: 8px 20px 18px;
+        margin: 0;
+        padding: 8px 16px 18px;
       }
 
       .trip-carousel__nav {
@@ -728,6 +728,7 @@
 
       .trip-card {
         height: 420px;
+        box-shadow: none;
       }
 
       .trip-card__content {
@@ -744,13 +745,15 @@
 
       .sahari-tabs {
         width: 100%;
-        justify-content: flex-start;
-        overflow-x: auto;
-        scrollbar-width: none;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+        overflow: visible;
       }
 
-      .sahari-tabs::-webkit-scrollbar {
-        display: none;
+      .sahari-tab {
+        width: 100%;
+        text-align: center;
       }
 
       .gallery-grid {
@@ -927,7 +930,7 @@
         <div class="gallery-grid">
           {% for image in gallery_images %}
             <div class="gallery-item">
-              <img src="{{ image.image.url }}" alt="{{ image.title }}" class="gallery-item__image">
+              <img src="{{ image.image_url }}" alt="{{ image.title }}" class="gallery-item__image">
               <div class="gallery-item__overlay">
                 <h3 class="gallery-item__title">{{ image.title }}</h3>
                 <p class="gallery-item__caption">{{ image.caption }}</p>

@@ -890,10 +890,11 @@ class SahariPageView(TemplateView):
 
         trip_card_cache: dict[int, dict[str, Any]] = {}
         trip_cards: list[dict[str, Any]] = []
+        sahari_trips: list[Trip] = []
 
         if destination_lookup:
             destination_ids = list(destination_lookup.keys())
-            sahari_trips = (
+            sahari_trips = list(
                 Trip.objects.filter(
                     Q(destination_id__in=destination_ids)
                     | Q(additional_destinations__in=destination_ids)
@@ -903,6 +904,10 @@ class SahariPageView(TemplateView):
                     "additional_destinations",
                     "category_tags",
                     "languages",
+                    Prefetch(
+                        "gallery_images",
+                        queryset=TripGalleryImage.objects.order_by("position", "id"),
+                    ),
                 )
                 .order_by("destination_order", "title")
                 .distinct()
@@ -936,8 +941,62 @@ class SahariPageView(TemplateView):
             trip_count=len(trip_cards),
             trips=trip_cards,
         )
-        context.setdefault("gallery_images", [])
+        context["gallery_images"] = self._build_gallery_entries(
+            sahari_destinations,
+            sahari_trips,
+        )
         return context
+
+    def _build_gallery_entries(self, destinations, trips):
+        destination_ids = [destination.pk for destination in destinations]
+        trip_ids = [trip.pk for trip in trips]
+
+        gallery_entries: list[dict[str, str]] = []
+        seen_urls: set[str] = set()
+
+        if destination_ids:
+            destination_images = (
+                DestinationGalleryImage.objects.select_related("destination")
+                .filter(destination_id__in=destination_ids)
+                .order_by("destination_id", "position", "id")
+            )
+            for image in destination_images:
+                if not image.image:
+                    continue
+                url = image.image.url
+                if url in seen_urls:
+                    continue
+                seen_urls.add(url)
+                gallery_entries.append(
+                    {
+                        "image_url": url,
+                        "title": image.destination.name,
+                        "caption": image.caption or image.destination.tagline or "",
+                    }
+                )
+
+        if trip_ids:
+            trip_images = (
+                TripGalleryImage.objects.select_related("trip")
+                .filter(trip_id__in=trip_ids)
+                .order_by("trip_id", "position", "id")
+            )
+            for image in trip_images:
+                if not image.image:
+                    continue
+                url = image.image.url
+                if url in seen_urls:
+                    continue
+                seen_urls.add(url)
+                gallery_entries.append(
+                    {
+                        "image_url": url,
+                        "title": image.trip.title,
+                        "caption": image.caption or image.trip.teaser,
+                    }
+                )
+
+        return gallery_entries[:5]
 
 
 class DestinationListView(TemplateView):
