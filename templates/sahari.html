@@ -43,6 +43,295 @@
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
     }
+
+    /* Minimal Desert Nav */
+    .sahari-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 40;
+      padding: 12px 16px;
+      background: linear-gradient(to bottom, rgba(18,16,14,0.66), rgba(18,16,14,0));
+      color: var(--sand-50);
+      pointer-events: auto;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease, backdrop-filter 0.3s ease;
+    }
+
+    .sahari-nav.is-solid {
+      background: rgba(18,16,14,0.72);
+      backdrop-filter: saturate(120%) blur(6px);
+      box-shadow: 0 10px 30px rgba(18,16,14,0.22);
+    }
+
+    .sahari-nav__inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .sahari-nav__section {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .sahari-nav__brand {
+      font-family: var(--font-heading);
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      color: var(--sand-50);
+      text-shadow: 0 1px 10px rgba(0,0,0,0.2);
+      font-size: clamp(16px, 2.2vw, 20px);
+      user-select: none;
+      position: relative;
+      display: inline-block;
+      overflow: hidden;
+    }
+
+    /* Streaming shiny effect on the text itself */
+    @supports (background-clip: text) or (-webkit-background-clip: text) {
+      .sahari-nav__brand {
+        background-image: linear-gradient(120deg,
+          rgba(250,248,243,0.85) 0%,
+          rgba(250,248,243,0.85) 40%,
+          #ffffff 50%,
+          rgba(250,248,243,0.85) 60%,
+          rgba(250,248,243,0.85) 100%);
+        background-size: 250% 100%;
+        background-position: -150% 0;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        -webkit-text-fill-color: transparent;
+        animation: sahariTextShine 6.5s linear infinite;
+      }
+    }
+
+    @keyframes sahariTextShine {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .sahari-nav__brand { animation: none !important; }
+    }
+
+    .nav-iconbtn {
+      appearance: none;
+      border: 1px solid rgba(245,241,232,0.22);
+      border-radius: 999px;
+      background: rgba(18,16,14,0.35);
+      color: var(--sand-50);
+      width: 38px;
+      height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .nav-iconbtn:hover {
+      transform: translateY(-1px);
+      background: rgba(245,241,232,0.1);
+      border-color: rgba(245,241,232,0.32);
+    }
+
+    .nav-iconbtn:active { transform: translateY(0); }
+
+    .nav-icon {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      fill: none;
+    }
+
+    .sahari-nav__cart {
+      position: relative;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .sahari-nav__badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 999px;
+      background: var(--desert-gold);
+      color: var(--night-sky);
+      border: 1px solid rgba(26,22,20,0.25);
+      line-height: 1;
+    }
+
+    .sahari-nav__badge.is-visible { display: inline-flex; }
+
+    @media (max-width: 640px) {
+      .nav-iconbtn { width: 36px; height: 36px; }
+      .nav-icon { width: 16px; height: 16px; }
+      .sahari-nav { padding: 10px 14px; }
+      /* Mobile toast: edge-to-edge with margins, not a pill */
+      .sahari-toast {
+        left: 14px;
+        right: 14px;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 14px);
+        transform: translateY(8px);
+      }
+      .sahari-toast[data-open="true"] { transform: translateY(0); }
+      .sahari-toast__inner {
+        width: 100%;
+        border-radius: 8px;
+        justify-content: center;
+        padding: 10px 12px;
+        letter-spacing: .06em;
+        font-size: 13px;
+      }
+    }
+
+    /* Minimal toast notifier */
+    .sahari-toast {
+      position: fixed;
+      left: 50%;
+      bottom: clamp(14px, 4vw, 22px);
+      transform: translateX(-50%) translateY(8px);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 70;
+      transition: opacity .25s ease, transform .25s ease;
+    }
+    .sahari-toast[data-open="true"] {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    .sahari-toast__inner {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(18,16,14,0.72);
+      border: 1px solid rgba(200,188,164,0.28);
+      color: var(--sand-50);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .sahari-toast__icon { font-size: 14px; line-height: 1; color: var(--desert-gold); }
+
+    /* Sahari minimal cart (transparent overlay) */
+    .sahari-cart {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: grid;
+      grid-template-rows: 1fr;
+      align-items: start;
+      justify-items: center;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .25s ease;
+    }
+
+    .sahari-cart[data-open="true"] {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .sahari-cart__backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(12,10,9,0.45);
+      backdrop-filter: blur(2px);
+    }
+
+    .sahari-cart__dialog {
+      position: relative;
+      width: min(92vw, 760px);
+      margin-top: clamp(72px, 10vh, 120px);
+      background: rgba(18,16,14,0.28);
+      border: 1px solid rgba(200,188,164,0.22);
+      box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+      color: var(--sand-50);
+      border-radius: 14px;
+      overflow: hidden;
+      backdrop-filter: blur(10px) saturate(140%);
+      transform: translateY(8px) scale(.98);
+      transition: transform .25s ease;
+    }
+
+    .sahari-cart[data-open="true"] .sahari-cart__dialog {
+      transform: translateY(0) scale(1);
+    }
+
+    .sahari-cart__header,
+    .sahari-cart__footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0));
+    }
+
+    .sahari-cart__title {
+      font-family: var(--font-heading);
+      font-size: 18px;
+      letter-spacing: .04em;
+    }
+
+    .sahari-cart__close {
+      appearance: none;
+      border: 1px solid rgba(245,241,232,0.22);
+      border-radius: 999px;
+      background: rgba(18,16,14,0.35);
+      color: var(--sand-50);
+      width: 34px;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .sahari-cart__body {
+      padding: 10px 14px 2px;
+      max-height: min(60vh, 520px);
+      overflow: auto;
+    }
+
+    .sahari-cart__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+    .sahari-cart__item { display: grid; grid-template-columns: 1fr auto; gap: 10px; padding: 10px 12px; border: 1px dashed rgba(200,188,164,0.25); border-radius: 10px; background: rgba(255,255,255,0.03); }
+    .sahari-cart__meta { font-size: 12px; color: rgba(245,241,232,0.8); letter-spacing: .12em; text-transform: uppercase; }
+    .sahari-cart__price { color: #fff; font-weight: 700; font-size: 12px; }
+    .sahari-cart__name { font-weight: 600; }
+    .sahari-cart__right { display: flex; align-items: center; gap: 8px; }
+    .sahari-cart__remove { appearance: none; border: 1px solid rgba(245,241,232,0.22); border-radius: 999px; width: 28px; height: 28px; background: rgba(18,16,14,0.35); color: var(--sand-50); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+    .sahari-cart__empty { text-align: center; padding: 28px 12px; color: rgba(245,241,232,0.8); }
+    .sahari-cart__empty h4 { font-family: var(--font-heading); font-weight: 600; margin-bottom: 6px; }
+    .sahari-cart__actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+    .sahari-cart__cta { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; padding: 10px 16px; border-radius: 999px; font-weight: 700; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; }
+    .sahari-cart__cta--primary { background: var(--desert-gold); color: var(--night-sky); border: 1px solid rgba(26,22,20,0.25); }
+    .sahari-cart__cta--ghost { background: transparent; color: var(--sand-50); border: 1px solid rgba(245,241,232,0.22); }
+    .sahari-cart__total { margin-left: auto; font-weight: 700; color: #fff; font-size: 13px; }
+
+    @media (max-width: 640px) {
+      .sahari-cart__dialog { width: 92vw; margin-top: 18vh; }
+      .sahari-cart__actions { width: 100%; justify-content: flex-end; }
+    }
     
     /* Hero Section */
     .desert-hero {
@@ -304,6 +593,32 @@
       gap: clamp(28px, 4vw, 48px);
     }
 
+    /* Quick Add Modal */
+    .sahari-quickadd { position: fixed; inset: 0; z-index: 65; opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+    .sahari-quickadd[data-open="true"] { opacity: 1; pointer-events: auto; }
+    .sahari-quickadd__backdrop { position: absolute; inset: 0; background: rgba(12,10,9,0.45); backdrop-filter: blur(2px); }
+    .sahari-quickadd__dialog { position: relative; width: min(92vw, 520px); margin: 14vh auto 0; background: rgba(18,16,14,0.28); border: 1px solid rgba(200,188,164,0.22); border-radius: 14px; color: var(--sand-50); backdrop-filter: blur(10px) saturate(140%); box-shadow: 0 30px 80px rgba(0,0,0,0.35); transform: translateY(8px) scale(.98); transition: transform .2s ease; }
+    .sahari-quickadd[data-open="true"] .sahari-quickadd__dialog { transform: translateY(0) scale(1); }
+    .sahari-quickadd__header, .sahari-quickadd__footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,0)); }
+    .sahari-quickadd__title { font-family: var(--font-heading); font-size: 18px; letter-spacing: .04em; }
+    .sahari-quickadd__close { appearance: none; border: 1px solid rgba(245,241,232,0.22); border-radius: 999px; background: rgba(18,16,14,0.35); color: var(--sand-50); width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+    .sahari-quickadd__body { padding: 12px 14px 2px; }
+    .sahari-quickadd__summary { display: grid; gap: 6px; margin-bottom: 10px; }
+    .sahari-quickadd__trip { font-weight: 600; }
+    .sahari-quickadd__price { font-weight: 700; color: #fff; font-size: 13px; line-height: 1.3; opacity: .95; }
+    .sahari-quickadd__row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .sahari-quickadd__field { display: grid; gap: 6px; font-size: 13px; }
+    .sahari-quickadd__field label { color: rgba(245,241,232,.85); text-transform: uppercase; letter-spacing: .14em; font-size: 10px; }
+    .sahari-quickadd__field input[type="date"],
+    .sahari-quickadd__field input[type="number"] { width: 100%; background: rgba(255,255,255,.06); border: 1px solid rgba(200,188,164,.25); border-radius: 8px; color: #fff; padding: 9px 10px; font: inherit; }
+    .sahari-quickadd__field input[type="number"] { text-align: center; }
+    .sahari-quickadd__stepper { display: grid; grid-template-columns: 34px 1fr 34px; align-items: center; gap: 6px; }
+    .sahari-quickadd__stepper button { appearance: none; width: 34px; height: 34px; background: rgba(18,16,14,.35); color: var(--sand-50); border: 1px solid rgba(245,241,232,.22); border-radius: 8px; cursor: pointer; font-size: 18px; line-height: 1; }
+    .sahari-quickadd__actions { display: flex; gap: 10px; }
+    .sahari-quickadd__cta { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; padding: 10px 16px; border-radius: 999px; font-weight: 700; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; }
+    .sahari-quickadd__cta--primary { background: var(--desert-gold); color: var(--night-sky); border: 1px solid rgba(26,22,20,0.25); }
+    .sahari-quickadd__cta--ghost { background: transparent; color: var(--sand-50); border: 1px solid rgba(245,241,232,0.22); }
+    @media (max-width: 640px) { .sahari-quickadd__dialog { width: 92vw; margin-top: 16vh; } }
     .sahari-tabs {
       display: inline-flex;
       gap: 8px;
@@ -885,6 +1200,142 @@
 <body>
   
   <!-- Hero Section -->
+  <nav class="sahari-nav" role="navigation" aria-label="Sahari navigation" data-sahari-nav>
+    <div class="sahari-nav__inner">
+      <div class="sahari-nav__section">
+        <button type="button" class="nav-iconbtn" data-nav-back aria-label="Go back">
+          <!-- back chevron -->
+          <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+      </div>
+      <div class="sahari-nav__section">
+        <span class="sahari-nav__brand">Sahari</span>
+      </div>
+      <div class="sahari-nav__section">
+        <a href="{% url 'web:booking-cart-checkout' %}" class="nav-iconbtn sahari-nav__cart" data-sahari-cart aria-controls="sahariCartPanel" aria-expanded="false" aria-label="Open booking list">
+          <!-- minimal bag icon -->
+          <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 8h12l-1 11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 8z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 8V6a3 3 0 0 1 6 0v2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+          <span class="sahari-nav__badge {% if booking_cart_count %}is-visible{% endif %}" data-cart-count-badge>
+            {% if booking_cart_count %}{{ booking_cart_count }}{% endif %}
+          </span>
+        </a>
+      </div>
+    </div>
+  </nav>
+  
+  <!-- Minimal Added/Removed notifier -->
+  <div class="sahari-toast" data-sahari-toast aria-live="polite" aria-atomic="true">
+    <div class="sahari-toast__inner">
+      <span class="sahari-toast__icon" data-sahari-toast-icon aria-hidden="true"></span>
+      <span data-sahari-toast-message></span>
+    </div>
+  </div>
+  
+  <!-- Minimal transparent cart overlay -->
+  <div class="sahari-cart" data-sahari-cart-panel id="sahariCartPanel" role="dialog" aria-modal="true" aria-labelledby="sahariCartTitle" aria-hidden="true">
+    <div class="sahari-cart__backdrop" data-sahari-cart-close></div>
+    <div class="sahari-cart__dialog">
+      <div class="sahari-cart__header">
+        <h3 class="sahari-cart__title" id="sahariCartTitle">Your booking list</h3>
+        <button type="button" class="sahari-cart__close" data-sahari-cart-close aria-label="Close cart">×</button>
+      </div>
+      <div class="sahari-cart__body" data-sahari-cart-body>
+        {% if booking_cart_entries %}
+          <ul class="sahari-cart__list">
+            {% for entry in booking_cart_entries %}
+              <li class="sahari-cart__item">
+                <div>
+                  <div style="display:flex; align-items:baseline; gap:8px; justify-content:space-between;">
+                    <div class="sahari-cart__name">{{ entry.trip_title }}</div>
+                    <div class="sahari-cart__price">{{ entry.currency }} {{ entry.grand_total_display }}</div>
+                  </div>
+                  {% if entry.travel_date_display %}
+                    <div class="sahari-cart__meta" style="margin-top:6px">{{ entry.travel_date_display }}</div>
+                  {% endif %}
+                  {% if entry.traveler_label %}
+                    <div class="sahari-cart__meta" style="margin-top:4px">{{ entry.traveler_label }}</div>
+                  {% endif %}
+                  {% if entry.option_label %}
+                    <div style="font-size:12px; color:rgba(245,241,232,.85); margin-top:4px">Experience: {{ entry.option_label }}</div>
+                  {% endif %}
+                </div>
+                <div class="sahari-cart__right">
+                  <form method="post" action="{% url 'web:booking-cart-quick-add' entry.trip_slug %}" data-cart-toggle>
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+                    <button type="submit" class="sahari-cart__remove" aria-label="Remove {{ entry.trip_title }} from booking list">×</button>
+                  </form>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="sahari-cart__empty">
+            <h4>Cart is empty</h4>
+            <p>Add trips to your booking list as you browse.</p>
+          </div>
+        {% endif %}
+      </div>
+      <div class="sahari-cart__footer">
+        <span class="sahari-cart__total" data-sahari-cart-total>{% if booking_cart_entries %}Total: {{ booking_cart_currency }} {{ booking_cart_total_display }}{% endif %}</span>
+        <div class="sahari-cart__actions">
+          <a href="{% url 'web:booking-cart-checkout' %}" class="sahari-cart__cta sahari-cart__cta--primary">Proceed to checkout</a>
+          <button type="button" class="sahari-cart__cta sahari-cart__cta--ghost" data-sahari-cart-close>Close cart</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Add Modal -->
+  <div class="sahari-quickadd" data-quickadd-panel aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="quickAddTitle">
+    <div class="sahari-quickadd__backdrop" data-quickadd-close></div>
+    <div class="sahari-quickadd__dialog">
+      <div class="sahari-quickadd__header">
+        <h3 class="sahari-quickadd__title" id="quickAddTitle">Add to booking list</h3>
+        <button type="button" class="sahari-quickadd__close" data-quickadd-close aria-label="Close">×</button>
+      </div>
+      <div class="sahari-quickadd__body">
+        <div class="sahari-quickadd__summary">
+          <div class="sahari-quickadd__trip" data-quickadd-trip></div>
+          <div class="sahari-quickadd__price" data-quickadd-price></div>
+        </div>
+        <form data-quickadd-form>
+          <div class="sahari-quickadd__field">
+            <label for="quickadd-date">Trip date</label>
+            <input id="quickadd-date" name="date" type="date" data-quickadd-date required />
+          </div>
+          <div class="sahari-quickadd__row">
+            <div class="sahari-quickadd__field">
+              <label>Adults</label>
+              <div class="sahari-quickadd__stepper">
+                <button type="button" data-quickadd-step="down" data-quickadd-target="adults">−</button>
+                <input type="number" inputmode="numeric" min="1" step="1" value="2" name="adults" data-quickadd-input="adults" />
+                <button type="button" data-quickadd-step="up" data-quickadd-target="adults">+</button>
+              </div>
+            </div>
+            <div class="sahari-quickadd__field">
+              <label>Children</label>
+              <div class="sahari-quickadd__stepper">
+                <button type="button" data-quickadd-step="down" data-quickadd-target="children">−</button>
+                <input type="number" inputmode="numeric" min="0" step="1" value="0" name="children" data-quickadd-input="children" />
+                <button type="button" data-quickadd-step="up" data-quickadd-target="children">+</button>
+              </div>
+            </div>
+          </div>
+          <input type="hidden" name="infants" value="0" />
+        </form>
+      </div>
+      <div class="sahari-quickadd__footer">
+        <button type="button" class="sahari-quickadd__cta sahari-quickadd__cta--ghost" data-quickadd-close>Cancel</button>
+        <button type="button" class="sahari-quickadd__cta sahari-quickadd__cta--primary" data-quickadd-confirm>Add</button>
+      </div>
+    </div>
+  </div>
   <section class="desert-hero">
     <div class="desert-hero__bg"></div>
     <div class="desert-hero__overlay"></div>
@@ -988,7 +1439,13 @@
                           <div class="trip-card__location">{{ trip.location }}</div>
                         {% endif %}
                       </div>
-                      <a href="{% url 'web:booking-cart-quick-add' trip.slug %}" class="trip-card__cta">Add to booking list</a>
+                      <a href="{% url 'web:booking-cart-quick-add' trip.slug %}"
+                         class="trip-card__cta"
+                         data-trip-slug="{{ trip.slug }}"
+                         data-trip-title="{{ trip.title|escape }}"
+                         data-trip-price="{{ trip.price|escape }}"
+                         data-cart-state="removed"
+                      >Add to booking list</a>
                     </div>
                   </article>
                 {% endfor %}
@@ -1065,12 +1522,12 @@
 
 {{ gallery_images|json_script:"sahari-gallery-data" }}
 
-<script>
-  (function () {
-    const carousels = document.querySelectorAll("[data-trip-carousel]");
-    if (!carousels.length) {
-      // proceed; gallery auto-rotation may still run
-    }
+  <script>
+    (function () {
+      const carousels = document.querySelectorAll("[data-trip-carousel]");
+      if (!carousels.length) {
+        // proceed; gallery auto-rotation may still run
+      }
 
     const getGap = (element) => {
       if (!element) {
@@ -1207,6 +1664,374 @@
     const galleryItems = Array.from(document.querySelectorAll('.gallery-item'));
     const prevGalleryBtn = galleryWrapper?.querySelector('[data-gallery-prev]');
     const nextGalleryBtn = galleryWrapper?.querySelector('[data-gallery-next]');
+    // Minimal nav behavior
+    const sahariNav = document.querySelector('[data-sahari-nav]');
+    const backBtn = document.querySelector('[data-nav-back]');
+    const cartBtn = document.querySelector('[data-sahari-cart]');
+    const cartBadge = document.querySelector('[data-cart-count-badge]');
+    const cartPanel = document.querySelector('[data-sahari-cart-panel]');
+    const cartBody = document.querySelector('[data-sahari-cart-body]');
+    const cartTotal = document.querySelector('[data-sahari-cart-total]');
+    const cartCloseEls = document.querySelectorAll('[data-sahari-cart-close]');
+    const quickAddUrlTemplate = "{% url 'web:booking-cart-quick-add' '__slug__' %}";
+    // Quick add elements
+    const quickAddPanel = document.querySelector('[data-quickadd-panel]');
+    const quickAddCloseEls = document.querySelectorAll('[data-quickadd-close]');
+    const quickAddTrip = document.querySelector('[data-quickadd-trip]');
+    const quickAddPrice = document.querySelector('[data-quickadd-price]');
+    const quickAddDate = document.querySelector('[data-quickadd-date]');
+    const quickAddForm = document.querySelector('[data-quickadd-form]');
+    const quickAddConfirm = document.querySelector('[data-quickadd-confirm]');
+    const sahariToast = document.querySelector('[data-sahari-toast]');
+    const sahariToastMsg = sahariToast?.querySelector('[data-sahari-toast-message]');
+    const sahariToastIcon = sahariToast?.querySelector('[data-sahari-toast-icon]');
+
+    const setNavSolid = () => {
+      if (!sahariNav) return;
+      const threshold = 12;
+      if (window.scrollY > threshold) {
+        sahariNav.classList.add('is-solid');
+      } else {
+        sahariNav.classList.remove('is-solid');
+      }
+    };
+
+    setNavSolid();
+    window.addEventListener('scroll', setNavSolid, { passive: true });
+
+    if (backBtn) {
+      backBtn.addEventListener('click', function () {
+        if (window.history.length > 1) {
+          window.history.back();
+        } else {
+          window.location.assign("{% url 'web:trips' %}");
+        }
+      });
+    }
+
+    const openCart = () => {
+      if (!cartPanel) return;
+      cartPanel.dataset.open = 'true';
+      cartPanel.removeAttribute('aria-hidden');
+      if (cartBtn) cartBtn.setAttribute('aria-expanded', 'true');
+      document.body.style.overflow = 'hidden';
+    };
+    const closeCart = () => {
+      if (!cartPanel) return;
+      cartPanel.dataset.open = 'false';
+      cartPanel.setAttribute('aria-hidden', 'true');
+      if (cartBtn) cartBtn.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+    };
+
+    if (cartBtn) {
+      cartBtn.addEventListener('click', function (e) {
+        // open minimal cart overlay instead of navigating
+        e.preventDefault();
+        openCart();
+      });
+    }
+
+    cartCloseEls.forEach(function (el) {
+      el.addEventListener('click', closeCart);
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        closeCart();
+      }
+    });
+
+    const updateCartBadge = (count) => {
+      if (!cartBadge) return;
+      const n = Number(count || 0);
+      cartBadge.textContent = n > 0 ? String(n) : '';
+      cartBadge.classList.toggle('is-visible', n > 0);
+      if (cartBtn) {
+        const base = 'Open booking list';
+        cartBtn.setAttribute('aria-label', n > 0 ? `${base} (${n} item${n === 1 ? '' : 's'})` : base);
+      }
+    };
+
+    const renderCartOverlayFromSummary = (summary) => {
+      if (!cartBody) return;
+      const entries = (summary && Array.isArray(summary.entries)) ? summary.entries : [];
+      if (!entries.length) {
+        cartBody.innerHTML = '<div class="sahari-cart__empty"><h4>Cart is empty</h4><p>Add trips to your booking list as you browse.</p></div>';
+      } else {
+        const items = entries.map(function (entry) {
+          const date = entry.travel_date_display ? `<div class=\"sahari-cart__meta\" style=\"margin-top:6px\">${entry.travel_date_display}</div>` : '';
+          const people = entry.traveler_label ? `<div class=\"sahari-cart__meta\" style=\"margin-top:4px\">${entry.traveler_label}</div>` : '';
+          const option = entry.option_label ? `<div style=\"font-size:12px; color:rgba(245,241,232,.85); margin-top:4px\">Experience: ${entry.option_label}</div>` : '';
+          return `
+            <li class=\"sahari-cart__item\">
+              <div>
+                <div style=\"display:flex; align-items:baseline; gap:8px; justify-content:space-between;\">
+                  <div class=\"sahari-cart__name\">${entry.trip_title || ''}</div>
+                  <div class=\"sahari-cart__price\">${entry.currency || ''} ${entry.grand_total_display || ''}</div>
+                </div>
+                ${date}
+                ${people}
+                ${option}
+              </div>
+              <div class=\"sahari-cart__right\">
+                <button type=\"button\" class=\"sahari-cart__remove\" data-sahari-remove-slug=\"${entry.trip_slug || ''}\" aria-label=\"Remove ${entry.trip_title || 'trip'} from booking list\">×</button>
+              </div>
+            </li>`;
+        }).join('');
+        cartBody.innerHTML = `<ul class=\"sahari-cart__list\">${items}</ul>`;
+      }
+      if (cartTotal) {
+        const totalText = summary && summary.total_display ? `Total: ${summary.currency || ''} ${summary.total_display}` : '';
+        cartTotal.textContent = totalText;
+      }
+    };
+
+    const showToast = (message, inCart) => {
+      if (!sahariToast || !message) return;
+      if (sahariToast._timer) { window.clearTimeout(sahariToast._timer); }
+      if (sahariToastMsg) { sahariToastMsg.textContent = String(message); }
+      if (sahariToastIcon) { sahariToastIcon.textContent = inCart ? '✓' : '–'; }
+      sahariToast.dataset.state = inCart ? 'added' : 'removed';
+      sahariToast.dataset.open = 'true';
+      sahariToast._timer = window.setTimeout(function () {
+        sahariToast.dataset.open = 'false';
+        sahariToast.dataset.state = '';
+        if (sahariToastMsg) { sahariToastMsg.textContent = ''; }
+        if (sahariToastIcon) { sahariToastIcon.textContent = ''; }
+      }, 2200);
+    };
+
+    // Listen for global cart update events if fired elsewhere
+    window.addEventListener('booking:cart-update', function (event) {
+      try {
+        const detail = event && event.detail ? event.detail : {};
+        updateCartBadge(detail.cart_count || 0);
+        if (detail.cart_summary) {
+          renderCartOverlayFromSummary(detail.cart_summary);
+          // Sync CTA states with current cart
+          try {
+            const entries = Array.isArray(detail.cart_summary.entries) ? detail.cart_summary.entries : [];
+            const slugs = new Set(entries.map(function (e) { return String(e.trip_slug || ''); }));
+            document.querySelectorAll('.trip-card__cta[data-trip-slug]').forEach(function (cta) {
+              const slug = String(cta.getAttribute('data-trip-slug') || '');
+              setCtaState(cta, slugs.has(slug));
+            });
+          } catch (e) {}
+        }
+        if (typeof detail.toast_message === 'string' && detail.toast_message) {
+          showToast(detail.toast_message, !!detail.in_cart);
+        }
+      } catch (e) {}
+    });
+
+    // Initialize from server-rendered value if present
+    try {
+      const initial = parseInt((cartBadge && cartBadge.textContent) || '0', 10) || 0;
+      updateCartBadge(initial);
+    } catch (e) {}
+
+    // Initialize CTA states from server summary
+    (function initCtasFromSummary() {
+      var summaryUrl = "{% url 'web:booking-cart-rewards' %}";
+      try {
+        fetch(summaryUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (!data || !data.cart_summary) return;
+            var entries = Array.isArray(data.cart_summary.entries) ? data.cart_summary.entries : [];
+            var slugs = new Set(entries.map(function (e) { return String(e.trip_slug || ''); }));
+            document.querySelectorAll('.trip-card__cta[data-trip-slug]').forEach(function (cta) {
+              var slug = String(cta.getAttribute('data-trip-slug') || '');
+              setCtaState(cta, slugs.has(slug));
+            });
+          })
+          .catch(function () {});
+      } catch (e) {}
+    })();
+
+    // Wire trip cards "Add to booking list" to cart via AJAX
+    function getCsrfToken() {
+      var match = document.cookie.match(/(?:^|; )csrftoken=([^;]+)/);
+      return match ? decodeURIComponent(match[1]) : '';
+    }
+
+    function postQuickAdd(url, extraFormData) {
+      var fd = new FormData();
+      fd.set('next', window.location.pathname + window.location.search);
+      if (extraFormData) {
+        extraFormData.forEach(function (value, key) { fd.set(key, value); });
+      }
+      return fetch(url, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': getCsrfToken(),
+        },
+        body: fd,
+        credentials: 'same-origin',
+      }).then(function (r) { return r.json(); });
+    }
+
+    function setCtaState(cta, inCart) {
+      if (!cta) return;
+      cta.textContent = inCart ? 'Remove from booking list' : 'Add to booking list';
+      cta.setAttribute('data-cart-state', inCart ? 'added' : 'removed');
+      cta.classList.toggle('is-active', !!inCart);
+    }
+
+    function openQuickAdd(link) {
+      if (!quickAddPanel || !link) return;
+      var title = link.getAttribute('data-trip-title') || '';
+      var price = link.getAttribute('data-trip-price') || '';
+      var today = (function(){ var d=new Date(); var off=d.getTimezoneOffset()*60000; var local=new Date(d.getTime()-off); return local.toISOString().slice(0,10); })();
+      if (quickAddTrip) quickAddTrip.textContent = title;
+      if (quickAddPrice) quickAddPrice.textContent = price ? String(price) : '';
+      if (quickAddDate) { quickAddDate.min = today; if (!quickAddDate.value) quickAddDate.value = today; }
+      quickAddPanel.dataset.open = 'true';
+      quickAddPanel.removeAttribute('aria-hidden');
+      quickAddPanel._cta = link; // remember which CTA opened
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeQuickAdd() {
+      if (!quickAddPanel) return;
+      quickAddPanel.dataset.open = 'false';
+      quickAddPanel.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      quickAddPanel._cta = null;
+    }
+
+    quickAddCloseEls.forEach(function(el){ el.addEventListener('click', closeQuickAdd); });
+
+    if (quickAddConfirm) {
+      quickAddConfirm.addEventListener('click', function(){
+        var link = quickAddPanel && quickAddPanel._cta;
+        if (!link) return closeQuickAdd();
+        var url = link.getAttribute('href');
+        var extra = new Map();
+        if (quickAddDate && quickAddDate.value) extra.set('date', quickAddDate.value);
+        var adults = quickAddForm && quickAddForm.querySelector('[data-quickadd-input="adults"]');
+        var children = quickAddForm && quickAddForm.querySelector('[data-quickadd-input="children"]');
+        if (adults && adults.value) extra.set('adults', adults.value);
+        if (children) extra.set('children', children.value || '0');
+        extra.set('infants', '0');
+        postQuickAdd(url, extra)
+          .then(function (data) {
+            try {
+              updateCartBadge(data.cart_count || 0);
+              if (data.cart_summary) {
+                renderCartOverlayFromSummary(data.cart_summary);
+              }
+              window.dispatchEvent(new CustomEvent('booking:cart-update', { detail: data }));
+              setCtaState(link, !!data.in_cart);
+              showToast(data.toast_message || 'Added to booking list', !!data.in_cart);
+            } catch (err) {}
+            closeQuickAdd();
+          })
+          .catch(function(){ closeQuickAdd(); window.location.href = url; });
+      });
+    }
+
+    // steppers
+    (function bindSteppers(){
+      if (!quickAddForm) return;
+      quickAddForm.addEventListener('click', function(e){
+        var btn = e.target && e.target.closest('[data-quickadd-step]');
+        if (!btn) return;
+        var target = btn.getAttribute('data-quickadd-target') || 'adults';
+        var input = quickAddForm.querySelector('[data-quickadd-input="'+target+'"]');
+        if (!input) return;
+        var val = parseInt(input.value,10); if (isNaN(val)) val = 0;
+        var isUp = btn.getAttribute('data-quickadd-step') === 'up';
+        val = isUp ? val + 1 : val - 1;
+        if (target === 'adults' && val < 1) val = 1; if (target !== 'adults' && val < 0) val = 0;
+        input.value = String(val);
+      });
+    })();
+
+    function handleCtaClick(e) {
+      var link = e.currentTarget;
+      var url = link.getAttribute('href');
+      if (!url) return;
+      e.preventDefault();
+      var state = link.getAttribute('data-cart-state') || 'removed';
+      if (state === 'removed') {
+        openQuickAdd(link);
+      } else {
+        // removing
+        postQuickAdd(url)
+          .then(function (data) {
+            try {
+              updateCartBadge(data.cart_count || 0);
+              if (data.cart_summary) {
+                renderCartOverlayFromSummary(data.cart_summary);
+              }
+              window.dispatchEvent(new CustomEvent('booking:cart-update', { detail: data }));
+              setCtaState(link, !!data.in_cart);
+              showToast(data.toast_message || 'Removed from booking list', !!data.in_cart);
+            } catch (err) {}
+          })
+          .catch(function () { window.location.href = url; });
+      }
+    }
+
+    var addCtas = document.querySelectorAll('.trip-card__cta[href]');
+    addCtas.forEach(function (cta) { cta.addEventListener('click', handleCtaClick); });
+
+    if (cartBody) {
+      // Remove buttons rendered dynamically
+      cartBody.addEventListener('click', function (e) {
+        var btn = e.target && e.target.closest('[data-sahari-remove-slug]');
+        if (!btn) return;
+        var slug = btn.getAttribute('data-sahari-remove-slug');
+        if (!slug) return;
+        var url = quickAddUrlTemplate.replace('__slug__', slug);
+        postQuickAdd(url)
+          .then(function (data) {
+            try {
+              updateCartBadge(data.cart_count || 0);
+              if (data.cart_summary) {
+                renderCartOverlayFromSummary(data.cart_summary);
+              }
+              window.dispatchEvent(new CustomEvent('booking:cart-update', { detail: data }));
+            } catch (err) {}
+          })
+          .catch(function () {
+            // fallback: reload page
+            window.location.reload();
+          });
+      });
+    }
+
+    // Intercept server-rendered removal forms inside overlay
+    if (cartPanel) {
+      cartPanel.addEventListener('submit', function (e) {
+        var form = e.target && e.target.closest('[data-cart-toggle]');
+        if (!form) return;
+        e.preventDefault();
+        var url = form.action;
+        var fd = new FormData(form);
+        fetch(url, {
+          method: 'POST',
+          headers: { 'X-Requested-With': 'XMLHttpRequest' },
+          body: fd,
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            try {
+              updateCartBadge(data.cart_count || 0);
+              if (data.cart_summary) {
+                renderCartOverlayFromSummary(data.cart_summary);
+              }
+              window.dispatchEvent(new CustomEvent('booking:cart-update', { detail: data }));
+            } catch (err) {}
+          })
+          .catch(function () {
+            form.submit();
+          });
+      });
+    }
+
     if (galleryData.length && galleryItems.length) {
       let rotationIndex = 0;
       let intervalId = null;
