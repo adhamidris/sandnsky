@@ -304,6 +304,37 @@
       gap: clamp(28px, 4vw, 48px);
     }
 
+    .sahari-tabs {
+      display: inline-flex;
+      gap: 8px;
+      background: linear-gradient(180deg, var(--sand-100), var(--sand-50));
+      border: 1px solid rgba(105,86,59,0.15);
+      padding: 4px;
+      margin: clamp(12px, 2vw, 20px) auto 0;
+      align-self: center;
+      border-radius: 4px;
+    }
+
+    .sahari-tab {
+      appearance: none;
+      background: transparent;
+      border: 1px solid transparent;
+      padding: 10px 18px;
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--sand-700);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      flex: 0 0 auto;
+    }
+
+    .sahari-tab.is-selected,
+    .sahari-tab[aria-selected="true"] {
+      color: var(--sand-900);
+      border-bottom-color: var(--sand-900);
+    }
+
     .sahari-trips__prompt {
       padding: clamp(28px, 4vw, 40px);
       display: flex;
@@ -311,6 +342,7 @@
       justify-content: space-between;
       min-height: 100%;
       border-radius: 6px;
+      text-align: center !important;
     }
 
     .sahari-trips__prompt h2 {
@@ -709,7 +741,18 @@
       .trip-card__description {
         font-size: 14px;
       }
-      
+
+      .sahari-tabs {
+        width: 100%;
+        justify-content: flex-start;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+
+      .sahari-tabs::-webkit-scrollbar {
+        display: none;
+      }
+
       .gallery-grid {
         grid-template-columns: 1fr;
         grid-template-rows: auto;
@@ -818,17 +861,23 @@
                 designed for every kind of desert wanderer.
               </p>
             </div>
-            <a href="{% url 'web:trips' %}">
+            <!-- <a href="{% url 'web:trips' %}">
               Journey Finder
               <span>→</span>
-            </a>
+            </a> -->
           </div>
-          <div class="sahari-trips__carousel" data-trip-carousel>
+          <div class="sahari-tabs" role="tablist" aria-label="Trip filters">
+            <button role="tab" class="sahari-tab is-selected" aria-selected="true" id="tab-all" aria-controls="sahari-trips-panel" data-filter="all">All Trips</button>
+            {% for d in destinations %}
+              <button role="tab" class="sahari-tab" aria-selected="false" id="tab-dest-{{ d.id }}" aria-controls="sahari-trips-panel" data-filter="{{ d.id }}">{{ d.name }}</button>
+            {% endfor %}
+          </div>
+          <div class="sahari-trips__carousel" data-trip-carousel role="tabpanel" id="sahari-trips-panel" aria-labelledby="tab-all">
             <button type="button" class="trip-carousel__nav trip-carousel__nav--prev" data-carousel-prev aria-label="View previous Sahari trips">‹</button>
             <div class="trip-carousel" data-trip-scroller>
               <div class="trip-carousel__inner">
                 {% for trip in trips %}
-                  <article class="trip-card">
+                  <article class="trip-card" data-dest-ids="{% if trip.destination_ids %}{{ trip.destination_ids|join:',' }}{% endif %}">
                     {% if trip.image_url %}
                       <img src="{{ trip.image_url }}" alt="{{ trip.title }}" class="trip-card__image">
                     {% endif %}
@@ -985,6 +1034,50 @@
       window.addEventListener("resize", onScroll);
 
       updateNavState(scroller, prevBtn, nextBtn);
+
+      // Tabs filtering
+      const tabsRoot = carousel.parentElement?.querySelector(".sahari-tabs");
+      if (tabsRoot) {
+        const tabs = Array.from(tabsRoot.querySelectorAll("[role=tab]"));
+        const cards = Array.from(inner.querySelectorAll(".trip-card"));
+        const showAll = () => {
+          cards.forEach((c) => (c.style.display = ""));
+        };
+        const applyFilter = (destId) => {
+          if (!destId || destId === "all") {
+            showAll();
+            return;
+          }
+          cards.forEach((c) => {
+            const ids = (c.dataset.destIds || "").split(",").filter(Boolean);
+            c.style.display = ids.includes(String(destId)) ? "" : "none";
+          });
+        };
+
+        const selectTab = (tab) => {
+          tabs.forEach((t) => {
+            const selected = t === tab;
+            t.classList.toggle("is-selected", selected);
+            t.setAttribute("aria-selected", selected ? "true" : "false");
+          });
+          const dest = tab.getAttribute("data-filter");
+          applyFilter(dest);
+          // reset scroll and update nav state
+          scroller.scrollTo({ left: 0, behavior: "auto" });
+          carousel.setAttribute("aria-labelledby", tab.id || "");
+          updateNavState(scroller, prevBtn, nextBtn);
+        };
+
+        tabs.forEach((tab) => {
+          tab.addEventListener("click", () => selectTab(tab));
+          tab.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              selectTab(tab);
+            }
+          });
+        });
+      }
     });
   })();
 </script>

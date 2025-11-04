@@ -290,6 +290,19 @@ def build_trip_card(trip):
         destinations_label = f"{destination_names[0]} +{len(destination_names) - 1}"
     child_price = trip.get_child_price_per_person()
     has_child_price = child_price != trip.base_price_per_person
+    destination_ids = []
+    try:
+        if getattr(trip, "destination_id", None):
+            destination_ids.append(int(trip.destination_id))
+        if hasattr(trip, "additional_destinations"):
+            for d in trip.additional_destinations.all():
+                if d and d.pk:
+                    destination_ids.append(int(d.pk))
+    except Exception:
+        destination_ids = list({getattr(trip, "destination_id", None)} - {None})
+
+    destination_ids = list(dict.fromkeys(destination_ids))  # preserve order, dedupe
+
     return {
         "id": trip.pk,
         "slug": trip.slug,
@@ -307,6 +320,7 @@ def build_trip_card(trip):
         "child_price": format_currency(child_price) if has_child_price else "",
         "has_child_price": has_child_price,
         "languages": languages,
+        "destination_ids": destination_ids,
     }
 
 
