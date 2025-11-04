@@ -577,12 +577,56 @@
       text-align: center;
     }
     
+    .gallery-wrapper {
+      position: relative;
+    }
+    
     .gallery-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       grid-template-rows: repeat(2, 420px);
       gap: 24px;
       margin-bottom: 0;
+    }
+
+    .gallery-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(20, 16, 14, 0.6);
+      color: var(--sand-50);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.3s ease;
+      z-index: 6;
+      box-shadow: 0 12px 30px rgba(20, 16, 14, 0.25);
+    }
+
+    .gallery-nav:hover {
+      background: rgba(20, 16, 14, 0.75);
+      transform: translateY(-50%) scale(1.05);
+    }
+
+    .gallery-nav:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      transform: translateY(-50%);
+    }
+
+    .gallery-nav--prev { left: 8px; }
+    .gallery-nav--next { right: 8px; }
+
+    /* Place navs outside on desktop */
+    @media (min-width: 969px) {
+      .gallery-nav--prev { left: calc(-1 * clamp(56px, 6vw, 72px)); }
+      .gallery-nav--next { right: calc(-1 * clamp(56px, 6vw, 72px)); }
     }
     
     .gallery-item {
@@ -762,38 +806,80 @@
 
       .gallery-grid {
         grid-template-columns: 1fr;
-        grid-template-rows: auto;
-        gap: 16px;
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        -webkit-overflow-scrolling: touch;
-        padding-bottom: 8px;
+        grid-template-rows: none; /* reset desktop explicit row heights */
+        grid-auto-rows: auto;
+        grid-auto-flow: row dense;
+        column-gap: 12px;
+        row-gap: 6px;
+        overflow: visible;
       }
-      
+
       .gallery-item {
-        height: 420px;
-        scroll-snap-align: start;
+        height: auto;
         box-shadow: none;
+        grid-column: auto !important;
+        grid-row: auto !important;
+        position: relative;
       }
-      
-      .gallery-item:nth-child(1),
-      .gallery-item:nth-child(2),
-      .gallery-item:nth-child(3),
-      .gallery-item:nth-child(4),
-      .gallery-item:nth-child(5) {
-        grid-column: auto;
-        grid-row: auto;
+
+      /* Class-based layout for mobile to ensure alignment */
+      .gallery-item--wide {
+        grid-column: 1 / -1;
+        aspect-ratio: 16 / 10;
       }
-      
+
+      .gallery-item--square {
+        aspect-ratio: 1 / 1;
+        display: none;
+      }
+
+      .gallery-nav {
+        width: 44px;
+        height: 44px;
+      }
+
+      .gallery-item--extra {
+        display: none;
+      }
+
+      /* Fallback for browsers without aspect-ratio support */
+      @supports not (aspect-ratio: 1 / 1) {
+        .gallery-item::before {
+          content: "";
+          display: block;
+        }
+        .gallery-item--wide::before {
+          padding-top: 62.5%; /* 16:10 */
+        }
+        .gallery-item--square::before {
+          padding-top: 100%;
+        }
+        .gallery-item__image,
+        .gallery-item__overlay {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+        }
+      }
+
       .gallery-item__title {
-        font-size: 28px;
+        font-size: 26px;
       }
-      
+
       .gallery-item__caption {
         font-size: 14px;
-        max-width: 95%;
+        max-width: 92%;
       }
     }
+
+    @media (max-width: 767px) {
+        .gallery-nav {
+        background-color: transparent !important;
+    }
+    }
+
+    
   </style>
 </head>
 <body>
@@ -841,9 +927,9 @@
             </article>
           {% endfor %}
         </div>
-        <div style="text-align: center;">
+        <!-- <div style="text-align: center;">
           <a href="{% url 'web:destinations' %}" class="destinations__cta">View All Destinations</a>
-        </div>
+        </div> -->
       {% else %}
         <div class="empty-state">
           <div class="empty-state__icon">🏜️</div>
@@ -932,16 +1018,38 @@
       </div>
       
       {% if gallery_images %}
-        <div class="gallery-grid">
-          {% for image in gallery_images %}
-            <div class="gallery-item">
-              <img src="{{ image.image_url }}" alt="{{ image.title }}" class="gallery-item__image">
-              <div class="gallery-item__overlay">
-                <h3 class="gallery-item__title">{{ image.title }}</h3>
-                <p class="gallery-item__caption">{{ image.caption }}</p>
-              </div>
-            </div>
-          {% endfor %}
+        <div class="gallery-wrapper">
+          <button type="button" class="gallery-nav gallery-nav--prev" data-gallery-prev aria-label="Previous gallery image">‹</button>
+          <div class="gallery-grid">
+            {% for image in gallery_images %}
+              {% if forloop.counter == 1 %}
+                <div class="gallery-item gallery-item--wide">
+                  <img src="{{ image.image_url }}" alt="{{ image.title }}" class="gallery-item__image">
+                  <div class="gallery-item__overlay">
+                    <h3 class="gallery-item__title">{{ image.title }}</h3>
+                    <p class="gallery-item__caption">{{ image.caption }}</p>
+                  </div>
+                </div>
+              {% elif forloop.counter <= 3 %}
+                <div class="gallery-item gallery-item--square">
+                  <img src="{{ image.image_url }}" alt="{{ image.title }}" class="gallery-item__image">
+                  <div class="gallery-item__overlay">
+                    <h3 class="gallery-item__title">{{ image.title }}</h3>
+                    <p class="gallery-item__caption">{{ image.caption }}</p>
+                  </div>
+                </div>
+              {% else %}
+                <div class="gallery-item gallery-item--extra">
+                  <img src="{{ image.image_url }}" alt="{{ image.title }}" class="gallery-item__image">
+                  <div class="gallery-item__overlay">
+                    <h3 class="gallery-item__title">{{ image.title }}</h3>
+                    <p class="gallery-item__caption">{{ image.caption }}</p>
+                  </div>
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+          <button type="button" class="gallery-nav gallery-nav--next" data-gallery-next aria-label="Next gallery image">›</button>
         </div>
       {% else %}
         <div class="empty-state">
@@ -1095,11 +1203,14 @@
       ? JSON.parse(galleryDataElement.textContent || "[]")
       : [];
 
-    const galleryItems = Array.from(document.querySelectorAll(".gallery-item"));
+    const galleryWrapper = document.querySelector('.gallery-wrapper');
+    const galleryItems = Array.from(document.querySelectorAll('.gallery-item'));
+    const prevGalleryBtn = galleryWrapper?.querySelector('[data-gallery-prev]');
+    const nextGalleryBtn = galleryWrapper?.querySelector('[data-gallery-next]');
     if (galleryData.length && galleryItems.length) {
-      let rotationIndex = 1;
+      let rotationIndex = 0;
       let intervalId = null;
-      const mediaQuery = window.matchMedia("(min-width: 969px)");
+      const mediaQuery = window.matchMedia('(min-width: 969px)');
 
       const updateItem = (item, data) => {
         if (!data) {
@@ -1129,19 +1240,28 @@
         }
       };
 
-      const rotate = () => {
+      const renderAt = (startIndex) => {
         galleryItems.forEach((item, idx) => {
-          const data = galleryData[(rotationIndex + idx) % galleryData.length];
+          const data = galleryData[(startIndex + idx + galleryData.length) % galleryData.length];
           updateItem(item, data);
         });
+      };
+
+      const rotateForward = () => {
         rotationIndex = (rotationIndex + 1) % galleryData.length;
+        renderAt(rotationIndex);
+      };
+
+      const rotateBackward = () => {
+        rotationIndex = (rotationIndex - 1 + galleryData.length) % galleryData.length;
+        renderAt(rotationIndex);
       };
 
       const startRotation = () => {
         if (intervalId || !mediaQuery.matches || galleryData.length <= 1) {
           return;
         }
-        intervalId = window.setInterval(rotate, 6000);
+        intervalId = window.setInterval(rotateForward, 6000);
       };
 
       const stopRotation = () => {
@@ -1159,6 +1279,9 @@
         }
       });
 
+      // Initial render to normalize state
+      renderAt(rotationIndex);
+
       if (mediaQuery.matches) {
         startRotation();
       }
@@ -1170,6 +1293,50 @@
           startRotation();
         }
       });
+
+      const pauseAnd = (fn) => {
+        if (intervalId) {
+          stopRotation();
+        }
+        fn();
+        if (mediaQuery.matches) {
+          startRotation();
+        }
+      };
+
+      // Hide/disable nav if not enough images
+      if (galleryData.length <= 1) {
+        if (prevGalleryBtn) {
+          prevGalleryBtn.disabled = true;
+          prevGalleryBtn.setAttribute('aria-hidden', 'true');
+          prevGalleryBtn.style.display = 'none';
+        }
+        if (nextGalleryBtn) {
+          nextGalleryBtn.disabled = true;
+          nextGalleryBtn.setAttribute('aria-hidden', 'true');
+          nextGalleryBtn.style.display = 'none';
+        }
+      }
+
+      if (prevGalleryBtn) {
+        prevGalleryBtn.addEventListener('click', () => pauseAnd(rotateBackward));
+        prevGalleryBtn.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            pauseAnd(rotateBackward);
+          }
+        });
+      }
+
+      if (nextGalleryBtn) {
+        nextGalleryBtn.addEventListener('click', () => pauseAnd(rotateForward));
+        nextGalleryBtn.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            pauseAnd(rotateForward);
+          }
+        });
+      }
     }
   })();
 </script>
