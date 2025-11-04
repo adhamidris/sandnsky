@@ -17,6 +17,7 @@ from .views import (
     CartRewardsRemoveView,
     BlogListView,
     BlogDetailView,
+    SahariPageView,
 )
 
 app_name = "web"
@@ -49,11 +50,7 @@ urlpatterns = [
         TemplateView.as_view(template_name="contact.html"),
         name="contact",
     ),
-    path(
-        "sahari/",
-        TemplateView.as_view(template_name="sahari.html"),
-        name="sahari",
-    ),
+    path("sahari/", SahariPageView.as_view(), name="sahari"),
     path(
         "about/",
         TemplateView.as_view(template_name="about.html"),

@@ -61,6 +61,11 @@ class DestinationName(models.TextChoices):
     ASWAN = "Aswan", "Aswan"
 
 
+class DestinationClassification(models.TextChoices):
+    GENERAL = "general", "General"
+    SAHARI = "sahari", "Sahari"
+
+
 ALLOWED_DESTINATIONS = [choice.value for choice in DestinationName]
 
 PACKAGE_DESTINATION_EQUIVALENCE_GROUPS = [
@@ -111,6 +116,12 @@ class Destination(models.Model):
     hero_subtitle = models.TextField(blank=True)
     is_featured = models.BooleanField(default=False, db_index=True)
     featured_position = models.PositiveSmallIntegerField(default=0)
+    classification = models.CharField(
+        max_length=20,
+        choices=DestinationClassification.choices,
+        default=DestinationClassification.GENERAL,
+        db_index=True,
+    )
 
     class Meta:
         ordering = ["name"]

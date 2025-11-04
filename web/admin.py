@@ -293,10 +293,10 @@ class BlogPostAdmin(admin.ModelAdmin):
 class DestinationAdmin(admin.ModelAdmin):
     form = DestinationAdminForm
     inlines = [DestinationGalleryImageInline]
-    list_display = ("name", "is_featured", "featured_position")
+    list_display = ("name", "classification", "is_featured", "featured_position")
     list_editable = ("is_featured", "featured_position")
     search_fields = ("name", "slug", "tagline", "description")
-    list_filter = ("is_featured",)
+    list_filter = ("classification", "is_featured")
     ordering = ("name",)
     fieldsets = (
         (None, {"fields": ("name",)}),
@@ -304,6 +304,7 @@ class DestinationAdmin(admin.ModelAdmin):
             "Overview",
             {"fields": ("tagline", "description")},
         ),
+        ("Classification", {"fields": ("classification",)}),
         (
             "Media",
             {"fields": ("card_image", "hero_image", "hero_image_mobile")},

@@ -298,111 +298,217 @@
     }
     
     /* Trips Section */
-    .trips-wrapper {
-      position: relative;
+    .sahari-trips {
       display: flex;
+      flex-direction: column;
+      gap: clamp(28px, 4vw, 48px);
+    }
+
+    .sahari-trips__prompt {
+      background: linear-gradient(160deg, var(--sand-100) 0%, var(--sand-50) 100%);
+      border: 1px solid rgba(105, 86, 59, 0.12);
+      padding: clamp(28px, 4vw, 40px);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 100%;
+      border-radius: 6px;
+      box-shadow: 0 18px 50px rgba(32, 25, 18, 0.12);
+    }
+
+    .sahari-trips__prompt h2 {
+      font-family: var(--font-heading);
+      font-size: clamp(30px, 3.8vw, 40px);
+      line-height: 1.2;
+      color: var(--sand-900);
+      margin-bottom: 18px;
+    }
+
+    .sahari-trips__prompt p {
+      color: var(--sand-700);
+      font-size: 16px;
+      line-height: 1.7;
+      margin-bottom: 28px;
+    }
+
+    .sahari-trips__prompt a {
+      align-self: flex-start;
+      display: inline-flex;
       align-items: center;
-      gap: 24px;
+      gap: 10px;
+      padding: 16px 38px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: var(--sand-50);
+      background: var(--night-sky);
+      border-radius: 999px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      box-shadow: 0 12px 28px rgba(26, 22, 20, 0.22);
     }
-    
-    .trips-carousel {
-      overflow: hidden;
-      width: 100%;
+
+    .sahari-trips__prompt a:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 38px rgba(26, 22, 20, 0.28);
     }
-    
-    .trips-list {
+
+    .sahari-trips__carousel {
+      position: relative;
+    }
+
+    .trip-carousel {
+      position: relative;
+      overflow-x: auto;
+      padding: 0; /* avoid affecting inner width calc */
+      margin: 0;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
+    }
+
+    .trip-carousel::-webkit-scrollbar {
+      display: none;
+    }
+
+    .trip-carousel__inner {
+      --trip-gap: clamp(20px, 2.6vw, 28px);
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
-      transition: transform 0.5s ease;
+      grid-auto-flow: column;
+      gap: var(--trip-gap);
+      /* exactly 4 cards visible on desktop */
+      grid-auto-columns: calc((100% - (var(--trip-gap) * 3)) / 4);
+      padding: 0;
     }
-    
+
     .trip-card {
       position: relative;
+      border-radius: 6px;
       overflow: hidden;
-      border-radius: 4px;
-      height: 520px;
-      cursor: pointer;
-      background: var(--sand-900);
+      height: clamp(420px, 32vw, 520px);
+      background: var(--sand-800);
+      scroll-snap-align: start;
+      box-shadow: 0 20px 46px rgba(26, 22, 20, 0.22);
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
     }
-    
-    .trip-card__image {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform 0.6s ease;
-    }
-    
-    .trip-card:hover .trip-card__image {
-      transform: scale(1.08);
-    }
-    
-    .trip-card__overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to top, rgba(26, 22, 20, 0.85) 0%, transparent 60%);
-      z-index: 1;
-    }
-    
-    .trip-card__content {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      padding: 32px;
-      z-index: 2;
-      color: var(--sand-50);
-    }
-    
-    .trip-card__title {
-      font-family: var(--font-heading);
-      font-size: 28px;
-      font-weight: 600;
-      line-height: 1.3;
-      color: var(--sand-50);
-      margin-bottom: 12px;
-    }
-    
-    .trip-card__description {
-      font-size: 15px;
-      line-height: 1.6;
-      color: rgba(245, 241, 232, 0.85);
-    }
-    
-    .carousel-nav {
+
+    .trip-carousel__nav {
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
       width: 48px;
       height: 48px;
       border-radius: 50%;
-      background: white;
       border: none;
-      cursor: pointer;
+      background: rgba(20, 16, 14, 0.6);
+      color: var(--sand-50);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
-      color: var(--sand-900);
-      box-shadow: 0 4px 16px rgba(26, 22, 20, 0.15);
-      transition: all 0.3s ease;
-      z-index: 10;
+      font-size: 22px;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.3s ease;
+      z-index: 5;
+      box-shadow: 0 12px 30px rgba(20, 16, 14, 0.25);
     }
-    
-    .carousel-nav:hover {
-      background: var(--sand-50);
+
+    .trip-carousel__nav:hover {
+      background: rgba(20, 16, 14, 0.75);
       transform: translateY(-50%) scale(1.05);
-      box-shadow: 0 6px 24px rgba(26, 22, 20, 0.2);
     }
-    
-    .carousel-nav--prev {
-      left: -24px;
+
+    .trip-carousel__nav:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      transform: translateY(-50%);
     }
-    
-    .carousel-nav--next {
-      right: -24px;
+
+    .trip-carousel__nav--prev {
+      left: calc(-1 * clamp(56px, 6vw, 72px));
     }
-    
+
+    .trip-carousel__nav--next {
+      right: calc(-1 * clamp(56px, 6vw, 72px));
+    }
+
+    .trip-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 28px 60px rgba(26, 22, 20, 0.28);
+    }
+
+    .trip-card__image {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.6s ease;
+    }
+
+    .trip-card:hover .trip-card__image {
+      transform: scale(1.05);
+    }
+
+    .trip-card__overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(20, 16, 14, 0.15) 0%, rgba(18, 16, 14, 0.78) 72%, rgba(18, 16, 14, 0.92) 100%);
+      z-index: 1;
+    }
+
+    .trip-card__content {
+      position: absolute;
+      inset: 0;
+      padding: clamp(24px, 3vw, 32px);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 16px;
+      z-index: 2;
+      color: var(--sand-50);
+    }
+
+    .trip-card__title {
+      font-family: var(--font-heading);
+      font-size: 1.2rem;
+      font-weight: 600;
+      line-height: 1.2;
+      word-spacing: 4px;
+    }
+
+    .trip-card__description {
+      font-size: 15px;
+      line-height: 1.7;
+      color: rgba(245, 241, 232, 0.88);
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .trip-card__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(245, 241, 232, 0.7);
+    }
+
+    .price-span {
+        color: white !important;
+    }
+
+    .trip-card__location {
+      font-size: 12px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(245, 241, 232, 0.55);
+    }
+
     /* Gallery Grid */
     .gallery-section {
       text-align: center;
@@ -485,38 +591,23 @@
       position: relative;
     }
     
-    /* Journey Finder CTA */
-    .trips__journey-cta {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      padding: 18px 42px;
-      margin-top: 32px;
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      text-decoration: none;
-      color: var(--sand-50);
-      background: var(--night-sky);
-      border: none;
-      border-radius: 0;
-      transition: all 0.3s ease;
-      cursor: pointer;
-    }
-    
-    .trips__journey-cta:hover {
-      background: var(--sand-800);
-    }
-    
     /* Responsive */
     @media (max-width: 968px) {
-      .trips-list {
-        grid-template-columns: repeat(2, 1fr);
+      .sahari-trips__prompt {
+        max-width: 720px;
+        margin: 0 auto;
       }
-      
-      .carousel-nav {
+
+      .trip-carousel__inner {
+        grid-auto-columns: minmax(260px, 60vw);
+      }
+
+      .trip-carousel {
+        margin: 0 -20px;
+        padding: 8px 20px 18px;
+      }
+
+      .trip-carousel__nav {
         display: none;
       }
       
@@ -560,34 +651,32 @@
         font-size: 14px;
       }
       
-      .trips-wrapper {
-        flex-direction: column;
+      .sahari-trips__prompt {
+        padding: 24px;
       }
-      
-      .trips-list {
-        grid-template-columns: 1fr;
-        gap: 20px;
+
+      .sahari-trips__prompt h2 {
+        font-size: 28px;
       }
-      
+
+      .trip-carousel__inner {
+        grid-auto-columns: minmax(85%, 1fr);
+      }
+
       .trip-card {
         height: 420px;
       }
-      
+
       .trip-card__content {
         padding: 24px;
       }
-      
+
       .trip-card__title {
         font-size: 24px;
       }
-      
+
       .trip-card__description {
         font-size: 14px;
-      }
-      
-      .trips__journey-cta {
-        padding: 16px 32px;
-        font-size: 12px;
       }
       
       .gallery-grid {
@@ -659,17 +748,19 @@
         <div class="destinations-grid">
           {% for destination in destinations %}
             <article class="destination-card">
-              <img src="{{ destination.image.url }}" alt="{{ destination.name }}" class="destination-card__image">
+              {% if destination.image_url %}
+                <img src="{{ destination.image_url }}" alt="{{ destination.name }}" class="destination-card__image">
+              {% endif %}
               <div class="destination-card__overlay"></div>
               <div class="destination-card__content">
-                <h3 class="destination-card__title">{{ destination.name }}</h3>
+                <h3 class="destination-card__title">{{ destination.title }}</h3>
                 <p class="destination-card__description">{{ destination.description }}</p>
               </div>
             </article>
           {% endfor %}
         </div>
         <div style="text-align: center;">
-          <a href="{% url 'all_destinations' %}" class="destinations__cta">View All Destinations</a>
+          <a href="{% url 'web:destinations' %}" class="destinations__cta">View All Destinations</a>
         </div>
       {% else %}
         <div class="empty-state">
@@ -686,31 +777,48 @@
   <!-- Trips Section -->
   <section id="trips" class="section section--alt">
     <div class="container">
-      <div class="section__header">
-        <h2 class="section__title">What kind of trip are you looking for?</h2>
-      </div>
-      
       {% if trips %}
-        <div class="trips-wrapper">
-          <button class="carousel-nav carousel-nav--prev" aria-label="Previous">‹</button>
-          <div class="trips-carousel">
-            <div class="trips-list">
-              {% for trip in trips %}
-                <article class="trip-card">
-                  <img src="{{ trip.image.url }}" alt="{{ trip.title }}" class="trip-card__image">
-                  <div class="trip-card__overlay"></div>
-                  <div class="trip-card__content">
-                    <h3 class="trip-card__title">{{ trip.title }}</h3>
-                    <p class="trip-card__description">{{ trip.description }}</p>
-                  </div>
-                </article>
-              {% endfor %}
+        <div class="sahari-trips">
+          <div class="sahari-trips__prompt">
+            <div>
+              <h2>What kind of trip are you looking for?</h2>
+              <p>
+                From star-drenched bivouacs to dune-crossing caravans, browse curated expeditions
+                designed for every kind of desert wanderer.
+              </p>
             </div>
+            <a href="{% url 'web:trips' %}">
+              Journey Finder
+              <span>→</span>
+            </a>
           </div>
-          <button class="carousel-nav carousel-nav--next" aria-label="Next">›</button>
-        </div>
-        <div style="text-align: center;">
-          <a href="{% url 'journey_finder' %}" class="trips__journey-cta">Journey Finder</a>
+          <div class="sahari-trips__carousel" data-trip-carousel>
+            <button type="button" class="trip-carousel__nav trip-carousel__nav--prev" data-carousel-prev aria-label="View previous Sahari trips">‹</button>
+            <div class="trip-carousel" data-trip-scroller>
+              <div class="trip-carousel__inner">
+                {% for trip in trips %}
+                  <article class="trip-card">
+                    {% if trip.image_url %}
+                      <img src="{{ trip.image_url }}" alt="{{ trip.title }}" class="trip-card__image">
+                    {% endif %}
+                    <div class="trip-card__overlay"></div>
+                    <div class="trip-card__content">
+                      <h3 class="trip-card__title">{{ trip.title }}</h3>
+                      <!-- <p class="trip-card__description">{{ trip.description }}</p> -->
+                      <div class="trip-card__meta">
+                        <span>{{ trip.duration }}</span>
+                        <span class="price-span">{{ trip.price }}</span>
+                      </div>
+                      {% if trip.location %}
+                        <div class="trip-card__location">{{ trip.location }}</div>
+                      {% endif %}
+                    </div>
+                  </article>
+                {% endfor %}
+              </div>
+            </div>
+            <button type="button" class="trip-carousel__nav trip-carousel__nav--next" data-carousel-next aria-label="View more Sahari trips">›</button>
+          </div>
         </div>
       {% else %}
         <div class="empty-state">
@@ -756,5 +864,95 @@
     </div>
   </section>
 
+<script>
+  (function () {
+    const carousels = document.querySelectorAll("[data-trip-carousel]");
+    if (!carousels.length) {
+      return;
+    }
+
+    const getGap = (element) => {
+      if (!element) {
+        return 0;
+      }
+      const styles = window.getComputedStyle(element);
+      const gapValue = styles.columnGap || styles.gap || "0";
+      const parsed = parseFloat(gapValue);
+      return Number.isNaN(parsed) ? 0 : parsed;
+    };
+
+    const getCardShift = (inner) => {
+      if (!inner) {
+        return 0;
+      }
+      const firstCard = inner.querySelector(".trip-card");
+      if (!firstCard) {
+        return 0;
+      }
+      const cardRect = firstCard.getBoundingClientRect();
+      const gap = getGap(inner);
+      return cardRect.width + gap;
+    };
+
+    const updateNavState = (scroller, prevBtn, nextBtn) => {
+      if (!scroller) {
+        return;
+      }
+      const maxScrollLeft = scroller.scrollWidth - scroller.clientWidth - 2;
+      const canScrollPrev = scroller.scrollLeft > 0;
+      const canScrollNext = scroller.scrollLeft < maxScrollLeft;
+      if (prevBtn) {
+        prevBtn.disabled = !canScrollPrev;
+      }
+      if (nextBtn) {
+        nextBtn.disabled = !canScrollNext;
+      }
+    };
+
+    const scrollByCards = (scroller, inner, direction) => {
+      if (!scroller) {
+        return;
+      }
+      const shift = getCardShift(inner) || scroller.clientWidth * 0.8;
+      scroller.scrollBy({
+        left: direction * shift,
+        behavior: "smooth",
+      });
+    };
+
+    carousels.forEach((carousel) => {
+      const scroller = carousel.querySelector("[data-trip-scroller]");
+      const inner = carousel.querySelector(".trip-carousel__inner");
+      const prevBtn = carousel.querySelector("[data-carousel-prev]");
+      const nextBtn = carousel.querySelector("[data-carousel-next]");
+
+      if (!scroller || !inner) {
+        return;
+      }
+
+      const onPrevClick = () => {
+        scrollByCards(scroller, inner, -1);
+      };
+
+      const onNextClick = () => {
+        scrollByCards(scroller, inner, 1);
+      };
+
+      prevBtn?.addEventListener("click", onPrevClick);
+      nextBtn?.addEventListener("click", onNextClick);
+
+      const onScroll = () => {
+        window.requestAnimationFrame(() =>
+          updateNavState(scroller, prevBtn, nextBtn)
+        );
+      };
+
+      scroller.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener("resize", onScroll);
+
+      updateNavState(scroller, prevBtn, nextBtn);
+    });
+  })();
+</script>
 </body>
 </html>

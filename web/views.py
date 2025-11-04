@@ -54,6 +54,7 @@ from .models import (
     Booking,
     BookingExtra,
     Destination,
+    DestinationClassification,
     DestinationGalleryImage,
     LandingGalleryImage,
     SiteConfiguration,
@@ -840,6 +841,89 @@ class HomePageView(TemplateView):
                 }
             )
         return items
+
+
+class SahariPageView(TemplateView):
+    template_name = "sahari.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        sahari_destinations = list(
+            Destination.objects.filter(
+                classification=DestinationClassification.SAHARI
+            )
+            .order_by("featured_position", "name")
+            .only(
+                "id",
+                "name",
+                "description",
+                "card_image",
+                "slug",
+                "tagline",
+                "is_featured",
+                "featured_position",
+            )
+        )
+
+        destination_cards: list[dict[str, Any]] = []
+        destination_lookup: dict[int, dict[str, Any]] = {}
+
+        for destination in sahari_destinations:
+            card = build_destination_card(destination)
+            card["trips"] = []
+            destination_cards.append(card)
+            destination_lookup[destination.pk] = card
+
+        trip_card_cache: dict[int, dict[str, Any]] = {}
+        trip_cards: list[dict[str, Any]] = []
+
+        if destination_lookup:
+            destination_ids = list(destination_lookup.keys())
+            sahari_trips = (
+                Trip.objects.filter(
+                    Q(destination_id__in=destination_ids)
+                    | Q(additional_destinations__in=destination_ids)
+                )
+                .select_related("destination")
+                .prefetch_related(
+                    "additional_destinations",
+                    "category_tags",
+                    "languages",
+                )
+                .order_by("destination_order", "title")
+                .distinct()
+            )
+
+            for trip in sahari_trips:
+                trip_card = trip_card_cache.get(trip.pk)
+                if trip_card is None:
+                    trip_card = build_trip_card(trip)
+                    trip_card_cache[trip.pk] = trip_card
+                    trip_cards.append(trip_card)
+
+                assigned_destinations: set[int] = set()
+                primary_id = trip.destination_id
+                if primary_id in destination_lookup:
+                    destination_lookup[primary_id]["trips"].append(trip_card)
+                    assigned_destinations.add(primary_id)
+
+                for additional in trip.additional_destinations.all():
+                    additional_id = additional.pk
+                    if (
+                        additional_id in destination_lookup
+                        and additional_id not in assigned_destinations
+                    ):
+                        destination_lookup[additional_id]["trips"].append(trip_card)
+                        assigned_destinations.add(additional_id)
+
+        context.update(
+            destinations=destination_cards,
+            destination_count=len(destination_cards),
+            trip_count=len(trip_cards),
+            trips=trip_cards,
+        )
+        context.setdefault("gallery_images", [])
+        return context
 
 
 class DestinationListView(TemplateView):
