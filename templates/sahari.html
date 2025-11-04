@@ -1366,16 +1366,18 @@
       {% if destinations %}
         <div class="destinations-grid">
           {% for destination in destinations %}
-            <article class="destination-card">
-              {% if destination.image_url %}
-                <img src="{{ destination.image_url }}" alt="{{ destination.name }}" class="destination-card__image">
-              {% endif %}
-              <div class="destination-card__overlay"></div>
-              <div class="destination-card__content">
-                <h3 class="destination-card__title">{{ destination.title }}</h3>
-                <p class="destination-card__description">{{ destination.description }}</p>
-              </div>
-            </article>
+            <a href="{% url 'web:destination-page' destination.slug %}" style="text-decoration:none; color:inherit">
+              <article class="destination-card">
+                {% if destination.image_url %}
+                  <img src="{{ destination.image_url }}" alt="{{ destination.name }}" class="destination-card__image">
+                {% endif %}
+                <div class="destination-card__overlay"></div>
+                <div class="destination-card__content">
+                  <h3 class="destination-card__title">{{ destination.title }}</h3>
+                  <p class="destination-card__description">{{ destination.description }}</p>
+                </div>
+              </article>
+            </a>
           {% endfor %}
         </div>
         <!-- <div style="text-align: center;">

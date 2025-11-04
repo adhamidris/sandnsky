@@ -4,6 +4,7 @@ from django.views.generic import TemplateView
 from .views import (
     HomePageView,
     DestinationListView,
+    DestinationPageView,
     TripDetailView,
     TripReviewCreateView,
     TripListView,
@@ -25,6 +26,7 @@ app_name = "web"
 urlpatterns = [
     path("", HomePageView.as_view(), name="home"),
     path("destinations/", DestinationListView.as_view(), name="destinations"),
+    path("destinations/<slug:slug>/page/", DestinationPageView.as_view(), name="destination-page"),
     path(
         "booking-terms/",
         TemplateView.as_view(template_name="booking_terms.html"),

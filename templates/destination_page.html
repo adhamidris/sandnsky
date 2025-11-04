@@ -1,0 +1,261 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ destination.name }} | Trips</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --sand-50: #faf8f3; --sand-100: #f5f1e8; --sand-200: #ebe4d3; --sand-300: #ddd1b8; --sand-400: #c9b99a; --sand-500: #b39d7a; --sand-600: #8d7a5e; --sand-700: #6b5d49; --sand-800: #4a4034; --sand-900: #2d271f;
+      --desert-gold: #d4af37; --desert-bronze: #b8860b; --night-sky: #1a1614;
+      --font-body: 'Inter', -apple-system, system-ui, sans-serif; --font-heading: 'Playfair Display', Georgia, serif;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: var(--font-body); color: var(--sand-900); background: var(--sand-50); -webkit-font-smoothing: antialiased; }
+
+    /* Minimal nav (same vibe as Sahari) */
+    .sahari-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 40; padding: 12px 16px; background: linear-gradient(to bottom, rgba(18,16,14,0.66), rgba(18,16,14,0)); color: var(--sand-50); transition: background .3s ease, backdrop-filter .3s ease, box-shadow .3s ease; }
+    .sahari-nav.is-solid { background: rgba(18,16,14,0.72); backdrop-filter: saturate(120%) blur(6px); box-shadow: 0 10px 30px rgba(18,16,14,0.22); }
+    .sahari-nav__inner { max-width: 1280px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .sahari-nav__section { display: flex; align-items: center; gap: 10px; }
+    .sahari-nav__brand { font-family: var(--font-heading); font-weight: 600; letter-spacing: .06em; color: var(--sand-50); text-shadow: 0 1px 10px rgba(0,0,0,.2); font-size: clamp(16px, 2.2vw, 20px); user-select: none; }
+    @supports (background-clip: text) or (-webkit-background-clip: text) { .sahari-nav__brand { background-image: linear-gradient(120deg, rgba(250,248,243,.85) 0%, rgba(250,248,243,.85) 40%, #fff 50%, rgba(250,248,243,.85) 60%, rgba(250,248,243,.85) 100%); background-size: 250% 100%; background-position: -150% 0; -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; animation: sahariTextShine 6.5s linear infinite; } }
+    @keyframes sahariTextShine { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    .nav-iconbtn { appearance: none; border: 1px solid rgba(245,241,232,.22); border-radius: 999px; background: rgba(18,16,14,.35); color: var(--sand-50); width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: transform .2s ease, background .2s ease, border-color .2s ease; }
+    .nav-iconbtn:hover { transform: translateY(-1px); background: rgba(245,241,232,.1); border-color: rgba(245,241,232,.32); }
+    .nav-icon { width: 18px; height: 18px; stroke: currentColor; fill: none; }
+    .sahari-nav__cart { position: relative; text-decoration: none; color: inherit; }
+    .sahari-nav__badge { position: absolute; top: -6px; right: -6px; min-width: 18px; height: 18px; padding: 0 5px; display: none; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; border-radius: 999px; background: var(--desert-gold); color: var(--night-sky); border: 1px solid rgba(26,22,20,.25); line-height: 1; }
+    .sahari-nav__badge.is-visible { display: inline-flex; }
+    @media (max-width: 640px) { .nav-iconbtn{width:36px;height:36px;} .nav-icon{width:16px;height:16px;} .sahari-nav{padding:10px 14px;} }
+
+    /* Hero */
+    .hero { position: relative; height: 60vh; min-height: 420px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: linear-gradient(135deg, var(--sand-800), var(--sand-700)); }
+    .hero__bg { position: absolute; inset: 0; background: url('{{ hero.image_url }}') center/cover; opacity: .35; }
+    @media (max-width: 640px){ .hero__bg{ background-image: url('{{ hero.mobile_image_url|default:hero.image_url }}'); } }
+    .hero__overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(26,22,20,.7) 100%); }
+    .hero__content { position: relative; z-index: 2; text-align: center; padding: 0 24px; max-width: 900px; color: var(--sand-50); }
+    .hero__eyebrow { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--desert-gold); margin-bottom: 12px; }
+    .hero__title { font-family: var(--font-heading); font-size: clamp(34px, 6vw, 58px); font-weight: 600; line-height: 1.1; letter-spacing: -0.02em; }
+    .hero__subtitle { margin-top: 12px; color: rgba(245,241,232,.9); font-size: clamp(15px, 2vw, 18px); }
+
+    /* Sections */
+    .section { padding: clamp(48px, 8vw, 96px) 20px; }
+    .container { max-width: 1100px; margin: 0 auto; }
+    .section__header { margin-bottom: 24px; }
+    .section__title { font-family: var(--font-heading); font-size: clamp(24px, 4vw, 36px); }
+    .section__subtitle { color: var(--sand-700); margin-top: 6px; }
+
+    /* Trip list */
+    .trip-list { display: grid; gap: 20px; }
+    .trip-card { position: relative; border-radius: 8px; overflow: hidden; min-height: 360px; background: var(--sand-800); box-shadow: 0 20px 46px rgba(26,22,20,.22); }
+    .trip-card__image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .trip-card__overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20,16,14,.15) 0%, rgba(18,16,14,.85) 100%); }
+    .trip-card__content { position: relative; z-index: 2; padding: 22px; margin-top: auto; display: grid; gap: 12px; color: var(--sand-50); min-height: 200px; align-content: end; }
+    .trip-card__title { font-family: var(--font-heading); font-size: 22px; font-weight: 600; }
+    .trip-card__meta { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: rgba(245,241,232,.7); }
+    .trip-card__cta { display: inline-flex; justify-content: center; width: 100%; padding: 12px 16px; background: transparent; border: 1px solid rgba(245,241,232,.4); color: var(--sand-50); text-decoration: none; text-transform: uppercase; letter-spacing: .14em; font-size: 12px; font-weight: 700; border-radius: 999px; }
+    .trip-card__cta.is-active { background: rgba(179,157,122,.28); border-color: rgba(179,157,122,.6); color: #fefaf1; }
+    @media (max-width:640px){ .trip-card{min-height:320px;} .trip-card__title{font-size:20px;} }
+
+    /* Toast + Quick add (reused style shapes) */
+    .sahari-toast { position: fixed; left: 50%; bottom: clamp(14px,4vw,22px); transform: translateX(-50%) translateY(8px); opacity: 0; pointer-events: none; z-index: 70; transition: opacity .25s ease, transform .25s ease; }
+    .sahari-toast[data-open="true"]{ opacity:1; transform: translateX(-50%) translateY(0); }
+    .sahari-toast__inner{ display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:999px; background:rgba(18,16,14,.72); border:1px solid rgba(200,188,164,.28); color:var(--sand-50); box-shadow:0 12px 30px rgba(0,0,0,.35); letter-spacing:.14em; text-transform:uppercase; font-size:12px; font-weight:700; }
+    .sahari-toast__icon{ font-size:14px; line-height:1; color:var(--desert-gold); }
+    @media (max-width:640px){ .sahari-toast{ left:14px; right:14px; bottom: calc(env(safe-area-inset-bottom,0px) + 14px); transform: translateY(8px);} .sahari-toast[data-open="true"]{ transform: translateY(0);} .sahari-toast__inner{ width:100%; border-radius:8px; justify-content:center; padding:10px 12px; letter-spacing:.06em; font-size:13px;} }
+
+    .sahari-quickadd { position: fixed; inset: 0; z-index: 65; opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+    .sahari-quickadd[data-open="true"] { opacity: 1; pointer-events: auto; }
+    .sahari-quickadd__backdrop { position: absolute; inset: 0; background: rgba(12,10,9,0.45); backdrop-filter: blur(2px); }
+    .sahari-quickadd__dialog { position: relative; width: min(92vw, 520px); margin: 14vh auto 0; background: rgba(18,16,14,0.28); border: 1px solid rgba(200,188,164,0.22); border-radius: 14px; color: var(--sand-50); backdrop-filter: blur(10px) saturate(140%); box-shadow: 0 30px 80px rgba(0,0,0,0.35); transform: translateY(8px) scale(.98); transition: transform .2s ease; }
+    .sahari-quickadd[data-open="true"] .sahari-quickadd__dialog { transform: translateY(0) scale(1); }
+    .sahari-quickadd__header, .sahari-quickadd__footer { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 14px; background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,0)); }
+    .sahari-quickadd__title { font-family: var(--font-heading); font-size: 18px; letter-spacing: .04em; }
+    .sahari-quickadd__close { appearance: none; border: 1px solid rgba(245,241,232,0.22); border-radius: 999px; background: rgba(18,16,14,0.35); color: var(--sand-50); width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+    .sahari-quickadd__body { padding: 12px 14px 2px; }
+    .sahari-quickadd__summary { display: grid; gap: 6px; margin-bottom: 10px; }
+    .sahari-quickadd__trip { font-weight: 600; }
+    .sahari-quickadd__price { font-weight: 700; color: #fff; font-size: 13px; line-height: 1.3; opacity: .95; }
+    .sahari-quickadd__row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .sahari-quickadd__field { display: grid; gap: 6px; font-size: 13px; }
+    .sahari-quickadd__field label { color: rgba(245,241,232,.85); text-transform: uppercase; letter-spacing: .14em; font-size: 10px; }
+    .sahari-quickadd__field input[type="date"], .sahari-quickadd__field input[type="number"] { width: 100%; background: rgba(255,255,255,.06); border: 1px solid rgba(200,188,164,.25); border-radius: 8px; color: #fff; padding: 9px 10px; font: inherit; }
+    .sahari-quickadd__field input[type="number"] { text-align: center; }
+    .sahari-quickadd__stepper { display: grid; grid-template-columns: 34px 1fr 34px; align-items: center; gap: 6px; }
+    .sahari-quickadd__stepper button { appearance: none; width: 34px; height: 34px; background: rgba(18,16,14,.35); color: var(--sand-50); border: 1px solid rgba(245,241,232,.22); border-radius: 8px; cursor: pointer; font-size: 18px; line-height: 1; }
+    .sahari-quickadd__cta { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; padding: 10px 16px; border-radius: 999px; font-weight: 700; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; }
+    .sahari-quickadd__cta--primary { background: var(--desert-gold); color: var(--night-sky); border: 1px solid rgba(26,22,20,.25); }
+    .sahari-quickadd__cta--ghost { background: transparent; color: var(--sand-50); border: 1px solid rgba(245,241,232,.22); }
+    @media (max-width:640px){ .sahari-quickadd__dialog{ width:92vw; margin-top:16vh; } }
+  </style>
+</head>
+<body>
+  <nav class="sahari-nav" role="navigation" aria-label="Sahari navigation" data-sahari-nav>
+    <div class="sahari-nav__inner">
+      <div class="sahari-nav__section">
+        <button type="button" class="nav-iconbtn" data-nav-back aria-label="Go back">
+          <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        </button>
+      </div>
+      <div class="sahari-nav__section">
+        <span class="sahari-nav__brand">Sahari</span>
+      </div>
+      <div class="sahari-nav__section">
+        <a href="{% url 'web:booking-cart-checkout' %}" class="nav-iconbtn sahari-nav__cart" aria-label="Open booking list">
+          <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-1 11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 8z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M9 8V6a3 3 0 0 1 6 0v2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          <span class="sahari-nav__badge {% if booking_cart_count %}is-visible{% endif %}" data-cart-count-badge>{% if booking_cart_count %}{{ booking_cart_count }}{% endif %}</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="hero__bg" aria-hidden="true"></div>
+    <div class="hero__overlay" aria-hidden="true"></div>
+    <div class="hero__content">
+      <span class="hero__eyebrow">Explore</span>
+      <h1 class="hero__title">{{ destination.name }}</h1>
+      {% if hero.subtitle %}<p class="hero__subtitle">{{ hero.subtitle }}</p>{% endif %}
+    </div>
+  </header>
+
+  <main class="section">
+    <div class="container">
+      <div class="section__header">
+        <h2 class="section__title">Trips in {{ destination.name }}</h2>
+        {% if destination.tagline %}<p class="section__subtitle">{{ destination.tagline }}</p>{% endif %}
+      </div>
+
+      {% if trips %}
+        <div class="trip-list">
+          {% for trip in trips %}
+            <article class="trip-card">
+              {% if trip.image_url %}<img src="{{ trip.image_url }}" alt="{{ trip.title }}" class="trip-card__image" />{% endif %}
+              <div class="trip-card__overlay" aria-hidden="true"></div>
+              <div class="trip-card__content">
+                <div>
+                  <h3 class="trip-card__title">{{ trip.title }}</h3>
+                  <div class="trip-card__meta">
+                    <span>{{ trip.duration }}</span>
+                    <span>{{ trip.group_size }}</span>
+                    <span>{{ trip.location }}</span>
+                    <span>{{ trip.price }}</span>
+                  </div>
+                </div>
+                <a href="{% url 'web:booking-cart-quick-add' trip.slug %}"
+                   class="trip-card__cta"
+                   data-trip-slug="{{ trip.slug }}"
+                   data-trip-title="{{ trip.title|escape }}"
+                   data-trip-price="{{ trip.price|escape }}"
+                   data-cart-state="removed">Add to booking list</a>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p>No trips available for this destination yet.</p>
+      {% endif %}
+    </div>
+  </main>
+
+  <!-- Toast -->
+  <div class="sahari-toast" data-sahari-toast aria-live="polite" aria-atomic="true">
+    <div class="sahari-toast__inner"><span class="sahari-toast__icon" data-sahari-toast-icon aria-hidden="true"></span><span data-sahari-toast-message></span></div>
+  </div>
+
+  <!-- Quick Add Modal -->
+  <div class="sahari-quickadd" data-quickadd-panel aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="quickAddTitle">
+    <div class="sahari-quickadd__backdrop" data-quickadd-close></div>
+    <div class="sahari-quickadd__dialog">
+      <div class="sahari-quickadd__header">
+        <h3 class="sahari-quickadd__title" id="quickAddTitle">Add to booking list</h3>
+        <button type="button" class="sahari-quickadd__close" data-quickadd-close aria-label="Close">×</button>
+      </div>
+      <div class="sahari-quickadd__body">
+        <div class="sahari-quickadd__summary">
+          <div class="sahari-quickadd__trip" data-quickadd-trip></div>
+          <div class="sahari-quickadd__price" data-quickadd-price></div>
+        </div>
+        <form data-quickadd-form>
+          <div class="sahari-quickadd__field">
+            <label for="quickadd-date">Trip date</label>
+            <input id="quickadd-date" name="date" type="date" data-quickadd-date required />
+          </div>
+          <div class="sahari-quickadd__row">
+            <div class="sahari-quickadd__field">
+              <label>Adults</label>
+              <div class="sahari-quickadd__stepper">
+                <button type="button" data-quickadd-step="down" data-quickadd-target="adults">−</button>
+                <input type="number" inputmode="numeric" min="1" step="1" value="2" name="adults" data-quickadd-input="adults" />
+                <button type="button" data-quickadd-step="up" data-quickadd-target="adults">+</button>
+              </div>
+            </div>
+            <div class="sahari-quickadd__field">
+              <label>Children</label>
+              <div class="sahari-quickadd__stepper">
+                <button type="button" data-quickadd-step="down" data-quickadd-target="children">−</button>
+                <input type="number" inputmode="numeric" min="0" step="1" value="0" name="children" data-quickadd-input="children" />
+                <button type="button" data-quickadd-step="up" data-quickadd-target="children">+</button>
+              </div>
+            </div>
+          </div>
+          <input type="hidden" name="infants" value="0" />
+        </form>
+      </div>
+      <div class="sahari-quickadd__footer">
+        <button type="button" class="sahari-quickadd__cta sahari-quickadd__cta--ghost" data-quickadd-close>Cancel</button>
+        <button type="button" class="sahari-quickadd__cta sahari-quickadd__cta--primary" data-quickadd-confirm>Add</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const nav = document.querySelector('[data-sahari-nav]');
+      const backBtn = document.querySelector('[data-nav-back]');
+      const cartBadge = document.querySelector('[data-cart-count-badge]');
+      const toast = document.querySelector('[data-sahari-toast]');
+      const toastMsg = toast?.querySelector('[data-sahari-toast-message]');
+      const toastIcon = toast?.querySelector('[data-sahari-toast-icon]');
+
+      const quickAddPanel = document.querySelector('[data-quickadd-panel]');
+      const quickAddCloseEls = document.querySelectorAll('[data-quickadd-close]');
+      const quickAddTrip = document.querySelector('[data-quickadd-trip]');
+      const quickAddPrice = document.querySelector('[data-quickadd-price]');
+      const quickAddDate = document.querySelector('[data-quickadd-date]');
+      const quickAddForm = document.querySelector('[data-quickadd-form]');
+      const quickAddConfirm = document.querySelector('[data-quickadd-confirm]');
+
+      const setNavSolid = () => { if (!nav) return; const t = 12; if (window.scrollY > t) nav.classList.add('is-solid'); else nav.classList.remove('is-solid'); };
+      setNavSolid(); window.addEventListener('scroll', setNavSolid, { passive:true });
+      if (backBtn) backBtn.addEventListener('click', function(){ if (history.length>1){ history.back(); } else { window.location.assign('{% url 'web:destinations' %}'); } });
+
+      function getCsrf() { var m = document.cookie.match(/(?:^|; )csrftoken=([^;]+)/); return m ? decodeURIComponent(m[1]) : ''; }
+      function updateBadge(n){ if (!cartBadge) return; const v = Number(n||0); cartBadge.textContent = v>0 ? String(v) : ''; cartBadge.classList.toggle('is-visible', v>0); }
+      function showToast(message, inCart){ if (!toast || !message) return; if (toast._timer) clearTimeout(toast._timer); if (toastMsg) toastMsg.textContent = String(message); if (toastIcon) toastIcon.textContent = inCart ? '✓' : '–'; toast.dataset.open = 'true'; toast._timer = setTimeout(function(){ toast.dataset.open='false'; if (toastMsg) toastMsg.textContent=''; if (toastIcon) toastIcon.textContent=''; }, 2200); }
+      function setCtaState(cta, inCart){ if (!cta) return; cta.textContent = inCart ? 'Remove from booking list' : 'Add to booking list'; cta.setAttribute('data-cart-state', inCart ? 'added' : 'removed'); cta.classList.toggle('is-active', !!inCart); }
+
+      function postQuickAdd(url, extra){ var fd = new FormData(); fd.set('next', location.pathname+location.search); if (extra){ extra.forEach((v,k)=>fd.set(k,v)); } return fetch(url, { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken':getCsrf()}, body:fd, credentials:'same-origin' }).then(r=>r.json()); }
+
+      function openQuickAdd(link){ if (!quickAddPanel || !link) return; var title = link.getAttribute('data-trip-title')||''; var price = link.getAttribute('data-trip-price')||''; var today=(function(){var d=new Date();var off=d.getTimezoneOffset()*60000;var local=new Date(d.getTime()-off);return local.toISOString().slice(0,10);})(); if (quickAddTrip) quickAddTrip.textContent=title; if (quickAddPrice) quickAddPrice.textContent=price; if (quickAddDate){ quickAddDate.min=today; if(!quickAddDate.value) quickAddDate.value=today; } quickAddPanel.dataset.open='true'; quickAddPanel.removeAttribute('aria-hidden'); quickAddPanel._cta=link; document.body.style.overflow='hidden'; }
+      function closeQuickAdd(){ if (!quickAddPanel) return; quickAddPanel.dataset.open='false'; quickAddPanel.setAttribute('aria-hidden','true'); document.body.style.overflow=''; quickAddPanel._cta=null; }
+      quickAddCloseEls.forEach(el=>el.addEventListener('click', closeQuickAdd));
+      if (quickAddConfirm){ quickAddConfirm.addEventListener('click', function(){ var link=quickAddPanel&&quickAddPanel._cta; if(!link) return closeQuickAdd(); var url=link.getAttribute('href'); var extra=new Map(); if(quickAddDate&&quickAddDate.value) extra.set('date', quickAddDate.value); var adults=quickAddForm&&quickAddForm.querySelector('[data-quickadd-input="adults"]'); var children=quickAddForm&&quickAddForm.querySelector('[data-quickadd-input="children"]'); if(adults&&adults.value) extra.set('adults', adults.value); if(children) extra.set('children', children.value||'0'); extra.set('infants','0'); postQuickAdd(url, extra).then(function(data){ try{ updateBadge(data.cart_count||0); window.dispatchEvent(new CustomEvent('booking:cart-update',{detail:data})); setCtaState(link, !!data.in_cart); showToast(data.toast_message || 'Added to booking list', !!data.in_cart); }catch(e){} closeQuickAdd(); }).catch(function(){ closeQuickAdd(); window.location.href=url; }); }); }
+      if (quickAddForm){ quickAddForm.addEventListener('click', function(e){ var btn=e.target&&e.target.closest('[data-quickadd-step]'); if(!btn) return; var target=btn.getAttribute('data-quickadd-target')||'adults'; var input=quickAddForm.querySelector('[data-quickadd-input="'+target+'"]'); if(!input) return; var val=parseInt(input.value,10); if(isNaN(val)) val=0; var isUp=btn.getAttribute('data-quickadd-step')==='up'; val=isUp?val+1:val-1; if(target==='adults'&&val<1) val=1; if(target!=='adults'&&val<0) val=0; input.value=String(val); }); }
+
+      function handleCtaClick(e){ var link=e.currentTarget; var url=link.getAttribute('href'); if(!url) return; e.preventDefault(); var state=link.getAttribute('data-cart-state')||'removed'; if(state==='removed'){ openQuickAdd(link); } else { postQuickAdd(url).then(function(data){ try{ updateBadge(data.cart_count||0); window.dispatchEvent(new CustomEvent('booking:cart-update',{detail:data})); setCtaState(link, !!data.in_cart); showToast(data.toast_message || 'Removed from booking list', !!data.in_cart); }catch(e){} }).catch(function(){ window.location.href=url; }); } }
+      document.querySelectorAll('.trip-card__cta[href]').forEach(cta=>cta.addEventListener('click', handleCtaClick));
+
+      // Init CTA states from cart summary
+      fetch('{% url 'web:booking-cart-rewards' %}', { headers:{'X-Requested-With':'XMLHttpRequest'}, credentials:'same-origin' })
+        .then(r=>r.json()).then(function(data){ try{ var entries=(data&&data.cart_summary&&Array.isArray(data.cart_summary.entries))?data.cart_summary.entries:[]; var slugs=new Set(entries.map(e=>String(e.trip_slug||''))); document.querySelectorAll('.trip-card__cta[data-trip-slug]').forEach(function(cta){ var slug=String(cta.getAttribute('data-trip-slug')||''); setCtaState(cta, slugs.has(slug)); }); updateBadge(data && data.cart_summary ? data.cart_summary.count : 0); }catch(e){} }).catch(function(){});
+    })();
+  </script>
+</body>
+</html>
+

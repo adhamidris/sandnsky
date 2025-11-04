@@ -193,6 +193,7 @@ def build_destination_card(destination):
     return {
         "id": destination.pk,
         "name": destination.name,
+        "slug": destination.slug,
         "title": destination.tagline or destination.name,
         "description": destination.description,
         "image_url": destination.card_image.url if destination.card_image else "",
@@ -1020,6 +1021,62 @@ class DestinationListView(TemplateView):
         cards = [build_destination_card(destination) for destination in destinations]
         context["destinations"] = cards
         context["destination_count"] = len(cards)
+        return context
+
+
+class DestinationPageView(TemplateView):
+    template_name = "destination_page.html"
+
+    def get_destination(self):
+        if not hasattr(self, "_destination"):
+            self._destination = get_object_or_404(
+                Destination.objects.only(
+                    "id",
+                    "name",
+                    "slug",
+                    "tagline",
+                    "description",
+                    "hero_image",
+                    "hero_image_mobile",
+                    "hero_subtitle",
+                    "classification",
+                ).filter(classification=DestinationClassification.SAHARI),
+                slug=self.kwargs.get("slug"),
+            )
+        return self._destination
+
+    def get_trips(self, destination):
+        return (
+            Trip.objects.filter(Q(destination=destination) | Q(additional_destinations=destination))
+            .select_related("destination")
+            .prefetch_related(
+                "additional_destinations",
+                "category_tags",
+                "languages",
+                Prefetch(
+                    "gallery_images",
+                    queryset=TripGalleryImage.objects.order_by("position", "id"),
+                ),
+            )
+            .order_by("destination_order", "title")
+            .distinct()
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        destination = self.get_destination()
+        trips = [build_trip_card(trip) for trip in self.get_trips(destination)]
+        context.update(
+            destination={
+                "name": destination.name,
+                "slug": destination.slug,
+                "tagline": destination.tagline,
+                "description": destination.description,
+            },
+            hero=_destination_hero_context(destination),
+            trips=trips,
+            trip_count=len(trips),
+        )
         return context
 
 
