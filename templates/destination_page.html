@@ -23,7 +23,7 @@
     .sahari-nav__inner { max-width: 1280px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .sahari-nav__section { display: flex; align-items: center; gap: 10px; }
     .sahari-nav__brand { font-family: var(--font-heading); font-weight: 600; letter-spacing: .06em; color: var(--sand-50); text-shadow: 0 1px 10px rgba(0,0,0,.2); font-size: clamp(16px, 2.2vw, 20px); user-select: none; }
-    @supports (background-clip: text) or (-webkit-background-clip: text) { .sahari-nav__brand { background-image: linear-gradient(120deg, rgba(250,248,243,.85) 0%, rgba(250,248,243,.85) 40%, #fff 50%, rgba(250,248,243,.85) 60%, rgba(250,248,243,.85) 100%); background-size: 250% 100%; background-position: -150% 0; -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; animation: sahariTextShine 6.5s linear infinite; } }
+    @supports (background-clip: text) or (-webkit-background-clip: text) { .sahari-nav__brand { background-image: linear-gradient(120deg, rgba(212,175,55,.08) 0%, rgba(212,175,55,.14) 36%, #f5d06f 50%, rgba(212,175,55,.14) 64%, rgba(212,175,55,.08) 100%); background-size: 250% 100%; background-position: -150% 0; -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; animation: sahariTextShine 6.5s linear infinite; } }
     @keyframes sahariTextShine { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
     .nav-iconbtn { appearance: none; border: 1px solid rgba(245,241,232,.22); border-radius: 999px; background: rgba(18,16,14,.35); color: var(--sand-50); width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: transform .2s ease, background .2s ease, border-color .2s ease; }
     .nav-iconbtn:hover { transform: translateY(-1px); background: rgba(245,241,232,.1); border-color: rgba(245,241,232,.32); }
@@ -97,6 +97,10 @@
     .sahari-quickadd__cta--primary { background: var(--desert-gold); color: var(--night-sky); border: 1px solid rgba(26,22,20,.25); }
     .sahari-quickadd__cta--ghost { background: transparent; color: var(--sand-50); border: 1px solid rgba(245,241,232,.22); }
     @media (max-width:640px){ .sahari-quickadd__dialog{ width:92vw; margin-top:16vh; } }
+
+    .sahari-dest {
+        background: #E8D5C4 !important;
+    }
   </style>
 </head>
 <body>
@@ -129,7 +133,7 @@
     </div>
   </header>
 
-  <main class="section">
+  <main class="section sahari-dest">
     <div class="container">
       <div class="section__header">
         <h2 class="section__title">Trips in {{ destination.name }}</h2>
