@@ -25,6 +25,9 @@
       --desert-gold: #d4af37;
       --desert-bronze: #b8860b;
       --night-sky: #1a1614;
+      /* Subtle warm tint for Sahari dusk */
+      --sahara-dusk: #221a14;
+      --sahara-amber: #d8a24b;
       
       --font-body: 'Inter', -apple-system, system-ui, sans-serif;
       --font-heading: 'Playfair Display', Georgia, serif;
@@ -39,7 +42,9 @@
     body {
       font-family: var(--font-body);
       color: var(--sand-900);
-      background: var(--sand-50);
+      background:
+        radial-gradient(120% 80% at 50% 0%, rgba(216, 162, 75, 0.06) 0%, rgba(216, 162, 75, 0) 60%),
+        linear-gradient(180deg, var(--sand-50) 0%, var(--sand-100) 100%);
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
     }
@@ -56,12 +61,14 @@
       color: var(--sand-50);
       pointer-events: auto;
       transition: background-color 0.3s ease, box-shadow 0.3s ease, backdrop-filter 0.3s ease;
+      border-bottom: 1px solid rgba(212, 175, 55, 0.08);
     }
 
     .sahari-nav.is-solid {
       background: rgba(18,16,14,0.72);
       backdrop-filter: saturate(120%) blur(6px);
       box-shadow: 0 10px 30px rgba(18,16,14,0.22);
+      border-bottom-color: rgba(212, 175, 55, 0.18);
     }
 
     .sahari-nav__inner {
@@ -342,21 +349,24 @@
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      background: linear-gradient(135deg, var(--sand-800) 0%, var(--sand-700) 100%);
+      background: linear-gradient(135deg, var(--night-sky) 0%, var(--sand-800) 100%);
     }
     
     .desert-hero__bg {
       position: absolute;
       inset: 0;
       background: url('https://pub-b5144fdd56fb4b018c6d025a213f59d3.r2.dev/sandnsky.jpg') center/cover;
-      opacity: 0.3;
+      opacity: 0.9;
       z-index: 0;
     }
     
     .desert-hero__overlay {
       position: absolute;
       inset: 0;
-      background: linear-gradient(to bottom, transparent 0%, rgba(26, 22, 20, 0.7) 100%);
+      /* Warm Sahari dusk tint over the hero image */
+      background:
+        radial-gradient(60% 60% at 50% 30%, rgba(216, 162, 75, 0.12) 0%, rgba(216, 162, 75, 0) 60%) ,
+        linear-gradient(to bottom, rgba(212, 175, 55, 0.06) 0%, rgba(26, 22, 20, 0.76) 100%);
       z-index: 1;
     }
     
@@ -408,26 +418,31 @@
       text-transform: uppercase;
       text-decoration: none;
       color: var(--night-sky);
-      background: var(--sand-50);
-      border: 2px solid transparent;
+      background: var(--desert-gold);
+      border: 2px solid var(--desert-gold);
       border-radius: 2px;
       transition: all 0.3s ease;
     }
     
     .desert-hero__cta:hover {
       background: transparent;
-      border-color: var(--sand-50);
-      color: var(--sand-50);
+      border-color: var(--desert-gold);
+      color: var(--desert-gold);
       transform: translateY(-2px);
     }
     
     /* Section Container */
     .section {
       padding: clamp(64px, 10vw, 120px) 24px;
+      background:
+        radial-gradient(100% 70% at 50% 0%, rgba(216, 162, 75, 0.04) 0%, rgba(216, 162, 75, 0) 60%),
+        linear-gradient(180deg, var(--sand-50) 0%, var(--sand-100) 100%);
     }
     
     .section--alt {
-      background: linear-gradient(to bottom, var(--sand-100) 0%, var(--sand-50) 100%);
+      background:
+        radial-gradient(100% 70% at 50% 0%, rgba(216, 162, 75, 0.08) 0%, rgba(216, 162, 75, 0) 60%),
+        linear-gradient(to bottom, var(--sand-100) 0%, var(--sand-50) 100%);
     }
     
     .container {
@@ -504,7 +519,9 @@
     .destination-card__overlay {
       position: absolute;
       inset: 0;
-      background: linear-gradient(to top, rgba(26, 22, 20, 0.75) 0%, transparent 60%);
+      background:
+        linear-gradient(to top, rgba(26, 22, 20, 0.75) 0%, rgba(26, 22, 20, 0.55) 45%, transparent 70%),
+        radial-gradient(80% 60% at 50% 100%, rgba(216, 162, 75, 0.14) 0%, rgba(216, 162, 75, 0) 60%);
       z-index: 1;
     }
     
@@ -546,17 +563,17 @@
       letter-spacing: 0.08em;
       text-transform: uppercase;
       text-decoration: none;
-      color: var(--sand-50);
-      background: var(--night-sky);
-      border: 2px solid var(--night-sky);
+      color: var(--night-sky);
+      background: var(--desert-gold);
+      border: 2px solid var(--desert-gold);
       border-radius: 0;
       transition: all 0.3s ease;
     }
     
     .destinations__cta:hover {
       background: transparent;
-      border-color: var(--night-sky);
-      color: var(--night-sky);
+      border-color: var(--desert-gold);
+      color: var(--desert-gold);
     }
     
     /* Empty State */
@@ -686,10 +703,10 @@
       letter-spacing: 0.1em;
       text-transform: uppercase;
       text-decoration: none;
-      color: var(--sand-50);
-      background: var(--night-sky);
+      color: #1a1614; /* night-sky */
+      background: #d4af37; /* desert-gold */
       border-radius: 999px;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease;
       box-shadow: 0 12px 28px rgba(26, 22, 20, 0.22);
     }
 
@@ -798,8 +815,16 @@
     .trip-card__overlay {
       position: absolute;
       inset: 0;
-      background: linear-gradient(180deg, rgba(20, 16, 14, 0.15) 0%, rgba(18, 16, 14, 0.78) 72%, rgba(18, 16, 14, 0.92) 100%);
+      background:
+        linear-gradient(180deg, rgba(20, 16, 14, 0.15) 0%, rgba(18, 16, 14, 0.78) 72%, rgba(18, 16, 14, 0.92) 100%),
+        radial-gradient(120% 60% at 50% 0%, rgba(216, 162, 75, 0.10) 0%, rgba(216, 162, 75, 0) 60%);
       z-index: 1;
+    }
+
+    .trip-card__link {
+      position: absolute;
+      inset: 0;
+      z-index: 3; /* above overlay and content, but CTA will be higher */
     }
 
     .trip-card__content {
@@ -876,6 +901,8 @@
       font-weight: 600;
       border-radius: 0;
       transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+      position: relative;
+      z-index: 4;
     }
 
     .trip-card__cta:hover,
@@ -890,6 +917,9 @@
     /* Gallery Grid */
     .gallery-section {
       text-align: center;
+      background:
+        radial-gradient(100% 60% at 50% 0%, rgba(216, 162, 75, 0.06) 0%, rgba(216, 162, 75, 0) 60%),
+        linear-gradient(180deg, var(--sand-50) 0%, var(--sand-100) 100%);
     }
     
     .gallery-wrapper {
@@ -986,7 +1016,9 @@
     .gallery-item__overlay {
       position: absolute;
       inset: 0;
-      background: linear-gradient(to top, rgba(26, 22, 20, 0.7) 0%, transparent 50%);
+      background:
+        linear-gradient(to top, rgba(26, 22, 20, 0.7) 0%, rgba(26, 22, 20, 0.5) 35%, transparent 55%),
+        radial-gradient(80% 60% at 50% 100%, rgba(216, 162, 75, 0.12) 0%, rgba(216, 162, 75, 0) 60%);
       z-index: 1;
       display: flex;
       flex-direction: column;
@@ -1429,6 +1461,7 @@
                       <img src="{{ trip.image_url }}" alt="{{ trip.title }}" class="trip-card__image">
                     {% endif %}
                     <div class="trip-card__overlay"></div>
+                    <a href="{% url 'web:trip-detail' trip.slug %}" class="trip-card__link" aria-label="{{ trip.title }}"></a>
                     <div class="trip-card__content">
                       <div class="trip-card__body">
                         <h3 class="trip-card__title">{{ trip.title }}</h3>

@@ -56,11 +56,12 @@
     .trip-card__image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .6s ease; }
     .trip-card:hover .trip-card__image { transform: scale(1.05); }
     .trip-card__overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20,16,14,0.15) 0%, rgba(18,16,14,0.78) 72%, rgba(18,16,14,0.92) 100%); }
-    .trip-card__content { position: absolute; left: 0; right: 0; bottom: 0; padding: clamp(24px, 3vw, 32px); display: flex; flex-direction: column; justify-content: flex-end; gap: 14px; z-index: 2; color: var(--sand-50); }
+    .trip-card__content { position: absolute; left: 0; right: 0; bottom: 0; padding: clamp(24px, 3vw, 32px); display: flex; flex-direction: column; justify-content: flex-end; gap: 14px; z-index: 2; color: var(--sand-50); pointer-events: none; }
     .trip-card__title { font-family: var(--font-heading); font-size: 1.2rem; font-weight: 600; line-height: 1.2; }
     .trip-card__meta { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: rgba(245,241,232,.7); }
     .price-span { color: #fff !important; }
-    .trip-card__cta { display: block; width: 100%; text-align: center; padding: 12px 16px; background: transparent; border: 1px solid rgba(245,241,232,.4); color: var(--sand-50); text-decoration: none; text-transform: uppercase; letter-spacing: .14em; font-size: 12px; font-weight: 700; border-radius: 0; transition: background .3s ease, color .3s ease, border-color .3s ease; }
+    .trip-card__cta { display: block; width: 100%; text-align: center; padding: 12px 16px; background: transparent; border: 1px solid rgba(245,241,232,.4); color: var(--sand-50); text-decoration: none; text-transform: uppercase; letter-spacing: .14em; font-size: 12px; font-weight: 700; border-radius: 0; transition: background .3s ease, color .3s ease, border-color .3s ease; pointer-events: auto; }
+    .trip-card__link { position: absolute; inset: 0; z-index: 1; }
     .trip-card__cta:hover, .trip-card__cta:focus-visible { background: rgba(179,157,122,.28); border-color: rgba(179,157,122,.6); color: #fefaf1; }
     .trip-card__cta.is-active { background: rgba(179,157,122,.28); border-color: rgba(179,157,122,.6); color: #fefaf1; }
     @media (max-width: 968px){ .trip-list{ grid-template-columns: repeat(2, 1fr); } }
@@ -139,6 +140,7 @@
         <div class="trip-list">
           {% for trip in trips %}
             <article class="trip-card">
+              <a href="{% url 'web:trip-detail' trip.slug %}" class="trip-card__link" aria-label="{{ trip.title }}"></a>
               {% if trip.image_url %}<img src="{{ trip.image_url }}" alt="{{ trip.title }}" class="trip-card__image" />{% endif %}
               <div class="trip-card__overlay" aria-hidden="true"></div>
               <div class="trip-card__content">

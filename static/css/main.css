@@ -1728,6 +1728,15 @@
     height: 100%;
     object-fit: cover;
   }
+  /* Warm Sahari overlay to match sahari page hero */
+  .sahari-banner__overlay{
+    position:absolute;
+    inset:0;
+    background:
+      radial-gradient(60% 60% at 50% 30%, rgba(216,162,75,0.12) 0%, rgba(216,162,75,0) 60%),
+      linear-gradient(to bottom, rgba(212,175,55,0.06) 0%, rgba(26,22,20,0.72) 100%);
+    z-index:1;
+  }
   
   .sahari-banner__copy {
     position: relative;
@@ -1817,15 +1826,15 @@
     letter-spacing: .08em;
     text-transform: uppercase;
     text-decoration: none;
-    color: #fff6dd;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 246, 221, 0.3);
-    border-radius: 2px;
+    color: #1a1614; /* night-sky */
+    background: #d4af37; /* desert-gold */
+    border: 2px solid #d4af37;
+    border-radius: 2px; /* match sahari hero CTA */
     backdrop-filter: blur(8px);
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
-  }
+    }
   
   .sahari-banner__cta::before {
     content: '';
@@ -1842,8 +1851,9 @@
   }
   
   .sahari-banner__cta:hover {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 246, 221, 0.5);
+    background: transparent;
+    border-color: #d4af37;
+    color: #d4af37;
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   }
