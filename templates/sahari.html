@@ -1807,11 +1807,8 @@
 
     if (backBtn) {
       backBtn.addEventListener('click', function () {
-        if (window.history.length > 1) {
-          window.history.back();
-        } else {
-          window.location.assign("{% url 'web:trips' %}");
-        }
+        // On the Sahari root page, always send users to site home
+        window.location.assign("{% url 'web:home' %}");
       });
     }
 
