@@ -591,6 +591,8 @@
       border-radius: 0;
       cursor: pointer;
       background: var(--sand-800);
+      box-shadow: 0 26px 60px rgba(26, 22, 20, 0.16);
+      transition: transform 0.45s ease, box-shadow 0.45s ease;
     }
     
     .gallery-item:nth-child(1),
@@ -613,7 +615,9 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transition: transform 0.6s ease;
+      transform: scale(1.035);
+      transition: opacity 0.85s ease, transform 1.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+      opacity: 1;
     }
     
     .gallery-item:hover .gallery-item__image {
@@ -769,6 +773,7 @@
       .gallery-item {
         height: 420px;
         scroll-snap-align: start;
+        box-shadow: none;
       }
       
       .gallery-item:nth-child(1),
@@ -948,13 +953,15 @@
         </div>
       {% endif %}
     </div>
-  </section>
+</section>
+
+{{ gallery_images|json_script:"sahari-gallery-data" }}
 
 <script>
   (function () {
     const carousels = document.querySelectorAll("[data-trip-carousel]");
     if (!carousels.length) {
-      return;
+      // proceed; gallery auto-rotation may still run
     }
 
     const getGap = (element) => {
@@ -1082,6 +1089,88 @@
         });
       }
     });
+
+    const galleryDataElement = document.getElementById("sahari-gallery-data");
+    const galleryData = galleryDataElement
+      ? JSON.parse(galleryDataElement.textContent || "[]")
+      : [];
+
+    const galleryItems = Array.from(document.querySelectorAll(".gallery-item"));
+    if (galleryData.length && galleryItems.length) {
+      let rotationIndex = 1;
+      let intervalId = null;
+      const mediaQuery = window.matchMedia("(min-width: 969px)");
+
+      const updateItem = (item, data) => {
+        if (!data) {
+          return;
+        }
+        const img = item.querySelector(".gallery-item__image");
+        const titleEl = item.querySelector(".gallery-item__title");
+        const captionEl = item.querySelector(".gallery-item__caption");
+        if (!img || !titleEl || !captionEl) {
+          return;
+        }
+
+        const applyContent = () => {
+          titleEl.textContent = data.title || "";
+          captionEl.textContent = data.caption || "";
+          img.style.opacity = 1;
+          img.removeEventListener("load", applyContent);
+        };
+
+        if (img.src === data.image_url) {
+          applyContent();
+        } else {
+          img.style.opacity = 0;
+          img.addEventListener("load", applyContent);
+          img.src = data.image_url;
+          img.alt = data.title || "Gallery image";
+        }
+      };
+
+      const rotate = () => {
+        galleryItems.forEach((item, idx) => {
+          const data = galleryData[(rotationIndex + idx) % galleryData.length];
+          updateItem(item, data);
+        });
+        rotationIndex = (rotationIndex + 1) % galleryData.length;
+      };
+
+      const startRotation = () => {
+        if (intervalId || !mediaQuery.matches || galleryData.length <= 1) {
+          return;
+        }
+        intervalId = window.setInterval(rotate, 6000);
+      };
+
+      const stopRotation = () => {
+        if (intervalId) {
+          window.clearInterval(intervalId);
+          intervalId = null;
+        }
+      };
+
+      mediaQuery.addEventListener("change", () => {
+        if (mediaQuery.matches) {
+          startRotation();
+        } else {
+          stopRotation();
+        }
+      });
+
+      if (mediaQuery.matches) {
+        startRotation();
+      }
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          stopRotation();
+        } else if (mediaQuery.matches) {
+          startRotation();
+        }
+      });
+    }
   })();
 </script>
 </body>
