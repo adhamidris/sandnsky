@@ -3,7 +3,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from decimal import Decimal
 
-from yourapp.models import (
+from web.models import (
     Destination, DestinationName,
     Trip, TripHighlight, TripAbout,
     TripItineraryDay, TripItineraryStep,
