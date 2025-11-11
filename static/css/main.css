@@ -2949,3 +2949,51 @@
 .trip-collections-mobile .trip-picks__toggle-group a {
   padding: 8px !important;
 }
+
+
+/* Container */
+.brand {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;            /* clip the shine to the logo bounds */
+  border-radius: 6px;          /* optional: soften edges slightly */
+}
+
+/* Make sure image doesn’t add extra gaps */
+.brand img {
+  display: block;
+}
+
+/* The shimmer beam */
+.brand::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -150%;                 /* start far left */
+  height: 100%;
+  width: 55%;                  /* beam width */
+  pointer-events: none;
+  background: linear-gradient(
+    120deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 35%,
+    rgba(255, 255, 255, 0.35) 50%,
+    rgba(255, 255, 255, 0.08) 65%,
+    transparent 100%
+  );
+  transform: skewX(-20deg);    /* gives a sleek diagonal sweep */
+  filter: blur(0.5px);         /* ultra subtle softness */
+  animation: logo-shine 2.8s linear infinite;
+}
+
+/* Motion reduced: respect user preference */
+@media (prefers-reduced-motion: reduce) {
+  .brand::after {
+    animation: none;
+  }
+}
+
+@keyframes logo-shine {
+  0%   { left: -150%; }
+  100% { left: 150%; }
+}
