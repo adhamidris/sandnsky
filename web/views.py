@@ -668,9 +668,9 @@ class HomePageView(TemplateView):
         ]
 
         context["about_section"] = {
-            "title": "About Sand & Sky",
+            "title": "About Kaya Tours",
             "subtitle": (
-                "Sand & Sky is a boutique travel agency devoted exclusively to the magic of the Egyptian "
+                "Kaya Tours is a boutique travel agency devoted exclusively to the magic of the Egyptian "
                 "Sahara. We craft immersive journeys that capture the soul of Egypt's most breathtaking desert "
                 "landscapes - from the tranquil oases of Siwa, Fayoum, Bahariya, and Farafra to the surreal beauty "
                 "of the White and Black Deserts."
@@ -678,7 +678,7 @@ class HomePageView(TemplateView):
         }
 
         context["features_section"] = {
-            "title": "Why travel with Sand & Sky",
+            "title": "Why travel with Kaya Tours",
             "subtitle": "Four promises that guide every journey we design.",
             "features": features,
         }

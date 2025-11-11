@@ -8,7 +8,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
 
-BOOKING_EMAIL_DEFAULT_SUBJECT = "Your Sand & Sky booking {{ booking.reference_code }} is confirmed"
+BOOKING_EMAIL_DEFAULT_SUBJECT = "Your Kaya booking {{ booking.reference_code }} is confirmed"
 
 BOOKING_EMAIL_DEFAULT_TEXT_TEMPLATE = """Hi {{ booking.full_name }},
 
@@ -35,7 +35,7 @@ Special requests:
 
 One of our travel specialists will reach out soon with the next steps. If you need any help in the meantime, just reply to this email.
 
-Thanks for choosing Sand & Sky Tours!
+Thanks for choosing Kaya Tours!
 """
 
 

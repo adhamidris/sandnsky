@@ -830,7 +830,7 @@ def _build_rewards_metadata(
 
 
 def build_booking_help_link(entries: List[Dict[str, Any]]) -> str:
-    lines = ["Hi Sand & Sky, I need help with my booking list."]
+    lines = ["Hi Kaya, I need help with my booking list."]
 
     for entry in entries:
         parts: List[str] = []

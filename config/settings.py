@@ -245,7 +245,7 @@ EMAIL_BACKEND = os.environ.get(
 
 DEFAULT_FROM_EMAIL = os.environ.get(
     "DJANGO_DEFAULT_FROM_EMAIL",
-    "Sand & Sky Tours <no-reply@example.com>",
+    "Kaya Tours <no-reply@example.com>",
 )
 
 EMAIL_HOST = os.environ.get("DJANGO_EMAIL_HOST", "localhost")

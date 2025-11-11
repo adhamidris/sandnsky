@@ -173,7 +173,7 @@ class BookingSubmissionTests(TestCase):
         self.assertEqual(extras[1].price_at_booking, self.extra_hot_air.price)
 
         self.assertContains(response, booking.reference_code)
-        self.assertContains(response, "Thanks for choosing Sand &amp; Sky Tours")
+        self.assertContains(response, "Thanks for choosing Kaya Tours")
 
     def test_success_page_requires_valid_token(self):
         url = reverse("web:booking-success")

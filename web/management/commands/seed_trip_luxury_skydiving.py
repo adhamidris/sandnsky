@@ -24,9 +24,9 @@ from web.models import (
 # ------------------------------------------------------------
 # Trip core configuration
 # ------------------------------------------------------------
-TITLE = "Sand & Sky Luxury Tandem Skydive Over the Pyramids"
+TITLE = "Kaya Tours Luxury Tandem Skydive Over the Pyramids"
 TEASER = (
-    "Soar above the Giza Plateau on a Sand & Sky Tandem Skydive—private hosts, premium gear, "
+    "Soar above the Giza Plateau on a Kaya Tours Tandem Skydive—private hosts, premium gear, "
     "and cinematic views of the pyramids in one once-in-a-lifetime jump."
 )
 
@@ -61,7 +61,7 @@ CATEGORY_TAGS = [
 # Content blocks
 # ------------------------------------------------------------
 HIGHLIGHTS = [
-    "Jump with Sand & Sky's elite tandem instructors for a 45-second freefall over the Great Pyramids.",
+    "Jump with Kaya's elite tandem instructors for a 45-second freefall over the Great Pyramids.",
     "Arrive to a private check-in lounge with concierge hosts, safety briefing, and tailored flight plan.",
     "Choose weekday Cessna or upgrade to Hercules C130 lift-offs for panoramic flight paths.",
     "Capture the moment with optional 4K video, on-helmet shots, and post-jump celebration toast.",
@@ -70,7 +70,7 @@ HIGHLIGHTS = [
 ]
 
 ABOUT = """\
-Sand & Sky Tours transforms Egypt's legendary skydive into a luxury adventure reserved for serious thrill-seekers. \
+Kaya Tours transforms Egypt's legendary skydive into a luxury adventure reserved for serious thrill-seekers. \
 Arrive to our private base beside the Giza Plateau where your personal host handles check-in, equipment fitting, \
 and USPA-certified instructor briefing. Moments later you’re climbing above the pyramids—just in time for the door \
 to open and Cairo's desert horizon to fill your viewfinder.
@@ -78,11 +78,11 @@ to open and Cairo's desert horizon to fill your viewfinder.
 This adults-only experience pairs the adrenaline of a 45-second freefall with the calm confidence of world-class \
 guides, premium rigs, and meticulous safety checks. Whether you select the weekday Cessna or upgrade to the \
 Hercules C130 lift, every jump includes an exclusive landing zone welcome, certificate presentation, and the option \
-to continue the celebration with Sand & Sky’s curated brunch overlooking the plateau.
+to continue the celebration with Kaya’s curated brunch overlooking the plateau.
 
 Availability is limited to sanctioned operating windows, and each booking is personally managed by our reservations \
 team—from weather monitoring and weight eligibility to arranging private transfers. It’s the most spectacular way to \
-tick “Skydive the Pyramids” off your bucket list, elevated with the polish Sand & Sky Tours is known for.
+tick “Skydive the Pyramids” off your bucket list, elevated with the polish Kaya Tours is known for.
 """
 
 ITINERARY = [
@@ -90,7 +90,7 @@ ITINERARY = [
         "day": 1,
         "title": "Luxury Tandem Skydive over the Pyramids",
         "steps": [
-            ("06:30", "Door-to-door transfer or self-arrival at Sand & Sky’s private skydive lounge."),
+            ("06:30", "Door-to-door transfer or self-arrival at Kaya’s private skydive lounge."),
             ("07:00", "Concierge welcome, paperwork, weight/BMI check, and personalized safety briefing."),
             ("07:45", "Gear fitting with premium jumpsuits, harness, altimeter, and dual GoPro mounts if selected."),
             ("08:15", "Board the aircraft (Cessna or Hercules upgrade) for a scenic climb above the Giza plateau."),
@@ -102,11 +102,11 @@ ITINERARY = [
 ]
 
 INCLUSIONS = [
-    "Tandem skydive over the Pyramids of Giza with Sand & Sky Tours’ elite instructor team.",
+    "Tandem skydive over the Pyramids of Giza with Kaya’ elite instructor team.",
     "Private welcome lounge access with concierge host and health eligibility screening.",
     "All professional skydiving gear, goggles, jumpsuit, rig, and dual safety checks.",
     "Comprehensive ground training, exit rehearsal, and in-air coaching.",
-    "Landing zone refreshments plus commemorative Sand & Sky flight certificate.",
+    "Landing zone refreshments plus commemorative Kaya flight certificate.",
     "Real-time weather monitoring with proactive rescheduling support if conditions shift.",
 ]
 
@@ -123,7 +123,7 @@ FAQS = [
     (
         "Who can jump?",
         "Participants must be at least 21 on jump day (18–20 with notarised guardian consent) and within the approved weight range."
-        " Sand & Sky will verify your BMI, health history, and passport details within 48 hours of booking.",
+        " Kaya will verify your BMI, health history, and passport details within 48 hours of booking.",
     ),
     (
         "What are the weight limits?",
@@ -137,7 +137,7 @@ FAQS = [
     ),
     (
         "Can I bring a personal camera?",
-        "For safety, only Sand & Sky’s certified instructors and camera flyers may operate equipment in freefall."
+        "For safety, only Kaya’s certified instructors and camera flyers may operate equipment in freefall."
         " You can add 4K video and photos as an optional extra.",
     ),
     (
@@ -162,7 +162,7 @@ EXTRAS = [
 REVIEWS = [
     (
         "Amelia G.",
-        "Flawless from pickup to landing! The Sand & Sky team handled every detail and the freefall view of the pyramids is indescribable."
+        "Flawless from pickup to landing! The Kaya team handled every detail and the freefall view of the pyramids is indescribable."
         " Video package is a must—we relived the moment all night.",
     ),
     (
@@ -172,14 +172,14 @@ REVIEWS = [
     ),
     (
         "Farah M.",
-        "As a first-time jumper I was nervous, but Sand & Sky’s briefing and calm coaching made it pure joy. Worth every dollar for the"
+        "As a first-time jumper I was nervous, but Kaya’s briefing and calm coaching made it pure joy. Worth every dollar for the"
         " safest and most spectacular way to see the pyramids.",
     ),
 ]
 
 
 class Command(BaseCommand):
-    help = "Seeds the Sand & Sky Luxury Tandem Skydive trip with destinations, content, add-ons, and sample reviews."
+    help = "Seeds the Kaya Luxury Tandem Skydive trip with destinations, content, add-ons, and sample reviews."
 
     def add_arguments(self, parser):
         parser.add_argument(
