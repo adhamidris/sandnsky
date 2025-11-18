@@ -69,7 +69,7 @@ class DestinationClassification(models.TextChoices):
 ALLOWED_DESTINATIONS = [choice.value for choice in DestinationName]
 
 PACKAGE_DESTINATION_EQUIVALENCE_GROUPS = [
-    frozenset({DestinationName.WHITE_BLACK.value, DestinationName.BAHAREYA.value}),
+    # frozenset({DestinationName.WHITE_BLACK.value, DestinationName.BAHAREYA.value}),
 ]
 
 
