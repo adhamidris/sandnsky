@@ -1243,7 +1243,7 @@ class TripListView(TemplateView):
         else:
             trips = self._order_for_collection(trips, active_collection)
 
-        paginator = Paginator(trips, 10)
+        paginator = Paginator(trips, 12)
         page_number = self.request.GET.get("page")
         page_obj = paginator.get_page(page_number)
 

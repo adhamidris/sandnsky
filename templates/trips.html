@@ -216,7 +216,7 @@
       <div class="mt-6 flex flex-col gap-4 lg:hidden">
         <div class="flex items-center justify-between gap-3">
           <button type="button"
-                  class="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition hover:border-primary/40 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                  class="filter-btn inline-flex items-center gap-2 rounded-full border border-border/70 bg-card px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition hover:border-primary/40 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   data-filter-open
                   aria-controls="trip-filter-panel"
                   aria-expanded="false"
@@ -240,6 +240,19 @@
             </a>
             {% endfor %}
           </div>
+        </div>
+        <div class="trip-mobile-search mt-3 lg:hidden">
+          <label for="mobile-filter-search" class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            Quick search
+          </label>
+          <input id="mobile-filter-search"
+                 type="search"
+                 placeholder="Search by keyword"
+                 value="{{ active_filters.search }}"
+                 class="mt-1 w-full rounded-md border border-border/70 bg-background px-3 py-2 text-sm text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                 data-filter-search-mobile
+                 autocomplete="off"
+                 spellcheck="false" />
         </div>
         {% endif %}
       </div>
@@ -575,7 +588,7 @@
                name="collection"
                value="{% if active_collection and active_collection != 'all' %}{{ active_collection }}{% endif %}"
                data-trip-collection-input>
-        <div class="space-y-2">
+        <div class="space-y-2 hidden lg:block">
           <label for="filter-search" class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Quick search</label>
           <input id="filter-search"
                  type="search"
@@ -1339,18 +1352,28 @@
     var tripList = document.getElementById('trip-list');
     var activeElement = document.activeElement;
     var restoreSearchFocus = false;
+    var restoreMobileSearchFocus = false;
     var searchSelectionStart = null;
     var searchSelectionEnd = null;
     var reopenFilterPanel = false;
     var filterPanel = document.querySelector('[data-filter-panel]');
 
-    if (activeElement && typeof activeElement.matches === 'function' && activeElement.matches('[data-filter-search]')) {
-      restoreSearchFocus = true;
-      if (typeof activeElement.selectionStart === 'number' && typeof activeElement.selectionEnd === 'number') {
+    if (activeElement && typeof activeElement.matches === 'function') {
+      if (activeElement.matches('[data-filter-search-mobile]')) {
+        restoreSearchFocus = true;
+        restoreMobileSearchFocus = true;
+      } else if (activeElement.matches('[data-filter-search]')) {
+        restoreSearchFocus = true;
+      }
+
+      if (restoreSearchFocus &&
+          typeof activeElement.selectionStart === 'number' &&
+          typeof activeElement.selectionEnd === 'number') {
         searchSelectionStart = activeElement.selectionStart;
         searchSelectionEnd = activeElement.selectionEnd;
       }
     }
+
 
     if (filterPanel && filterPanel.dataset.mobileState === 'open') {
       reopenFilterPanel = true;
@@ -1413,10 +1436,23 @@
           updatedTripList.removeAttribute('aria-busy');
         }
         if (restoreSearchFocus) {
-          var searchInput = document.querySelector('[data-filter-search]');
+          // Prefer to restore focus to whichever search field was used
+          var searchInput = restoreMobileSearchFocus
+            ? document.querySelector('[data-filter-search-mobile]')
+            : document.querySelector('[data-filter-search]');
+
+          // Fallback: if preferred one isn’t present, try the other
+          if (!searchInput) {
+            searchInput =
+              document.querySelector('[data-filter-search-mobile]') ||
+              document.querySelector('[data-filter-search]');
+          }
+
           if (searchInput) {
             searchInput.focus({ preventScroll: true });
-            if (typeof searchSelectionStart === 'number' && typeof searchSelectionEnd === 'number' && typeof searchInput.setSelectionRange === 'function') {
+            if (typeof searchSelectionStart === 'number' &&
+                typeof searchSelectionEnd === 'number' &&
+                typeof searchInput.setSelectionRange === 'function') {
               var length = searchInput.value.length;
               var start = Math.min(searchSelectionStart, length);
               var end = Math.min(searchSelectionEnd, length);
@@ -1477,6 +1513,29 @@
         }, 700);
       });
       searchInput.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+        }
+      });
+    }
+
+    var mobileSearchInput = document.querySelector('[data-filter-search-mobile]');
+    if (mobileSearchInput && searchInput) {
+      // keep sidebar + mobile search in sync
+      mobileSearchInput.value = searchInput.value || '';
+
+      var mobileSearchDebounceTimer = null;
+      mobileSearchInput.addEventListener('input', function () {
+        clearTimeout(mobileSearchDebounceTimer);
+        mobileSearchDebounceTimer = setTimeout(function () {
+          // mirror mobile value into the real form field
+          searchInput.value = mobileSearchInput.value;
+          var params = new URLSearchParams(new FormData(form));
+          submitParams(params, true);
+        }, 700);
+      });
+
+      mobileSearchInput.addEventListener('keydown', function (event) {
         if (event.key === 'Enter') {
           event.preventDefault();
         }
