@@ -37,7 +37,7 @@ def _file_path(filename: str) -> str:
     return os.path.join(IMAGE_BASE_PATH, filename)
 
 
-def _safe_attach_image(instance, field_name: str, filename: str, stdout):
+def _safe_attach_image(instance, field_name: str, filename: str, stdout=None):
     """
     Attach an image to an ImageField using Django's storage backend
     (e.g., Cloudflare R2) just like the admin upload would.
@@ -46,26 +46,30 @@ def _safe_attach_image(instance, field_name: str, filename: str, stdout):
     """
     path = _file_path(filename)
     if not os.path.exists(path):
-        stdout.write(
-            stdout.style.WARNING(
-                f"Image not found on disk, skipping {field_name}: {path}"
-            )
-        )
+        message = f"Image not found on disk, skipping {field_name}: {path}"
+        if stdout is not None:
+            try:
+                stdout.write(message + "\n")
+            except Exception:
+                print(message)
+        else:
+            print(message)
         return
 
     field = getattr(instance, field_name)
     if field and getattr(field, "name", None):
-        # Already has an image, skip unless you want to overwrite.
-        stdout.write(
-            stdout.style.WARNING(
-                f"{field_name} already set for {instance}. Skipping re-upload."
-            )
-        )
+        message = f"{field_name} already set for {instance}. Skipping re-upload."
+        if stdout is not None:
+            try:
+                stdout.write(message + "\n")
+            except Exception:
+                print(message)
+        else:
+            print(message)
         return
 
     with open(path, "rb") as f:
         django_file = File(f)
-        # Use original filename; storage backend will handle pathing (e.g. trips/cards/, trips/hero/)
         field.save(os.path.basename(path), django_file, save=False)
 
 
