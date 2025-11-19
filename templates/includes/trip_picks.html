@@ -70,19 +70,17 @@
                     </div>
                   </div>
                   <div class="trip-picks__body">
-                    {% if trip.is_package_trip and trip.route_steps %}
+                    {% if trip.route_steps %}
                     <div class="trip-picks__package-banner" aria-label="Trip route">
                       <span class="trip-picks__package-eyebrow">Signature route</span>
                       <div class="trip-picks__package-route">
                         {% for stop in trip.route_steps %}
                         <span class="trip-picks__package-stop">{{ stop }}</span>
-                        <!-- {% if not forloop.last %}
-                        <span class="trip-picks__package-separator" aria-hidden="true">→</span>
-                        {% endif %} -->
                         {% endfor %}
                       </div>
                     </div>
-                    {% endif %}
+                  {% endif %}
+
                     <!-- {% if trip.category %}
                     <span class="trip-picks__badge">{{ trip.category }}</span>
                     {% endif %} -->
