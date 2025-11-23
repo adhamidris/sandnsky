@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block head_extra %}
+  <link rel="stylesheet" href="{% static 'css/seo-dashboard.css' %}">
+{% endblock %}
+
+{% block title %}SEO | {{ page_title }}{% endblock %}
+
+{% block content %}
+<section class="seo-page">
+  <div class="seo-header">
+    <div>
+      <p class="seo-subtitle" style="text-transform: uppercase; letter-spacing:0.08em; font-size:12px;">{{ entry.get_page_type_display }} · EN</p>
+      <h1 class="seo-title">{{ page_title }}</h1>
+      <p class="seo-subtitle">{{ entry.path }}</p>
+      <div class="seo-inline" style="margin-top:8px;">
+        {% if flags.incomplete %}
+          <span class="seo-status bad">Needs attention</span>
+        {% else %}
+          <span class="seo-status ok">SEO OK</span>
+        {% endif %}
+        {% if flags.missing_title %}<span class="seo-flag">No title</span>{% endif %}
+        {% if flags.missing_description %}<span class="seo-flag">No description</span>{% endif %}
+        {% if flags.missing_alt %}<span class="seo-flag">No alt</span>{% endif %}
+        {% if flags.missing_canonical %}<span class="seo-flag">No canonical</span>{% endif %}
+      </div>
+    </div>
+    <div class="seo-actions">
+      <a href="{% url 'seo:dashboard' %}" class="seo-btn-link">Back to overview</a>
+      {% if entry.path %}<a href="{{ entry.path }}" target="_blank" rel="noopener" class="seo-btn-link">View page ↗</a>{% endif %}
+    </div>
+  </div>
+
+  <form method="post" class="seo-grid" style="gap:20px;">
+    {% csrf_token %}
+
+    <div class="seo-card seo-grid seo-grid-2">
+      <div>
+        <label class="seo-label">Slug</label>
+        {{ form.slug.errors }}{{ form.slug }}
+      </div>
+      <div>
+        <label class="seo-label">Path</label>
+        {{ form.path.errors }}{{ form.path }}
+      </div>
+      <div class="seo-section" style="grid-column:1 / -1;">
+        <label class="seo-label">Main content (source field)</label>
+        <textarea name="main_body" rows="6" class="seo-textarea" placeholder="Primary body (TripAbout, Destination description, Blog intro)">{{ main_body }}</textarea>
+        <p class="seo-note">Edits save back to the primary content field for this page.</p>
+      </div>
+    </div>
+
+    <div class="seo-card seo-grid seo-grid-2">
+      <div class="seo-section" style="grid-column:1 / -1;">
+        <h2>Meta &amp; Canonical</h2>
+      </div>
+      <div style="grid-column:1 / -1;">
+        <label class="seo-label">Meta title</label>
+        {{ form.meta_title.errors }}<input type="text" name="{{ form.meta_title.html_name }}" value="{{ form.meta_title.value|default_if_none:'' }}" class="seo-input" />
+        <p class="seo-note">Aim for 40–60 characters.</p>
+      </div>
+      <div style="grid-column:1 / -1;">
+        <label class="seo-label">Meta description</label>
+        {{ form.meta_description.errors }}<textarea name="{{ form.meta_description.html_name }}" rows="4" class="seo-textarea">{{ form.meta_description.value|default_if_none:'' }}</textarea>
+        <p class="seo-note">Aim for 110–160 characters.</p>
+      </div>
+      <div style="grid-column:1 / -1;">
+        <label class="seo-label">Meta keywords</label>
+        {{ form.meta_keywords.errors }}<input type="text" name="{{ form.meta_keywords.html_name }}" value="{{ form.meta_keywords.value|default_if_none:'' }}" class="seo-input" />
+      </div>
+      <div>
+        <label class="seo-label">Alt text (hero)</label>
+        {{ form.alt_text.errors }}<input type="text" name="{{ form.alt_text.html_name }}" value="{{ form.alt_text.value|default_if_none:'' }}" class="seo-input" />
+        <p class="seo-note">Describe the primary hero image (English).</p>
+      </div>
+      <div>
+        <label class="seo-label">Canonical URL</label>
+        {{ form.canonical_url.errors }}<input type="text" name="{{ form.canonical_url.html_name }}" value="{{ form.canonical_url.value|default_if_none:'' }}" class="seo-input" />
+      </div>
+      <div style="grid-column:1 / -1;">
+        <label class="seo-label">Body override</label>
+        {{ form.body_override.errors }}<textarea name="{{ form.body_override.html_name }}" rows="4" class="seo-textarea">{{ form.body_override.value|default_if_none:'' }}</textarea>
+        <p class="seo-note">Optional SEO-focused copy block (English only).</p>
+      </div>
+      <div>
+        <label class="seo-label">Indexable</label>
+        <div class="seo-inline">{{ form.is_indexable }} <span class="seo-note">Toggle noindex if needed.</span></div>
+      </div>
+    </div>
+
+    <div class="seo-card">
+      <div class="seo-flex-between">
+        <h2>FAQs</h2>
+        <span class="seo-note">Add, reorder with position.</span>
+      </div>
+      {{ faq_formset.management_form }}
+      <div class="seo-grid" style="gap:12px;">
+        {% for form in faq_formset.forms %}
+          <div class="seo-formset-item">
+            {{ form.id }}
+            <div class="seo-grid seo-grid-2">
+              <div>
+                <label class="seo-label">Question</label>
+                {{ form.question.errors }}<input type="text" name="{{ form.question.html_name }}" value="{{ form.question.value|default_if_none:'' }}" class="seo-input" />
+              </div>
+              <div>
+                <label class="seo-label">Position</label>
+                {{ form.position.errors }}<input type="number" name="{{ form.position.html_name }}" value="{{ form.position.value|default_if_none:'' }}" class="seo-input" />
+              </div>
+            </div>
+            <div class="seo-section">
+              <label class="seo-label">Answer</label>
+              {{ form.answer.errors }}<textarea name="{{ form.answer.html_name }}" rows="3" class="seo-textarea">{{ form.answer.value|default_if_none:'' }}</textarea>
+            </div>
+            <div class="seo-inline">
+              <label class="seo-label" style="margin:0;">{{ form.is_active }} Show</label>
+              {% if form.DELETE %}
+                <label class="seo-label" style="margin:0;color:#b91c1c;">{{ form.DELETE }} Delete</label>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="seo-card">
+      <div class="seo-flex-between">
+        <h2>Advanced Snippets</h2>
+        <span class="seo-note">Injected into head/body (trusted admins only).</span>
+      </div>
+      {{ snippet_formset.management_form }}
+      <div class="seo-grid" style="gap:12px;">
+        {% for form in snippet_formset.forms %}
+          <div class="seo-formset-item">
+            {{ form.id }}
+            <div class="seo-grid seo-grid-2">
+              <div>
+                <label class="seo-label">Name</label>
+                {{ form.name.errors }}<input type="text" name="{{ form.name.html_name }}" value="{{ form.name.value|default_if_none:'' }}" class="seo-input" />
+              </div>
+              <div>
+                <label class="seo-label">Placement</label>
+                {{ form.placement.errors }}
+                <select name="{{ form.placement.html_name }}" class="seo-select">
+                  {% for choice_value, choice_label in form.placement.field.choices %}
+                    <option value="{{ choice_value }}" {% if form.placement.value == choice_value %}selected{% endif %}>{{ choice_label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <div class="seo-section">
+              <label class="seo-label">Value (HTML/Script)</label>
+              {{ form.value.errors }}<textarea name="{{ form.value.html_name }}" rows="3" class="seo-textarea">{{ form.value.value|default_if_none:'' }}</textarea>
+              <p class="seo-note seo-warn">Warning: Raw HTML/scripts go live; only trusted admins should edit.</p>
+            </div>
+            <div class="seo-grid seo-grid-2">
+              <div>
+                <label class="seo-label">Position</label>
+                {{ form.position.errors }}<input type="number" name="{{ form.position.html_name }}" value="{{ form.position.value|default_if_none:'' }}" class="seo-input" />
+              </div>
+              <div class="seo-inline">
+                <label class="seo-label" style="margin:0;">{{ form.is_active }} Active</label>
+                {% if form.DELETE %}
+                  <label class="seo-label" style="margin:0;color:#b91c1c;">{{ form.DELETE }} Delete</label>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="seo-card">
+      <h2>Redirects</h2>
+      {% if redirects %}
+        <ul class="seo-redirects">
+          {% for redirect in redirects %}
+            <li>
+              <span style="color:#6b7280;">{{ redirect.from_path }}</span>
+              <span>→ {{ redirect.to_path }} ({{ redirect.is_permanent|yesno:"301,302" }})</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="seo-note">No redirects registered for this page.</p>
+      {% endif %}
+      <p class="seo-note">Changing path will automatically add a redirect from the old path.</p>
+    </div>
+
+    <div class="seo-flex-between" style="justify-content:flex-end;">
+      <a href="{% url 'seo:dashboard' %}" class="seo-btn-link">Cancel</a>
+      <button type="submit" class="seo-btn-primary">Save changes</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block head_extra %}
+  <link rel="stylesheet" href="{% static 'css/seo-dashboard.css' %}">
+{% endblock %}
+
+{% block title %}SEO Dashboard{% endblock %}
+
+{% block content %}
+<section class="seo-page">
+  <div class="seo-header">
+    <div>
+      <h1 class="seo-title">SEO Dashboard</h1>
+      <p class="seo-subtitle">English-only. Manage meta, alt text, FAQs, snippets, redirects.</p>
+      <div class="seo-badge">Language: EN</div>
+    </div>
+    <div class="seo-actions">
+      <div class="seo-badge" style="display:none;" aria-hidden="true">Incomplete = missing title/description/alt</div>
+      <a href="{% url 'seo:dashboard' %}" class="seo-btn-link">Reset filters</a>
+    </div>
+  </div>
+
+  <form method="get" class="seo-card seo-grid seo-grid-2 seo-filters">
+    <div>
+      <label class="seo-label">Search</label>
+      <input type="search" name="q" value="{{ search_query }}" class="seo-input" placeholder="Path, slug, title" />
+    </div>
+    <div>
+      <label class="seo-label">Page type</label>
+      <select name="type" class="seo-select">
+        <option value="">All</option>
+        {% for value,label in page_type_choices %}
+          <option value="{{ value }}" {% if filter_page_type == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="seo-label">Status</label>
+      <select name="status" class="seo-select">
+        <option value="">Any</option>
+        <option value="incomplete" {% if filter_status == "incomplete" %}selected{% endif %}>SEO incomplete</option>
+      </select>
+    </div>
+    <div style="display:flex;align-items:flex-end;">
+      <button type="submit" class="seo-btn-primary">Filter</button>
+    </div>
+  </form>
+
+  <div class="seo-table-wrapper">
+    <table class="seo-table">
+      <thead>
+        <tr>
+          <th>Title / Path</th>
+          <th>Type</th>
+          <th>Slug</th>
+          <th>Redirects</th>
+          <th>Status</th>
+          <th style="text-align:right;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in entries %}
+          <tr>
+            <td>
+              <div style="font-weight:600;color:#111;">{{ item.title }}</div>
+              <div style="font-size:12px;color:#6b7280;">{{ item.path }}</div>
+            </td>
+            <td>{{ item.page_type }}</td>
+            <td>{{ item.slug }}</td>
+            <td style="text-align:center;">{{ item.redirect_count }}</td>
+            <td>
+              {% if item.flags.incomplete %}
+                <span class="seo-status bad">Incomplete</span>
+              {% else %}
+                <span class="seo-status ok">OK</span>
+              {% endif %}
+              {% if item.flags.missing_title %}<span class="seo-flag">No title</span>{% endif %}
+              {% if item.flags.missing_description %}<span class="seo-flag">No description</span>{% endif %}
+              {% if item.flags.missing_alt %}<span class="seo-flag">No alt</span>{% endif %}
+              {% if item.flags.missing_canonical %}<span class="seo-status bad">No canonical</span>{% endif %}
+            </td>
+            <td style="text-align:right;">
+              <a href="{% url 'seo:dashboard-detail' item.id %}" class="seo-btn-link">Edit</a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6" style="text-align:center;color:#6b7280;padding:18px;">No SEO entries found.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if is_paginated %}
+    <div class="seo-inline" style="margin-top:16px; justify-content:flex-end;">
+      {% if page_obj.has_previous %}
+        <a class="seo-btn-link" href="?{{ page_query_prefix }}page={{ page_obj.previous_page_number }}">← Prev</a>
+      {% endif %}
+      <span class="seo-note">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+      {% if page_obj.has_next %}
+        <a class="seo-btn-link" href="?{{ page_query_prefix }}page={{ page_obj.next_page_number }}">Next →</a>
+      {% endif %}
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

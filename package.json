@@ -3,8 +3,8 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "tailwind:build": "tailwindcss -c tailwind.config.js -i ./web/static_src/styles/tailwind.css -o ./static/css/main.css",
-    "tailwind:watch": "tailwindcss -c tailwind.config.js -i ./web/static_src/styles/tailwind.css -o ./static/css/main.css --watch"
+    "tailwind:build": "tailwindcss -c tailwind.config.js -i ./web/static_src/styles/tailwind.css -o ./static/css/main2.css",
+    "tailwind:watch": "tailwindcss -c tailwind.config.js -i ./web/static_src/styles/tailwind.css -o ./static/css/main2.css --watch"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.21",
