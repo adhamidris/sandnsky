@@ -13,7 +13,13 @@
     <div>
       <h1 class="seo-title">SEO Dashboard</h1>
       <p class="seo-subtitle">English-only. Manage meta, alt text, FAQs, snippets, redirects.</p>
-      <div class="seo-badge">Language: EN</div>
+      <div class="seo-inline" style="gap:8px; margin-top:8px;">
+        <div class="seo-badge">Language: EN</div>
+        <div class="seo-badge" aria-label="Total entries">Total: {{ paginator.count }}</div>
+        {% if filter_page_type %}
+          <div class="seo-badge">Filtered: {{ page_obj.paginator.count }}</div>
+        {% endif %}
+      </div>
     </div>
     <div class="seo-actions">
       <div class="seo-badge" style="display:none;" aria-hidden="true">Incomplete = missing title/description/alt</div>

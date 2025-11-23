@@ -1,6 +1,6 @@
 from django.contrib.contenttypes.models import ContentType
 
-from .models import PageType, SeoEntry, STATIC_PAGE_CODES
+from .models import PageType, SeoEntry, STATIC_PAGE_CODES, SeoFaq
 
 
 STATIC_META = {
@@ -92,3 +92,33 @@ def ensure_seo_entries():
                 "meta_description": post.seo_description or post.excerpt or post.intro or "",
             },
         )
+
+
+def seed_faqs_from_source(entry: SeoEntry):
+    """
+    Seed SEO FAQs from source Trip FAQs when none exist.
+    English-only; one-time import.
+    """
+    if entry.page_type != PageType.TRIP:
+        return
+    if entry.faqs.exists():
+        return
+    trip = entry.content_object
+    if trip is None:
+        return
+    try:
+        faqs = trip.faqs.all().order_by("position", "id")
+    except Exception:
+        return
+
+    created = 0
+    for faq in faqs:
+        SeoFaq.objects.create(
+            entry=entry,
+            question=getattr(faq, "question", "") or "",
+            answer=getattr(faq, "answer", "") or "",
+            position=getattr(faq, "position", 0) or 0,
+            is_active=True,
+        )
+        created += 1
+    return created

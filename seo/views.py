@@ -17,8 +17,8 @@ from web.models import BlogPost, Destination, Trip, TripAbout
 
 from .forms import SeoEntryForm, SeoFaqFormSet, SeoSnippetFormSet
 from .models import PageType, SeoEntry
-from .resolver import build_seo_context, create_redirect
-from .utils import ensure_seo_entries
+from .resolver import build_seo_context, create_redirect, resolve_seo_entry
+from .utils import ensure_seo_entries, seed_faqs_from_source
 
 
 def _status_flags(entry: SeoEntry) -> Dict[str, bool]:
@@ -170,7 +170,8 @@ class SeoDashboardDetailView(TemplateView):
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
-        form = SeoEntryForm(instance=self.entry)
+        seed_faqs_from_source(self.entry)
+        form = SeoEntryForm(instance=self.entry, initial=self._fallback_initials())
         faq_formset = SeoFaqFormSet(instance=self.entry)
         snippet_formset = SeoSnippetFormSet(instance=self.entry)
         return self.render_to_response(
@@ -228,3 +229,34 @@ class SeoDashboardDetailView(TemplateView):
                 path=entry.path,
             ),
         }
+
+    def _fallback_initials(self) -> Dict[str, str]:
+        """
+        Prefill empty fields with current live data from the source/fallback so editors
+        can see and override existing values.
+        """
+        entry = self.entry
+        resolved = resolve_seo_entry(
+            page_type=entry.page_type,
+            obj=entry.content_object,
+            page_code=entry.page_code,
+            path=entry.path,
+        )
+        initial = {}
+
+        def pick(field_name, current_value, fallback_value):
+            if current_value:
+                return None
+            if fallback_value:
+                initial[field_name] = fallback_value
+
+        pick("meta_title", entry.meta_title, resolved.meta_title)
+        pick("meta_description", entry.meta_description, resolved.meta_description)
+        pick("meta_keywords", entry.meta_keywords, "")
+        pick("alt_text", entry.alt_text, resolved.alt_text)
+        pick("canonical_url", entry.canonical_url, resolved.path or resolved.canonical_url)
+        pick("body_override", entry.body_override, "")
+        pick("slug", entry.slug, getattr(entry, "slug", ""))
+        pick("path", entry.path, resolved.path)
+
+        return initial
