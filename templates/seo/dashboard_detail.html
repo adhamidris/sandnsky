@@ -178,8 +178,14 @@
         <ul class="seo-redirects">
           {% for redirect in redirects %}
             <li>
-              <span style="color:#6b7280;">{{ redirect.from_path }}</span>
-              <span>→ {{ redirect.to_path }} ({{ redirect.is_permanent|yesno:"301,302" }})</span>
+              <div>
+                <span style="color:#6b7280;">{{ redirect.from_path }}</span>
+                <span>→ {{ redirect.to_path }} ({{ redirect.is_permanent|yesno:"301,302" }})</span>
+              </div>
+              <label class="seo-label" style="margin:0;color:#b91c1c; text-transform:none; letter-spacing:0;">
+                <input type="checkbox" name="delete_redirect_ids" value="{{ redirect.id }}">
+                Delete
+              </label>
             </li>
           {% endfor %}
         </ul>

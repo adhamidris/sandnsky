@@ -16,7 +16,7 @@ from django.views.generic import TemplateView
 from web.models import BlogPost, Destination, Trip, TripAbout
 
 from .forms import SeoEntryForm, SeoFaqFormSet, SeoSnippetFormSet
-from .models import PageType, SeoEntry
+from .models import PageType, SeoEntry, SeoRedirect
 from .resolver import build_seo_context, create_redirect, resolve_seo_entry
 from .utils import ensure_seo_entries, seed_faqs_from_source, infer_alt_text
 
@@ -77,7 +77,7 @@ def _propagate_slug_and_path(entry: SeoEntry, slug: str, path: str):
     Propagate slug to source models and ensure path matches slug; create redirect if path changed.
     """
     obj = entry.content_object
-    old_path = entry.path
+    old_path = getattr(entry, "_original_path", entry.path)
     entry.slug = slug
     entry.path = path
 
@@ -102,7 +102,40 @@ def _propagate_slug_and_path(entry: SeoEntry, slug: str, path: str):
     entry.save(update_fields=["slug", "path"])
 
     if old_path and path and old_path != path:
+        # Prevent loops: canonical path should not redirect elsewhere
+        SeoRedirect.objects.filter(from_path=path).delete()
+        # Flatten history: any older slugs that used to point at old_path now point at the new canonical path
+        SeoRedirect.objects.filter(entry=entry, to_path=old_path).update(to_path=path)
+        # Ensure the immediate old_path also redirects to the new path
         create_redirect(from_path=old_path, to_path=path, entry=entry)
+
+
+def _default_path_for(entry: SeoEntry, slug: str) -> str:
+    if not slug:
+        return entry.path or ""
+    if entry.page_type == PageType.TRIP:
+        return f"/trips/{slug}/"
+    if entry.page_type == PageType.DESTINATION:
+        return f"/destinations/{slug}/page/"
+    if entry.page_type == PageType.BLOG_POST:
+        return f"/blog/{slug}/"
+    return entry.path or ""
+
+
+def _normalize_path(entry: SeoEntry, slug: str, submitted_path: str, original_slug: Optional[str] = None) -> str:
+    path = (submitted_path or "").strip()
+    if path and not path.startswith("/"):
+        path = "/" + path
+
+    base_slug = original_slug if original_slug is not None else entry.slug
+    slug_changed = bool(slug) and slug != (base_slug or "")
+    if slug_changed and (not path or path == entry.path):
+        path = _default_path_for(entry, slug)
+
+    if not path:
+        path = entry.path or _default_path_for(entry, slug)
+
+    return path
 
 
 def _prepare_inline_formset(formset):
@@ -236,6 +269,8 @@ class SeoDashboardDetailView(TemplateView):
 
     def post(self, request, *args, **kwargs):
         entry = self.entry
+        original_path = entry.path
+        original_slug = entry.slug
         form = SeoEntryForm(request.POST, instance=entry)
         faq_formset = SeoFaqFormSet(request.POST, instance=entry)
         snippet_formset = SeoSnippetFormSet(request.POST, instance=entry)
@@ -245,7 +280,17 @@ class SeoDashboardDetailView(TemplateView):
 
         if form.is_valid() and faq_formset.is_valid() and snippet_formset.is_valid():
             with transaction.atomic():
+                delete_redirect_ids = [
+                    int(pk)
+                    for pk in request.POST.getlist("delete_redirect_ids")
+                    if pk.isdigit()
+                ]
+                slug = form.cleaned_data.get("slug", "").strip()
+                path = _normalize_path(entry, slug, form.cleaned_data.get("path", ""), original_slug)
                 updated_entry = form.save(commit=False)
+                updated_entry._original_path = original_path
+                updated_entry.slug = slug
+                updated_entry.path = path
                 # Fill defaults for alt/canonical when still blank
                 if not updated_entry.alt_text:
                     updated_entry.alt_text = infer_alt_text(updated_entry)
@@ -256,9 +301,11 @@ class SeoDashboardDetailView(TemplateView):
                 # Apply slug/path to source + redirect if changed
                 _propagate_slug_and_path(
                     updated_entry,
-                    slug=form.cleaned_data.get("slug", "").strip(),
-                    path=form.cleaned_data.get("path", "").strip(),
+                    slug=slug,
+                    path=path,
                 )
+                if delete_redirect_ids:
+                    updated_entry.redirects.filter(pk__in=delete_redirect_ids).delete()
                 faq_formset.save()
                 snippet_formset.save()
                 if main_body:
