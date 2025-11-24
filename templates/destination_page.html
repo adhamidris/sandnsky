@@ -4,7 +4,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{{ destination.name }} | Trips</title>
+  {% with meta_title=seo.meta_title|default_if_none:"" %}
+    <title>{% if meta_title %}{{ meta_title }}{% else %}{{ destination.name }} | Trips{% endif %}</title>
+  {% endwith %}
+  {% if seo.meta_description %}<meta name="description" content="{{ seo.meta_description }}">{% endif %}
+  {% if seo.meta_keywords %}<meta name="keywords" content="{{ seo.meta_keywords }}">{% endif %}
+  {% if seo.canonical_url %}<link rel="canonical" href="{{ seo.canonical_url }}">{% endif %}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
@@ -102,6 +107,27 @@
         background: #E8D5C4 !important;
     }
   </style>
+  {% if seo_faqs %}
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {% for faq in seo_faqs %}
+            {
+              "@type": "Question",
+              "name": "{{ faq.question|escapejs }}",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "{{ faq.answer|escapejs }}"
+              }
+            }{% if not forloop.last %},{% endif %}
+          {% endfor %}
+        ]
+      }
+    </script>
+  {% endif %}
+  {% for snippet in seo_snippets_head %}{{ snippet|safe }}{% endfor %}
 </head>
 <body>
   <nav class="sahari-nav" role="navigation" aria-label="Sahari navigation" data-sahari-nav>
@@ -266,5 +292,6 @@
         .then(r=>r.json()).then(function(data){ try{ var entries=(data&&data.cart_summary&&Array.isArray(data.cart_summary.entries))?data.cart_summary.entries:[]; var slugs=new Set(entries.map(e=>String(e.trip_slug||''))); document.querySelectorAll('.trip-card__cta[data-trip-slug]').forEach(function(cta){ var slug=String(cta.getAttribute('data-trip-slug')||''); setCtaState(cta, slugs.has(slug)); }); updateBadge(data && data.cart_summary ? data.cart_summary.count : 0); }catch(e){} }).catch(function(){});
     })();
   </script>
+  {% for snippet in seo_snippets_body %}{{ snippet|safe }}{% endfor %}
 </body>
 </html>

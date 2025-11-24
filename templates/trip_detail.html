@@ -52,12 +52,12 @@
 {% if trip.hero_image_url or trip.hero_image_mobile_url %}
   {% with mobile_src=trip.hero_image_mobile_url|default:trip.hero_image_url %}
     {% if mobile_src %}
-    <img src="{{ mobile_src }}" alt="{{ trip.title }}" class="absolute inset-0 h-full w-full object-cover md:hidden" />
+    <img src="{{ mobile_src }}" alt="{{ seo.alt_text|default:trip.title }}" class="absolute inset-0 h-full w-full object-cover md:hidden" />
     {% endif %}
   {% endwith %}
   {% with desktop_src=trip.hero_image_url|default:trip.hero_image_mobile_url %}
     {% if desktop_src %}
-    <img src="{{ desktop_src }}" alt="{{ trip.title }}" class="absolute inset-0 hidden h-full w-full object-cover md:block" />
+    <img src="{{ desktop_src }}" alt="{{ seo.alt_text|default:trip.title }}" class="absolute inset-0 hidden h-full w-full object-cover md:block" />
     {% endif %}
   {% endwith %}
 {% endif %}

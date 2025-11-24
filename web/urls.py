@@ -19,6 +19,7 @@ from .views import (
     BlogListView,
     BlogDetailView,
     SahariPageView,
+    StaticSeoTemplateView,
 )
 
 app_name = "web"
@@ -29,33 +30,51 @@ urlpatterns = [
     path("destinations/<slug:slug>/page/", DestinationPageView.as_view(), name="destination-page"),
     path(
         "booking-terms/",
-        TemplateView.as_view(template_name="booking_terms.html"),
+        StaticSeoTemplateView.as_view(
+            template_name="booking_terms.html",
+            seo_page_code="booking_terms",
+        ),
         name="booking-terms",
     ),
     path(
         "cancellation-policy/",
-        TemplateView.as_view(template_name="cancellation_policy.html"),
+        StaticSeoTemplateView.as_view(
+            template_name="cancellation_policy.html",
+            seo_page_code="cancellation_policy",
+        ),
         name="cancellation-policy",
     ),
     path(
         "privacy-policy/",
-        TemplateView.as_view(template_name="privacy_policy.html"),
+        StaticSeoTemplateView.as_view(
+            template_name="privacy_policy.html",
+            seo_page_code="privacy_policy",
+        ),
         name="privacy-policy",
     ),
     path(
         "health-safety/",
-        TemplateView.as_view(template_name="health_safety.html"),
+        StaticSeoTemplateView.as_view(
+            template_name="health_safety.html",
+            seo_page_code="health_safety",
+        ),
         name="health-safety",
     ),
     path(
         "contact/",
-        TemplateView.as_view(template_name="contact.html"),
+        StaticSeoTemplateView.as_view(
+            template_name="contact.html",
+            seo_page_code="contact",
+        ),
         name="contact",
     ),
     path("sahari/", SahariPageView.as_view(), name="sahari"),
     path(
         "about/",
-        TemplateView.as_view(template_name="about.html"),
+        StaticSeoTemplateView.as_view(
+            template_name="about.html",
+            seo_page_code="about",
+        ),
         name="about",
     ),
     path("blog/", BlogListView.as_view(), name="blog-list"),

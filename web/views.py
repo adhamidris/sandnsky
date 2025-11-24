@@ -73,6 +73,8 @@ from .rewards import (
     build_entry_snapshot,
     persist_booking_reward,
 )
+from seo.models import PageType
+from seo.resolver import build_seo_context
 
 
 CURRENCY_SYMBOLS = {"USD": "$"}
@@ -446,6 +448,14 @@ def _split_paragraphs(text):
     return [paragraph.strip() for paragraph in text.split("\n\n") if paragraph.strip()]
 
 
+def published_blog_queryset():
+    now = timezone.now()
+    return (
+        BlogPost.objects.select_related("category")
+        .filter(status=BlogPostStatus.PUBLISHED, published_at__lte=now)
+    )
+
+
 def build_blog_card(post):
     image_field = post.card_image or post.hero_image
     image_url = image_field.url if image_field else ""
@@ -460,12 +470,24 @@ def build_blog_card(post):
     }
 
 
-def published_blog_queryset():
-    now = timezone.now()
-    return (
-        BlogPost.objects.select_related("category")
-        .filter(status=BlogPostStatus.PUBLISHED, published_at__lte=now)
-    )
+class StaticSeoTemplateView(TemplateView):
+    """
+    Simple helper for static pages to include SEO context (English-only).
+    """
+
+    seo_page_code: str | None = None
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.seo_page_code:
+            context.update(
+                build_seo_context(
+                    page_type=PageType.STATIC,
+                    page_code=self.seo_page_code,
+                    path=self.request.path,
+                )
+            )
+        return context
 
 
 class HomePageView(TemplateView):
@@ -712,6 +734,18 @@ class HomePageView(TemplateView):
             "items": self._recent_blog_posts(),
         }
 
+        og_image = background_image or (
+            hero_pairs[0].hero_image.url if hero_pairs and getattr(hero_pairs[0], "hero_image", None) else ""
+        )
+        context.update(
+            build_seo_context(
+                page_type=PageType.STATIC,
+                page_code="home",
+                path=reverse("web:home"),
+                og_image_url=og_image,
+            )
+        )
+
         return context
 
     def _featured_destinations(self):
@@ -946,6 +980,14 @@ class SahariPageView(TemplateView):
             sahari_destinations,
             sahari_trips,
         )
+        context.update(
+            build_seo_context(
+                page_type=PageType.STATIC,
+                page_code="sahari",
+                path=reverse("web:sahari"),
+                og_image_url=destination_cards[0]["image_url"] if destination_cards else "",
+            )
+        )
         return context
 
     def _build_gallery_entries(self, destinations, trips):
@@ -1021,6 +1063,14 @@ class DestinationListView(TemplateView):
         cards = [build_destination_card(destination) for destination in destinations]
         context["destinations"] = cards
         context["destination_count"] = len(cards)
+        context.update(
+            build_seo_context(
+                page_type=PageType.STATIC,
+                page_code="destinations_list",
+                path=reverse("web:destinations"),
+                og_image_url=cards[0]["image_url"] if cards else "",
+            )
+        )
         return context
 
 
@@ -1077,6 +1127,15 @@ class DestinationPageView(TemplateView):
             trips=trips,
             trip_count=len(trips),
         )
+        hero = context.get("hero") or {}
+        context.update(
+            build_seo_context(
+                page_type=PageType.DESTINATION,
+                obj=destination,
+                path=self.request.path,
+                og_image_url=hero.get("image_url", ""),
+            )
+        )
         return context
 
 
@@ -1104,6 +1163,14 @@ class BlogListView(TemplateView):
             posts=[build_blog_card(post) for post in posts],
             categories=self._category_options(),
             selected_category=selected_category_info,
+        )
+        context.update(
+            build_seo_context(
+                page_type=PageType.STATIC,
+                page_code="blog_list",
+                path=reverse("web:blog-list"),
+                og_image_url=(posts[0].hero_image.url if posts and posts[0].hero_image else ""),
+            )
         )
         return context
 
@@ -1140,6 +1207,15 @@ class BlogDetailView(TemplateView):
             post=self._serialize_post(post),
             related_posts=self._related_posts(post),
             recommended_trips=self._recommended_trips(),
+        )
+        post_data = context.get("post", {})
+        context.update(
+            build_seo_context(
+                page_type=PageType.BLOG_POST,
+                obj=post,
+                path=self.request.path,
+                og_image_url=post_data.get("hero_image_url") or post_data.get("card_image_url", ""),
+            )
         )
         return context
 
@@ -1289,6 +1365,14 @@ class TripListView(TemplateView):
         )
         context["default_trips_hero_image_mobile"] = (
             site_config.trips_hero_image_mobile.url if site_config.trips_hero_image_mobile else ""
+        )
+        context.update(
+            build_seo_context(
+                page_type=PageType.STATIC,
+                page_code="trips_list",
+                path=reverse("web:trips"),
+                og_image_url=context.get("default_trips_hero_image", ""),
+            )
         )
         return context
 
@@ -1624,6 +1708,15 @@ class TripDetailView(TemplateView):
             trip_in_cart=trip_in_cart,
             trip_cart_count=cart_count,
             trip_cart_other_count=max(other_cart_count, 0),
+        )
+        trip_hero = trip_context.get("hero_image_url") or trip_context.get("card_image_url", "")
+        context.update(
+            build_seo_context(
+                page_type=PageType.TRIP,
+                obj=trip,
+                path=self.request.path,
+                og_image_url=trip_hero,
+            )
         )
         return context
 
@@ -3022,6 +3115,21 @@ class BookingSuccessView(TemplateView):
             else "",
             reward_savings_applied=summary_discount > 0,
             applied_rewards=all_applied_rewards,
+        )
+
+        og_image = ""
+        if primary_trip.hero_image:
+            og_image = primary_trip.hero_image.url
+        elif primary_trip.card_image:
+            og_image = primary_trip.card_image.url
+
+        context.update(
+            build_seo_context(
+                page_type=PageType.STATIC,
+                page_code="booking_success",
+                path=self.request.path,
+                og_image_url=og_image,
+            )
         )
         return context
 

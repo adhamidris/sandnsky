@@ -18,7 +18,7 @@ from web.models import BlogPost, Destination, Trip, TripAbout
 from .forms import SeoEntryForm, SeoFaqFormSet, SeoSnippetFormSet
 from .models import PageType, SeoEntry
 from .resolver import build_seo_context, create_redirect, resolve_seo_entry
-from .utils import ensure_seo_entries, seed_faqs_from_source
+from .utils import ensure_seo_entries, seed_faqs_from_source, infer_alt_text
 
 
 def _status_flags(entry: SeoEntry) -> Dict[str, bool]:
@@ -70,6 +70,60 @@ def _update_main_content(entry: SeoEntry, new_body: str):
         obj.intro = new_body
         obj.save(update_fields=["intro"])
         return
+
+
+def _propagate_slug_and_path(entry: SeoEntry, slug: str, path: str):
+    """
+    Propagate slug to source models and ensure path matches slug; create redirect if path changed.
+    """
+    obj = entry.content_object
+    old_path = entry.path
+    entry.slug = slug
+    entry.path = path
+
+    # Push slug to source model when applicable
+    updated_fields = []
+    if entry.page_type == PageType.TRIP and isinstance(obj, Trip):
+        if slug and obj.slug != slug:
+            obj.slug = slug
+            updated_fields.append("slug")
+    elif entry.page_type == PageType.DESTINATION and isinstance(obj, Destination):
+        if slug and obj.slug != slug:
+            obj.slug = slug
+            updated_fields.append("slug")
+    elif entry.page_type == PageType.BLOG_POST and isinstance(obj, BlogPost):
+        if slug and obj.slug != slug:
+            obj.slug = slug
+            updated_fields.append("slug")
+
+    if updated_fields:
+        obj.save(update_fields=updated_fields)
+
+    entry.save(update_fields=["slug", "path"])
+
+    if old_path and path and old_path != path:
+        create_redirect(from_path=old_path, to_path=path, entry=entry)
+
+
+def _prepare_inline_formset(formset):
+    """
+    Ensure blank extra forms start inactive so they don't block validation when left empty.
+    """
+    for form in getattr(formset, "extra_forms", []):
+        if form.instance and form.instance.pk:
+            continue
+        if "position" in form.fields:
+            form.fields["position"].initial = None
+            form.initial["position"] = None
+            if hasattr(form.instance, "position"):
+                form.instance.position = None
+        if "is_active" in form.fields:
+            form.fields["is_active"].initial = False
+            form.initial["is_active"] = False
+            # Keep instance in sync to avoid false positives on has_changed
+            if hasattr(form.instance, "is_active"):
+                form.instance.is_active = False
+        form.empty_permitted = True
 
 
 @method_decorator(staff_member_required, name="dispatch")
@@ -174,27 +228,41 @@ class SeoDashboardDetailView(TemplateView):
         form = SeoEntryForm(instance=self.entry, initial=self._fallback_initials())
         faq_formset = SeoFaqFormSet(instance=self.entry)
         snippet_formset = SeoSnippetFormSet(instance=self.entry)
+        _prepare_inline_formset(faq_formset)
+        _prepare_inline_formset(snippet_formset)
         return self.render_to_response(
             self._context(form=form, faq_formset=faq_formset, snippet_formset=snippet_formset)
         )
 
     def post(self, request, *args, **kwargs):
         entry = self.entry
-        old_path = entry.path
         form = SeoEntryForm(request.POST, instance=entry)
         faq_formset = SeoFaqFormSet(request.POST, instance=entry)
         snippet_formset = SeoSnippetFormSet(request.POST, instance=entry)
+        _prepare_inline_formset(faq_formset)
+        _prepare_inline_formset(snippet_formset)
         main_body = (request.POST.get("main_body") or "").strip()
 
         if form.is_valid() and faq_formset.is_valid() and snippet_formset.is_valid():
             with transaction.atomic():
-                updated_entry = form.save()
+                updated_entry = form.save(commit=False)
+                # Fill defaults for alt/canonical when still blank
+                if not updated_entry.alt_text:
+                    updated_entry.alt_text = infer_alt_text(updated_entry)
+                if not updated_entry.canonical_url and updated_entry.path:
+                    updated_entry.canonical_url = updated_entry.path
+                # Persist main fields first
+                updated_entry.save()
+                # Apply slug/path to source + redirect if changed
+                _propagate_slug_and_path(
+                    updated_entry,
+                    slug=form.cleaned_data.get("slug", "").strip(),
+                    path=form.cleaned_data.get("path", "").strip(),
+                )
                 faq_formset.save()
                 snippet_formset.save()
                 if main_body:
                     _update_main_content(updated_entry, main_body)
-                if updated_entry.path != old_path and old_path:
-                    create_redirect(from_path=old_path, to_path=updated_entry.path, entry=updated_entry)
             messages.success(request, "SEO entry saved.")
             return redirect("seo:dashboard-detail", pk=entry.pk)
 

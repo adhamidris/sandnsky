@@ -8,7 +8,7 @@
   <section class="relative isolate overflow-hidden">
     {% if post.hero_image_url %}
     <div class="absolute inset-0">
-      <img src="{{ post.hero_image_url }}" alt="" class="h-full w-full object-cover" />
+      <img src="{{ post.hero_image_url }}" alt="{{ seo.alt_text|default:post.title }}" class="h-full w-full object-cover" />
       <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70"></div>
     </div>
     {% else %}

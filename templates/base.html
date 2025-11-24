@@ -5,12 +5,52 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/png" sizes="32x32" href="https://pub-b5144fdd56fb4b018c6d025a213f59d3.r2.dev/logokaya.png">
-    <title>{% block title %}Kaya Tours{% endblock %}</title>
+    {% with meta_title=seo.meta_title|default_if_none:"" %}
+      <title>
+        {% if meta_title %}{{ meta_title }}{% else %}{% block title %}Kaya Tours{% endblock %}{% endif %}
+      </title>
+    {% endwith %}
+    {% if seo.meta_description %}<meta name="description" content="{{ seo.meta_description }}">{% endif %}
+    {% if seo.meta_keywords %}<meta name="keywords" content="{{ seo.meta_keywords }}">{% endif %}
+    {% if seo.canonical_url %}<link rel="canonical" href="{{ seo.canonical_url }}">{% endif %}
+
+    {% with og_title=seo.meta_title|default:"Kaya Tours" %}
+      <meta property="og:title" content="{{ og_title }}">
+    {% endwith %}
+    {% if seo.meta_description %}<meta property="og:description" content="{{ seo.meta_description }}">{% endif %}
+    {% if seo_og_image %}<meta property="og:image" content="{{ seo_og_image }}">{% endif %}
+    {% if seo.canonical_url %}<meta property="og:url" content="{{ seo.canonical_url }}">{% endif %}
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    {% if seo.meta_title %}<meta name="twitter:title" content="{{ seo.meta_title }}">{% endif %}
+    {% if seo.meta_description %}<meta name="twitter:description" content="{{ seo.meta_description }}">{% endif %}
+    {% if seo_og_image %}<meta name="twitter:image" content="{{ seo_og_image }}">{% endif %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/main2.css' %}" />
     <link rel="stylesheet" href="{% static 'css/main.css' %}" />
+    {% if seo_faqs %}
+      <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "mainEntity": [
+            {% for faq in seo_faqs %}
+              {
+                "@type": "Question",
+                "name": "{{ faq.question|escapejs }}",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "{{ faq.answer|escapejs }}"
+                }
+              }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+          ]
+        }
+      </script>
+    {% endif %}
+    {% for snippet in seo_snippets_head %}{{ snippet|safe }}{% endfor %}
     {% block head_extra %}{% endblock %}
   </head>
   <body class="min-h-screen bg-background text-foreground {% block body_classes %}{% endblock %}">
@@ -70,6 +110,7 @@
     {% include 'includes/footer.html' %}
     <script src="{% static 'js/booking-form.js' %}"></script>
     <script src="{% static 'js/main.js' %}"></script>
+    {% for snippet in seo_snippets_body %}{{ snippet|safe }}{% endfor %}
     {% block scripts %}{% endblock %}
   </body>
 </html>

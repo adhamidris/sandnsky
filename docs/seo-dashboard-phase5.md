@@ -23,4 +23,4 @@
 ## Scope & Notes
 - English-only; one row per `SeoEntry`.
 - Snippets render raw and assume trusted admins.
-- No bulk slug propagation to source models yet beyond main content updates; slug/path edits affect `SeoEntry` and redirects only.
+- Slug propagation: slug/path edits now sync to Trips/Destinations/BlogPosts and create redirects from the old path.

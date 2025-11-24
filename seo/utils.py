@@ -122,3 +122,21 @@ def seed_faqs_from_source(entry: SeoEntry):
         )
         created += 1
     return created
+
+
+def infer_alt_text(entry: SeoEntry) -> str:
+    """
+    Derive a reasonable alt text fallback for main image.
+    """
+    if entry.alt_text:
+        return entry.alt_text
+    obj = entry.content_object
+    if entry.page_type == PageType.TRIP and obj:
+        return getattr(obj, "title", "") or ""
+    if entry.page_type == PageType.DESTINATION and obj:
+        return getattr(obj, "name", "") or ""
+    if entry.page_type == PageType.BLOG_POST and obj:
+        return getattr(obj, "title", "") or ""
+    if entry.page_code:
+        return entry.page_code.replace("_", " ").title()
+    return ""
