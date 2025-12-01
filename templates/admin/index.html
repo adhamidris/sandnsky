@@ -343,8 +343,8 @@
   .timeline-main {
     display: flex;
     gap: 6px;
-    flex-wrap: wrap;
-    align-items: baseline;
+    flex-direction: column;
+    align-items: stretch;
     font-size: 13px;
     color: #111827;
   }
@@ -376,6 +376,42 @@
     padding: 12px;
   }
 
+  .timeline-pagination {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+    font-size: 12px;
+    color: #6b7280;
+  }
+
+  .timeline-pagination a {
+    padding: 6px 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #1f2937;
+    background: #ffffff;
+    transition: background-color 120ms ease, border-color 120ms ease;
+  }
+
+  .timeline-pagination a:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+  }
+
+  .timeline-pagination .disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .timeline-page-links {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
   .timeline-action-1 .timeline-icon {
     background: #2563eb;
   }
@@ -386,6 +422,27 @@
 
   .timeline-action-3 .timeline-icon {
     background: #dc2626;
+  }
+
+  .timeline-row {
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .timeline-left {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .timeline-right {
+    margin-left: auto;
+    font-size: 12px;
+    color: #6b7280;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
 
   /* Responsive tweaks */
@@ -522,6 +579,21 @@
     .timeline-empty {
       background: #0b1120;
       border-color: #1f2937;
+      color: #9ca3af;
+    }
+
+    .timeline-pagination a {
+      background: #0b1120;
+      border-color: #1f2937;
+      color: #e5e7eb;
+    }
+
+    .timeline-pagination a:hover {
+      background: #111827;
+      border-color: #334155;
+    }
+
+    .timeline-right {
       color: #9ca3af;
     }
   }
@@ -871,7 +943,7 @@
 
 {% block content %}
 {% booking_counts as booking_counts %}
-{% recent_admin_events 12 as admin_events %}
+{% recent_admin_events 100 10 as admin_events %}
 {% now "Y-m-d" as today %}
 <div id="content-main">
   <div class="dashboard-grid">
@@ -880,132 +952,186 @@
       <h3>{% trans "Quick actions" %}</h3>
       <div class="quick-actions">
         <ul>
-          <li>
-            <a href="{% url 'admin:web_booking_add' %}">
-              {% trans "Create a booking" %}
-              <span>{% trans "Manual reservation entry" %}</span>
-            </a>
-          </li>
-          <li>
-            <a href="{% url 'admin:web_trip_add' %}">
-              {% trans "Add a trip" %}
-              <span>{% trans "Publish a new itinerary" %}</span>
-            </a>
-          </li>
-          <li>
-            <a href="{% url 'admin:web_trip_changelist' %}">
-              {% trans "Edit trips" %}
-              <span>{% trans "Manage existing trips" %}</span>
-            </a>
-          </li>
-          <li>
-            <a href="{% url 'admin:web_blogpost_add' %}">
-              {% trans "Add a blog post" %}
-              <span>{% trans "Create new content" %}</span>
-            </a>
-          </li>
-          <li>
-            <a href="{% url 'admin:web_blogpost_changelist' %}">
-              {% trans "Edit blog posts" %}
-              <span>{% trans "Update published articles" %}</span>
-            </a>
-          </li>
-          <li>
-            <a href="{% url 'admin:web_review_changelist' %}">
-              {% trans "Reviews" %}
-              <span>{% trans "Moderate guest feedback" %}</span>
-            </a>
-          </li>
-          <li>
-            <a href="{% url 'seo:dashboard' %}">
-              {% trans "SEO" %}
-              <span>{% trans "Search visibility dashboard" %}</span>
-            </a>
-          </li>
-          <li>
-            <a href="{% url 'admin:web_rewardphase_changelist' %}">
-              {% trans "Rewards" %}
-              <span>{% trans "Configure reward phases" %}</span>
-            </a>
-          </li>
-          <li>
-            <a href="{% url 'admin:web_siteconfiguration_change' 1 %}">
-              {% trans "Edit website main page" %}
-              <span>{% trans "Update hero and homepage settings" %}</span>
-            </a>
-          </li>
+          {% if perms.web.add_booking %}
+            <li>
+              <a href="{% url 'admin:web_booking_add' %}">
+                {% trans "Create a booking" %}
+                <span>{% trans "Manual reservation entry" %}</span>
+              </a>
+            </li>
+          {% endif %}
+          {% if perms.web.add_trip %}
+            <li>
+              <a href="{% url 'admin:web_trip_add' %}">
+                {% trans "Add a trip" %}
+                <span>{% trans "Publish a new itinerary" %}</span>
+              </a>
+            </li>
+          {% endif %}
+          {% if perms.web.change_trip %}
+            <li>
+              <a href="{% url 'admin:web_trip_changelist' %}">
+                {% trans "Edit trips" %}
+                <span>{% trans "Manage existing trips" %}</span>
+              </a>
+            </li>
+          {% endif %}
+          {% if perms.web.add_blogpost %}
+            <li>
+              <a href="{% url 'admin:web_blogpost_add' %}">
+                {% trans "Add a blog post" %}
+                <span>{% trans "Create new content" %}</span>
+              </a>
+            </li>
+          {% endif %}
+          {% if perms.web.change_blogpost %}
+            <li>
+              <a href="{% url 'admin:web_blogpost_changelist' %}">
+                {% trans "Edit blog posts" %}
+                <span>{% trans "Update published articles" %}</span>
+              </a>
+            </li>
+          {% endif %}
+          {% if perms.web.change_review %}
+            <li>
+              <a href="{% url 'admin:web_review_changelist' %}">
+                {% trans "Reviews" %}
+                <span>{% trans "Moderate guest feedback" %}</span>
+              </a>
+            </li>
+          {% endif %}
+          {% if request.user.is_superuser or perms.seo.view_seoentry %}
+            <li>
+              <a href="{% url 'seo:dashboard' %}">
+                {% trans "SEO" %}
+                <span>{% trans "Search visibility dashboard" %}</span>
+              </a>
+            </li>
+          {% endif %}
+          {% if perms.web.change_rewardphase %}
+            <li>
+              <a href="{% url 'admin:web_rewardphase_changelist' %}">
+                {% trans "Rewards" %}
+                <span>{% trans "Configure reward phases" %}</span>
+              </a>
+            </li>
+          {% endif %}
+          {% if perms.web.change_siteconfiguration %}
+            <li>
+              <a href="{% url 'admin:web_siteconfiguration_change' 1 %}">
+                {% trans "Edit website main page" %}
+                <span>{% trans "Update hero and homepage settings" %}</span>
+              </a>
+            </li>
+          {% endif %}
+          {% if request.user.is_superuser %}
+            <li>
+              <a href="{% url 'admin:auth_user_add' %}">
+                {% trans "Add staff account" %}
+                <span>{% trans "Create user and assign roles/groups" %}</span>
+              </a>
+            </li>
+          {% endif %}
         </ul>
       </div>
     </div>
 
     <!-- Booking Metrics Panel (right column) -->
-    <div class="panel" id="booking-metrics">
-      <h3>{% trans "Bookings at a glance" %}</h3>
-      <div class="metrics-grid">
-        <a class="metric-card metric-new" href="{% url 'admin:web_booking_changelist' %}?status__exact=received">
-          <div class="metric-label">{% trans "New Bookings" %}</div>
-          <div class="metric-value">{{ booking_counts.new|default:0 }}</div>
-          <div class="metric-hint">
-            <span class="metric-chip">{% trans "Awaiting confirmation" %}</span>
-          </div>
-        </a>
-        
-        <a class="metric-card metric-confirmed" href="{% url 'admin:web_booking_changelist' %}?status__exact=confirmed">
-          <div class="metric-label">{% trans "Confirmed" %}</div>
-          <div class="metric-value">{{ booking_counts.confirmed|default:0 }}</div>
-          <div class="metric-hint">
-            <span class="metric-chip">{% trans "Upcoming trips" %}</span>
-          </div>
-        </a>
-        
-        <a class="metric-card metric-past" href="{% url 'admin:web_booking_changelist' %}?status__exact=confirmed&travel_date__lt={{ today }}">
-          <div class="metric-label">{% trans "Completed" %}</div>
-          <div class="metric-value">{{ booking_counts.past_confirmed|default:0 }}</div>
-          <div class="metric-hint">
-            <span class="metric-chip">{% trans "Past trips" %}</span>
-          </div>
-        </a>
-      </div>
-
-      <div class="events-timeline">
-        <div class="timeline-header">
-          <div>
-            <div class="timeline-title">{% trans "Latest admin activity" %}</div>
-            <div class="timeline-subtitle">{% trans "Recent edits and creations across the dashboard" %}</div>
-          </div>
-          <span class="timeline-badge">
-            {% blocktrans %}Last {{ admin_events|length }} events{% endblocktrans %}
-          </span>
+    {% if perms.web.view_booking %}
+      <div class="panel" id="booking-metrics">
+        <h3>{% trans "Bookings at a glance" %}</h3>
+        <div class="metrics-grid">
+          <a class="metric-card metric-new" href="{% url 'admin:web_booking_changelist' %}?status__exact=received">
+            <div class="metric-label">{% trans "New Bookings" %}</div>
+            <div class="metric-value">{{ booking_counts.new|default:0 }}</div>
+            <div class="metric-hint">
+              <span class="metric-chip">{% trans "Awaiting confirmation" %}</span>
+            </div>
+          </a>
+          
+          <a class="metric-card metric-confirmed" href="{% url 'admin:web_booking_changelist' %}?status__exact=confirmed">
+            <div class="metric-label">{% trans "Confirmed" %}</div>
+            <div class="metric-value">{{ booking_counts.confirmed|default:0 }}</div>
+            <div class="metric-hint">
+              <span class="metric-chip">{% trans "Upcoming trips" %}</span>
+            </div>
+          </a>
+          
+          <a class="metric-card metric-past" href="{% url 'admin:web_booking_changelist' %}?status__exact=confirmed&travel_date__lt={{ today }}">
+            <div class="metric-label">{% trans "Completed" %}</div>
+            <div class="metric-value">{{ booking_counts.past_confirmed|default:0 }}</div>
+            <div class="metric-hint">
+              <span class="metric-chip">{% trans "Past trips" %}</span>
+            </div>
+          </a>
         </div>
 
-        {% if admin_events %}
-          <ul class="timeline-list">
-            {% for entry in admin_events %}
-              <li class="timeline-item timeline-action-{{ entry.action_flag }}">
-                <span class="timeline-icon" aria-hidden="true"></span>
-                <div class="timeline-card">
-                  <div class="timeline-meta">
-                    <span class="timeline-user">{{ entry.user.get_full_name|default:entry.user.username }}</span>
-                    <span class="timeline-time">{{ entry.action_time|date:"M j, H:i" }}</span>
+        {% if request.user.is_superuser %}
+          <div class="events-timeline">
+            <div class="timeline-header">
+              <div>
+                <div class="timeline-title">{% trans "Latest admin activity" %}</div>
+                <div class="timeline-subtitle">{% trans "Recent edits and creations across the dashboard" %}</div>
+              </div>
+              <span class="timeline-badge">
+                {% with page=admin_events.page_obj %}
+                  {% blocktrans %}Showing {{ page.start_index }}–{{ page.end_index }} of {{ admin_events.paginator.count }}{% endblocktrans %}
+                {% endwith %}
+              </span>
+            </div>
+
+            {% if admin_events.page_obj.object_list %}
+              <ul class="timeline-list">
+                {% for entry in admin_events.page_obj.object_list %}
+                  <li class="timeline-item timeline-action-{{ entry.action_flag }}">
+                    <span class="timeline-icon" aria-hidden="true"></span>
+                    <div class="timeline-card">
+                  <div class="timeline-main timeline-row">
+                    <div class="timeline-left">
+                      <span class="timeline-user">{{ entry.user.get_full_name|default:entry.user.username }}</span>
+                      <span class="timeline-separator">&middot;</span>
+                      <span class="timeline-action">{{ entry.get_action_flag_display }}</span>
+                      <span class="timeline-separator">&middot;</span>
+                      <span class="timeline-object">{{ entry.object_repr }}</span>
+                      <span class="timeline-type">({{ entry.content_type }})</span>
+                    </div>
+                    <div class="timeline-right">
+                      <span class="timeline-time">{{ entry.action_time|date:"M j, H:i" }}</span>
+                    </div>
                   </div>
-                  <div class="timeline-main">
-                    <span class="timeline-action">{{ entry.get_action_flag_display }}</span>
-                    <span class="timeline-separator">&middot;</span>
-                    <span class="timeline-object">{{ entry.object_repr }}</span>
-                    <span class="timeline-type">({{ entry.content_type }})</span>
-                  </div>
-                  {% if entry.get_change_message %}
-                    <div class="timeline-message">{{ entry.get_change_message }}</div>
+                      {% if entry.get_change_message %}
+                        <div class="timeline-message">{{ entry.get_change_message }}</div>
+                      {% endif %}
+                    </div>
+                  </li>
+                {% endfor %}
+              </ul>
+
+              <div class="timeline-pagination">
+                <span class="timeline-page-range">
+                  {{ admin_events.page_obj.start_index }}–{{ admin_events.page_obj.end_index }}
+                  {% trans "of" %} {{ admin_events.paginator.count }}
+                </span>
+                <div class="timeline-page-links">
+                  {% if admin_events.page_obj.has_previous %}
+                    <a href="?events_page={{ admin_events.page_obj.previous_page_number }}">{% trans "Previous" %}</a>
+                  {% else %}
+                    <span class="disabled">{% trans "Previous" %}</span>
+                  {% endif %}
+                  {% if admin_events.page_obj.has_next %}
+                    <a href="?events_page={{ admin_events.page_obj.next_page_number }}">{% trans "Next" %}</a>
+                  {% else %}
+                    <span class="disabled">{% trans "Next" %}</span>
                   {% endif %}
                 </div>
-              </li>
-            {% endfor %}
-          </ul>
-        {% else %}
-          <div class="timeline-empty">{% trans "No recent activity yet." %}</div>
+              </div>
+            {% else %}
+              <div class="timeline-empty">{% trans "No recent activity yet." %}</div>
+            {% endif %}
+          </div>
         {% endif %}
       </div>
-    </div>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

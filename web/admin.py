@@ -1,7 +1,14 @@
 from django import forms
 from django.contrib import admin
+from django.contrib.auth import get_user_model
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.db.models import Max
+from django.utils.html import format_html
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 from nested_admin import NestedModelAdmin, NestedStackedInline, NestedTabularInline
 from .models import (
     BlogCategory,
@@ -34,6 +41,89 @@ from .models import (
     BookingConfirmationEmailSettings,
     Review,
 )
+
+User = get_user_model()
+
+# Limit the visible role choices to the curated defaults.
+ALLOWED_ROLE_NAMES = [
+    "Booking Manager",
+    "Content Editor",
+    "SEO Manager",
+    "Site Manager",
+    "Read Only",
+]
+
+
+class RoleMultipleChoiceField(forms.ModelMultipleChoiceField):
+    def label_from_instance(self, obj):
+        return obj.name
+
+
+class StaffUserCreationForm(UserCreationForm):
+    groups = RoleMultipleChoiceField(
+        queryset=Group.objects.filter(name__in=ALLOWED_ROLE_NAMES),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        label="Roles",
+        help_text="Select one or more roles.",
+    )
+    is_staff = forms.BooleanField(
+        required=False,
+        initial=True,
+        help_text="Designates whether the user can log into this admin site.",
+    )
+    is_active = forms.BooleanField(
+        required=False,
+        initial=True,
+        help_text="Unselect to deactivate login without deleting the user.",
+    )
+
+    class Meta(UserCreationForm.Meta):
+        model = User
+        fields = ("username", "is_staff", "is_active", "groups")
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        # Enforce staff access for accounts created via this path.
+        user.is_staff = True
+        user.is_active = self.cleaned_data.get("is_active", True)
+        if commit:
+            user.save()
+            self.save_m2m()
+        return user
+
+
+class StaffUserAdmin(BaseUserAdmin):
+    add_form = StaffUserCreationForm
+    add_fieldsets = (
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": (
+                    "username",
+                    "password1",
+                    "password2",
+                    "is_staff",
+                    "is_active",
+                    "groups",
+                ),
+            },
+        ),
+    )
+    filter_horizontal = ("groups", "user_permissions")
+
+    def response_add(self, request, obj, post_url_continue=None):
+        """
+        After creating a user, return to the user list instead of the edit page.
+        """
+        self.message_user(request, f'User "{obj}" was added successfully.')
+        return HttpResponseRedirect(reverse("admin:auth_user_changelist"))
+try:
+    admin.site.unregister(User)
+except admin.sites.NotRegistered:
+    pass
+admin.site.register(User, StaffUserAdmin)
 
 
 # -----------------------------

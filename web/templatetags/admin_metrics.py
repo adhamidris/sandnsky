@@ -1,5 +1,6 @@
 from django import template
 from django.contrib.admin.models import LogEntry
+from django.core.paginator import Paginator
 from django.utils import timezone
 
 from web.models import Booking
@@ -24,13 +25,24 @@ def booking_counts():
     }
 
 
-@register.simple_tag
-def recent_admin_events(limit=12):
+@register.simple_tag(takes_context=True)
+def recent_admin_events(context, limit=100, per_page=10):
     """
-    Return the most recent admin log entries for the dashboard timeline.
+    Return a paginated object of recent admin log entries.
     """
-    limit = int(limit or 12)
-    return (
+    limit = int(limit or 100)
+    per_page = int(per_page or 10)
+
+    qs = (
         LogEntry.objects.select_related("user", "content_type")
         .order_by("-action_time")[:limit]
     )
+    paginator = Paginator(qs, per_page)
+
+    request = context.get("request")
+    page_number = None
+    if request:
+        page_number = request.GET.get("events_page")
+
+    page_obj = paginator.get_page(page_number)
+    return {"page_obj": page_obj, "paginator": paginator}
