@@ -20,6 +20,7 @@ from django.contrib import admin
 from django.urls import include, path
 
 urlpatterns = [
+    path("nested_admin/", include("nested_admin.urls")),
     path("admin/seo/", include("seo.urls", namespace="seo")),
     path("admin/", admin.site.urls),
     path("", include("web.urls", namespace="web")),

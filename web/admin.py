@@ -2,6 +2,7 @@ from django import forms
 from django.contrib import admin
 from django.core.exceptions import ValidationError
 from django.db.models import Max
+from nested_admin import NestedModelAdmin, NestedStackedInline, NestedTabularInline
 from .models import (
     BlogCategory,
     BlogPost,
@@ -108,62 +109,63 @@ class DestinationAdminForm(forms.ModelForm):
         fields = "__all__"
 
 
-class TripAboutInline(admin.StackedInline):
+class TripAboutInline(NestedStackedInline):
     model = TripAbout
     extra = 0
     max_num = 1
     can_delete = False
 
 
-class TripHighlightInline(admin.TabularInline):
+class TripHighlightInline(NestedTabularInline):
     model = TripHighlight
     extra = 0
     fields = ("text", "position")
     ordering = ("position",)
 
-class TripGalleryImageInline(admin.TabularInline):
+
+class TripGalleryImageInline(NestedTabularInline):
     model = TripGalleryImage
     extra = 1
     fields = ("image", "caption", "position")
     ordering = ("position", "id")
 
 
-class TripInclusionInline(admin.TabularInline):
+class TripInclusionInline(NestedTabularInline):
     model = TripInclusion
     extra = 0
     fields = ("text", "position")
     ordering = ("position",)
 
 
-class TripExclusionInline(admin.TabularInline):
+class TripExclusionInline(NestedTabularInline):
     model = TripExclusion
     extra = 0
     fields = ("text", "position")
     ordering = ("position",)
 
 
-class TripFAQInline(admin.TabularInline):
+class TripFAQInline(NestedTabularInline):
     model = TripFAQ
     extra = 0
     fields = ("question", "answer", "position")
     ordering = ("position",)
 
 
-class TripBookingOptionInline(admin.TabularInline):
+class TripBookingOptionInline(NestedTabularInline):
     model = TripBookingOption
     extra = 0
     fields = ("name", "price_per_person", "child_price_per_person", "position")
     ordering = ("position", "id")
 
 
-class TripExtraInline(admin.TabularInline):
+class TripExtraInline(NestedTabularInline):
     model = TripExtra
     extra = 0
     fields = ("name", "price", "position")
     ordering = ("position",)
 
 
-class TripRelationInline(admin.TabularInline):
+class TripRelationInline(NestedTabularInline):
     """
     Inline for "You may also like" relations from the current Trip to others.
     """
@@ -175,11 +177,19 @@ class TripRelationInline(admin.TabularInline):
     autocomplete_fields = ("to_trip",)
 
 
-class TripItineraryStepInline(admin.TabularInline):
+class TripItineraryStepInline(NestedTabularInline):
     model = TripItineraryStep
     extra = 0
     fields = ("time_label", "title", "description", "position")
     ordering = ("position",)
+
+
+class TripItineraryDayInline(NestedStackedInline):
+    model = TripItineraryDay
+    extra = 0
+    fields = ("day_number", "title")
+    ordering = ("day_number",)
+    inlines = [TripItineraryStepInline]
 
 
 class BookingExtraInline(admin.TabularInline):
@@ -471,11 +481,12 @@ class LanguageAdmin(admin.ModelAdmin):
 
 
 @admin.register(Trip)
-class TripAdmin(admin.ModelAdmin):
+class TripAdmin(NestedModelAdmin):
     inlines = [
         TripAboutInline,
         TripHighlightInline,
         TripGalleryImageInline,
+        TripItineraryDayInline,
         TripInclusionInline,
         TripExclusionInline,
         TripFAQInline,
@@ -513,8 +524,7 @@ class TripAdmin(admin.ModelAdmin):
 @admin.register(TripItineraryDay)
 class TripItineraryDayAdmin(admin.ModelAdmin):
     """
-    Manage itinerary days here, with step inlines.
-    (Django admin doesn't support nested inlines under Trip directly.)
+    Keep a standalone view for days; trips also manage them inline via nested admin.
     """
     inlines = [TripItineraryStepInline]
     list_display = ("trip", "day_number", "title")
