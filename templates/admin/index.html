@@ -2,27 +2,37 @@
 {% load i18n static admin_urls admin_metrics %}
 
 {% block bodyclass %}dashboard-full{% endblock %}
+{% block content_title %}{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
 <style>
   /* Stretch the admin container on this dashboard */
   body.dashboard-full #container {
-    width: auto;
-    max-width: 100%;
+    width: 100%;
+    max-width: none;
     box-sizing: border-box;
     margin: 0;
-    padding: 0 16px 24px;
+    padding: 0 0 24px;
   }
 
   body.dashboard-full #content {
+    width: 100%;
     margin: 0;
     padding: 0;
   }
 
+  body.dashboard-full #header {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 12px 20px;
+  }
+
   /* Basic layout */
   #content-main {
-    padding: 24px;
+    padding: 20px;
     max-width: none;
     width: 100%;
     margin: 0;
@@ -48,12 +58,12 @@
     background: #ffffff;
     border: 1px solid #e5e7eb;
     border-radius: 10px;
-    padding: 18px 16px;
+    padding: 18px;
     box-shadow: none;
   }
 
   .panel h3 {
-    margin: 0 0 14px;
+    margin: 0 0 12px;
     font-size: 13px;
     font-weight: 600;
     color: #111827;
@@ -64,6 +74,13 @@
   /* Sticky Quick Actions (left side) */
   #quick-actions {
     position: static;
+    border: none;
+    box-shadow: none;
+  }
+
+  #booking-metrics {
+    border: none;
+    box-shadow: none;
   }
 
   @media (min-width: 960px) {
@@ -85,7 +102,8 @@
   .metrics-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-    gap: 14px;
+    gap: 12px;
+    margin-bottom: 8px;
   }
 
   /* Metric cards */
@@ -180,7 +198,7 @@
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
   }
 
   .quick-actions li {
@@ -218,8 +236,8 @@
 
   /* Events timeline */
   .events-timeline {
-    margin-top: 18px;
-    padding-top: 14px;
+    margin-top: 16px;
+    padding-top: 12px;
     border-top: 1px solid #e5e7eb;
   }
 
@@ -263,7 +281,7 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
   }
 
   .timeline-list::before {
@@ -298,7 +316,7 @@
     background: #f9fafb;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
-    padding: 10px 12px;
+    padding: 12px 14px;
     flex: 1;
   }
 
