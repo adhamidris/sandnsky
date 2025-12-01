@@ -216,6 +216,160 @@
     margin-top: 2px;
   }
 
+  /* Events timeline */
+  .events-timeline {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  .timeline-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .timeline-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .timeline-subtitle {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 2px;
+  }
+
+  .timeline-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    border: 1px solid #e5e7eb;
+    background: #f3f4f6;
+    font-size: 11px;
+    color: #111827;
+    white-space: nowrap;
+  }
+
+  .timeline-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .timeline-list::before {
+    content: "";
+    position: absolute;
+    left: 7px;
+    top: 6px;
+    bottom: 6px;
+    width: 1px;
+    background: #e5e7eb;
+  }
+
+  .timeline-item {
+    display: flex;
+    gap: 12px;
+    position: relative;
+    padding-left: 14px;
+  }
+
+  .timeline-icon {
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+    background: #2563eb;
+    box-shadow: 0 0 0 1px #e5e7eb;
+    border: 2px solid #ffffff;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+
+  .timeline-card {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 10px 12px;
+    flex: 1;
+  }
+
+  .timeline-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 4px;
+  }
+
+  .timeline-user {
+    font-weight: 600;
+    color: #111827;
+  }
+
+  .timeline-time {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .timeline-main {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: baseline;
+    font-size: 13px;
+    color: #111827;
+  }
+
+  .timeline-action {
+    font-weight: 700;
+  }
+
+  .timeline-separator {
+    color: #9ca3af;
+  }
+
+  .timeline-type {
+    color: #6b7280;
+  }
+
+  .timeline-message {
+    margin-top: 4px;
+    font-size: 12px;
+    color: #4b5563;
+  }
+
+  .timeline-empty {
+    font-size: 12px;
+    color: #6b7280;
+    background: #f9fafb;
+    border: 1px dashed #e5e7eb;
+    border-radius: 8px;
+    padding: 12px;
+  }
+
+  .timeline-action-1 .timeline-icon {
+    background: #2563eb;
+  }
+
+  .timeline-action-2 .timeline-icon {
+    background: #f59e0b;
+  }
+
+  .timeline-action-3 .timeline-icon {
+    background: #dc2626;
+  }
+
   /* Responsive tweaks */
   @media (max-width: 768px) {
     #content-main {
@@ -233,6 +387,12 @@
 
     .metric-value {
       font-size: 24px;
+    }
+
+    .timeline-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
     }
   }
 
@@ -289,6 +449,61 @@
     }
 
     .quick-actions a span {
+      color: #9ca3af;
+    }
+
+    .events-timeline {
+      border-top-color: #1f2937;
+    }
+
+    .timeline-title {
+      color: #e5e7eb;
+    }
+
+    .timeline-subtitle {
+      color: #9ca3af;
+    }
+
+    .timeline-badge {
+      background: #0b1120;
+      border-color: #1f2937;
+      color: #e5e7eb;
+    }
+
+    .timeline-list::before {
+      background: #1f2937;
+    }
+
+    .timeline-icon {
+      box-shadow: 0 0 0 1px #1f2937;
+      border-color: #020617;
+    }
+
+    .timeline-card {
+      background: #0b1120;
+      border-color: #1f2937;
+    }
+
+    .timeline-meta {
+      color: #9ca3af;
+    }
+
+    .timeline-user,
+    .timeline-main {
+      color: #e5e7eb;
+    }
+
+    .timeline-type {
+      color: #9ca3af;
+    }
+
+    .timeline-message {
+      color: #cbd5e1;
+    }
+
+    .timeline-empty {
+      background: #0b1120;
+      border-color: #1f2937;
       color: #9ca3af;
     }
   }
@@ -380,6 +595,87 @@
     color: #6b7280;
   }
 
+  :root[data-theme="light"] body.dashboard-full .events-timeline,
+  body.dashboard-full[data-theme="light"] .events-timeline,
+  body.theme-light.dashboard-full .events-timeline {
+    border-top-color: #e5e7eb;
+  }
+
+  :root[data-theme="light"] body.dashboard-full .timeline-title,
+  body.dashboard-full[data-theme="light"] .timeline-title,
+  body.theme-light.dashboard-full .timeline-title {
+    color: #0f172a;
+  }
+
+  :root[data-theme="light"] body.dashboard-full .timeline-subtitle,
+  body.dashboard-full[data-theme="light"] .timeline-subtitle,
+  body.theme-light.dashboard-full .timeline-subtitle {
+    color: #6b7280;
+  }
+
+  :root[data-theme="light"] body.dashboard-full .timeline-badge,
+  body.dashboard-full[data-theme="light"] .timeline-badge,
+  body.theme-light.dashboard-full .timeline-badge {
+    background: #f3f4f6;
+    border-color: #e5e7eb;
+    color: #111827;
+  }
+
+  :root[data-theme="light"] body.dashboard-full .timeline-list::before,
+  body.dashboard-full[data-theme="light"] .timeline-list::before,
+  body.theme-light.dashboard-full .timeline-list::before {
+    background: #e5e7eb;
+  }
+
+  :root[data-theme="light"] body.dashboard-full .timeline-icon,
+  body.dashboard-full[data-theme="light"] .timeline-icon,
+  body.theme-light.dashboard-full .timeline-icon {
+    box-shadow: 0 0 0 1px #e5e7eb;
+    border-color: #ffffff;
+  }
+
+  :root[data-theme="light"] body.dashboard-full .timeline-card,
+  body.dashboard-full[data-theme="light"] .timeline-card,
+  body.theme-light.dashboard-full .timeline-card {
+    background: #f9fafb;
+    border-color: #e5e7eb;
+  }
+
+  :root[data-theme="light"] body.dashboard-full .timeline-meta,
+  body.dashboard-full[data-theme="light"] .timeline-meta,
+  body.theme-light.dashboard-full .timeline-meta {
+    color: #6b7280;
+  }
+
+  :root[data-theme="light"] body.dashboard-full .timeline-user,
+  :root[data-theme="light"] body.dashboard-full .timeline-main,
+  body.dashboard-full[data-theme="light"] .timeline-user,
+  body.dashboard-full[data-theme="light"] .timeline-main,
+  body.theme-light.dashboard-full .timeline-user,
+  body.theme-light.dashboard-full .timeline-main {
+    color: #111827;
+  }
+
+  :root[data-theme="light"] body.dashboard-full .timeline-type,
+  body.dashboard-full[data-theme="light"] .timeline-type,
+  body.theme-light.dashboard-full .timeline-type {
+    color: #6b7280;
+  }
+
+  :root[data-theme="light"] body.dashboard-full .timeline-message,
+  body.dashboard-full[data-theme="light"] .timeline-message,
+  body.theme-light.dashboard-full .timeline-message {
+    color: #4b5563;
+  }
+
+  :root[data-theme="light"] body.dashboard-full .timeline-empty,
+  body.dashboard-full[data-theme="light"] .timeline-empty,
+  body.theme-light.dashboard-full .timeline-empty {
+    background: #f9fafb;
+    border-color: #e5e7eb;
+    color: #6b7280;
+  }
+
   /* Admin theme toggle: force dark */
   :root[data-theme="dark"] body.dashboard-full,
   body.dashboard-full[data-theme="dark"],
@@ -467,6 +763,87 @@
     color: #9ca3af;
   }
 
+  :root[data-theme="dark"] body.dashboard-full .events-timeline,
+  body.dashboard-full[data-theme="dark"] .events-timeline,
+  body.theme-dark.dashboard-full .events-timeline {
+    border-top-color: #1f2937;
+  }
+
+  :root[data-theme="dark"] body.dashboard-full .timeline-title,
+  body.dashboard-full[data-theme="dark"] .timeline-title,
+  body.theme-dark.dashboard-full .timeline-title {
+    color: #e5e7eb;
+  }
+
+  :root[data-theme="dark"] body.dashboard-full .timeline-subtitle,
+  body.dashboard-full[data-theme="dark"] .timeline-subtitle,
+  body.theme-dark.dashboard-full .timeline-subtitle {
+    color: #9ca3af;
+  }
+
+  :root[data-theme="dark"] body.dashboard-full .timeline-badge,
+  body.dashboard-full[data-theme="dark"] .timeline-badge,
+  body.theme-dark.dashboard-full .timeline-badge {
+    background: #0b1120;
+    border-color: #1f2937;
+    color: #e5e7eb;
+  }
+
+  :root[data-theme="dark"] body.dashboard-full .timeline-list::before,
+  body.dashboard-full[data-theme="dark"] .timeline-list::before,
+  body.theme-dark.dashboard-full .timeline-list::before {
+    background: #1f2937;
+  }
+
+  :root[data-theme="dark"] body.dashboard-full .timeline-icon,
+  body.dashboard-full[data-theme="dark"] .timeline-icon,
+  body.theme-dark.dashboard-full .timeline-icon {
+    box-shadow: 0 0 0 1px #1f2937;
+    border-color: #020617;
+  }
+
+  :root[data-theme="dark"] body.dashboard-full .timeline-card,
+  body.dashboard-full[data-theme="dark"] .timeline-card,
+  body.theme-dark.dashboard-full .timeline-card {
+    background: #0b1120;
+    border-color: #1f2937;
+  }
+
+  :root[data-theme="dark"] body.dashboard-full .timeline-meta,
+  body.dashboard-full[data-theme="dark"] .timeline-meta,
+  body.theme-dark.dashboard-full .timeline-meta {
+    color: #9ca3af;
+  }
+
+  :root[data-theme="dark"] body.dashboard-full .timeline-user,
+  :root[data-theme="dark"] body.dashboard-full .timeline-main,
+  body.dashboard-full[data-theme="dark"] .timeline-user,
+  body.dashboard-full[data-theme="dark"] .timeline-main,
+  body.theme-dark.dashboard-full .timeline-user,
+  body.theme-dark.dashboard-full .timeline-main {
+    color: #e5e7eb;
+  }
+
+  :root[data-theme="dark"] body.dashboard-full .timeline-type,
+  body.dashboard-full[data-theme="dark"] .timeline-type,
+  body.theme-dark.dashboard-full .timeline-type {
+    color: #9ca3af;
+  }
+
+  :root[data-theme="dark"] body.dashboard-full .timeline-message,
+  body.dashboard-full[data-theme="dark"] .timeline-message,
+  body.theme-dark.dashboard-full .timeline-message {
+    color: #cbd5e1;
+  }
+
+  :root[data-theme="dark"] body.dashboard-full .timeline-empty,
+  body.dashboard-full[data-theme="dark"] .timeline-empty,
+  body.theme-dark.dashboard-full .timeline-empty {
+    background: #0b1120;
+    border-color: #1f2937;
+    color: #9ca3af;
+  }
+
   /* Prevent horizontal overflow */
   body.dashboard-full {
     overflow-x: hidden;
@@ -476,6 +853,7 @@
 
 {% block content %}
 {% booking_counts as booking_counts %}
+{% recent_admin_events 12 as admin_events %}
 {% now "Y-m-d" as today %}
 <div id="content-main">
   <div class="dashboard-grid">
@@ -569,6 +947,45 @@
             <span class="metric-chip">{% trans "Past trips" %}</span>
           </div>
         </a>
+      </div>
+
+      <div class="events-timeline">
+        <div class="timeline-header">
+          <div>
+            <div class="timeline-title">{% trans "Latest admin activity" %}</div>
+            <div class="timeline-subtitle">{% trans "Recent edits and creations across the dashboard" %}</div>
+          </div>
+          <span class="timeline-badge">
+            {% blocktrans %}Last {{ admin_events|length }} events{% endblocktrans %}
+          </span>
+        </div>
+
+        {% if admin_events %}
+          <ul class="timeline-list">
+            {% for entry in admin_events %}
+              <li class="timeline-item timeline-action-{{ entry.action_flag }}">
+                <span class="timeline-icon" aria-hidden="true"></span>
+                <div class="timeline-card">
+                  <div class="timeline-meta">
+                    <span class="timeline-user">{{ entry.user.get_full_name|default:entry.user.username }}</span>
+                    <span class="timeline-time">{{ entry.action_time|date:"M j, H:i" }}</span>
+                  </div>
+                  <div class="timeline-main">
+                    <span class="timeline-action">{{ entry.get_action_flag_display }}</span>
+                    <span class="timeline-separator">&middot;</span>
+                    <span class="timeline-object">{{ entry.object_repr }}</span>
+                    <span class="timeline-type">({{ entry.content_type }})</span>
+                  </div>
+                  {% if entry.get_change_message %}
+                    <div class="timeline-message">{{ entry.get_change_message }}</div>
+                  {% endif %}
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="timeline-empty">{% trans "No recent activity yet." %}</div>
+        {% endif %}
       </div>
     </div>
   </div>

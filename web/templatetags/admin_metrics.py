@@ -1,4 +1,5 @@
 from django import template
+from django.contrib.admin.models import LogEntry
 from django.utils import timezone
 
 from web.models import Booking
@@ -21,3 +22,15 @@ def booking_counts():
             travel_date__lt=today,
         ).count(),
     }
+
+
+@register.simple_tag
+def recent_admin_events(limit=12):
+    """
+    Return the most recent admin log entries for the dashboard timeline.
+    """
+    limit = int(limit or 12)
+    return (
+        LogEntry.objects.select_related("user", "content_type")
+        .order_by("-action_time")[:limit]
+    )
