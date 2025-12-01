@@ -46,6 +46,42 @@
   .metric-new { border-left: 5px solid #ef4444; padding-left: 11px; }
   .metric-confirmed { border-left: 5px solid #10b981; padding-left: 11px; }
   .metric-past { border-left: 5px solid #3b82f6; padding-left: 11px; }
+  .quick-actions {
+    margin-top: 8px;
+    border: 1px solid #dfe1e5;
+    border-radius: 8px;
+    background: #fff;
+    padding: 12px 16px 4px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+  }
+  .quick-actions h3 {
+    margin: 0 0 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #111827;
+  }
+  .quick-actions ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+  }
+  .quick-actions a {
+    display: block;
+    padding: 10px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #111827;
+    background: #f9fafb;
+    transition: border-color 120ms ease, background 120ms ease;
+  }
+  .quick-actions a:hover {
+    border-color: #cbd5e1;
+    background: #f3f4f6;
+  }
 </style>
 {% endblock %}
 
@@ -70,6 +106,16 @@
         <div class="metric-value">{{ booking_counts.past_confirmed|default:0 }}</div>
         <div class="metric-hint">{% trans "Confirmed trips in the past" %}</div>
       </a>
+    </div>
+    <div class="quick-actions">
+      <h3>{% trans "Quick actions" %}</h3>
+      <ul>
+        <li><a href="{% url 'admin:web_booking_add' %}">{% trans "Create a booking" %}</a></li>
+        <li><a href="{% url 'admin:web_trip_add' %}">{% trans "Add a trip" %}</a></li>
+        <li><a href="{% url 'admin:web_trip_changelist' %}">{% trans "Edit trips" %}</a></li>
+        <li><a href="{% url 'admin:web_blogpost_add' %}">{% trans "Add a blog post" %}</a></li>
+        <li><a href="{% url 'admin:web_blogpost_changelist' %}">{% trans "Edit blog posts" %}</a></li>
+      </ul>
     </div>
   </div>
 </div>
