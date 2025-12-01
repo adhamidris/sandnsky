@@ -619,6 +619,11 @@ class TripAdmin(NestedModelAdmin):
         return ", ".join(obj.languages.values_list("code", flat=True))
     get_language_codes.short_description = "Languages"
 
+    class Media:
+        css = {
+            "all": ("admin/css/trip_m2m_grid.css",),
+        }
+
 
 @admin.register(TripItineraryDay)
 class TripItineraryDayAdmin(admin.ModelAdmin):
