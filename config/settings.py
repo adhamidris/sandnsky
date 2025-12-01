@@ -120,6 +120,9 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'web.context_processors.booking_cart',
             ],
+            'libraries': {
+                'admin_metrics': 'web.templatetags.admin_metrics',
+            },
         },
     },
 ]

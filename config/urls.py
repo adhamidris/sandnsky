@@ -19,6 +19,8 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
+admin.site.index_template = "admin/index.html"
+
 urlpatterns = [
     path("nested_admin/", include("nested_admin.urls")),
     path("admin/seo/", include("seo.urls", namespace="seo")),

@@ -1,0 +1,76 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static admin_urls admin_metrics %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin: 0 0 24px;
+  }
+  .metric-card {
+    display: block;
+    padding: 16px;
+    border: 1px solid #dfe1e5;
+    border-radius: 8px;
+    background: #fff;
+    color: inherit;
+    text-decoration: none;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.06);
+    transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+  }
+  .metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+    border-color: #bcc0c6;
+  }
+  .metric-label {
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #6b7280;
+    margin-bottom: 6px;
+  }
+  .metric-value {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .metric-hint {
+    font-size: 13px;
+    color: #4b5563;
+  }
+  .metric-new { border-left: 5px solid #ef4444; padding-left: 11px; }
+  .metric-confirmed { border-left: 5px solid #10b981; padding-left: 11px; }
+  .metric-past { border-left: 5px solid #3b82f6; padding-left: 11px; }
+</style>
+{% endblock %}
+
+{% block content %}
+{% booking_counts as booking_counts %}
+{% now "Y-m-d" as today %}
+<div id="content-main">
+  <div class="module" id="booking-metrics">
+    <div class="metrics-grid">
+      <a class="metric-card metric-new" href="{% url 'admin:web_booking_changelist' %}?status__exact=received">
+        <div class="metric-label">{% trans "NEW Bookings" %}</div>
+        <div class="metric-value">{{ booking_counts.new|default:0 }}</div>
+        <div class="metric-hint">{% trans "Awaiting confirmation" %}</div>
+      </a>
+      <a class="metric-card metric-confirmed" href="{% url 'admin:web_booking_changelist' %}?status__exact=confirmed">
+        <div class="metric-label">{% trans "Confirmed Bookings" %}</div>
+        <div class="metric-value">{{ booking_counts.confirmed|default:0 }}</div>
+        <div class="metric-hint">{% trans "Up next" %}</div>
+      </a>
+      <a class="metric-card metric-past" href="{% url 'admin:web_booking_changelist' %}?status__exact=confirmed&travel_date__lt={{ today }}">
+        <div class="metric-label">{% trans "Old Bookings" %}</div>
+        <div class="metric-value">{{ booking_counts.past_confirmed|default:0 }}</div>
+        <div class="metric-hint">{% trans "Confirmed trips in the past" %}</div>
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
