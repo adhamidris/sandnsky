@@ -19,6 +19,12 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
+admin.site.site_header = "Sand & Sky Admin"
+admin.site.site_title = "Sand & Sky Admin"
+admin.site.index_title = "Control center"
+admin.site.index_template = "admin/dashboard.html"
+admin.site.enable_nav_sidebar = False
+
 urlpatterns = [
     path("admin/seo/", include("seo.urls", namespace="seo")),
     path("admin/", admin.site.urls),

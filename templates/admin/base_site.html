@@ -1,0 +1,18 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{{ site_title }}{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/admin-custom.css' %}">
+{% endblock %}
+
+{% block branding %}
+    <h1 id="site-name">
+        <a href="{% url 'admin:index' %}">Sand &amp; Sky Control</a>
+    </h1>
+    <span class="admin-subtitle">Trips, bookings, rewards, and content in one place.</span>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

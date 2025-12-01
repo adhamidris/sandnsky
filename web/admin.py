@@ -1,7 +1,11 @@
+import calendar
+from datetime import date
+
 from django import forms
 from django.contrib import admin
 from django.core.exceptions import ValidationError
-from django.db.models import Max
+from django.db.models import Count, Max
+from django.utils import timezone
 from .models import (
     BlogCategory,
     BlogPost,
@@ -121,6 +125,7 @@ class TripHighlightInline(admin.TabularInline):
     fields = ("text", "position")
     ordering = ("position",)
 
+
 class TripGalleryImageInline(admin.TabularInline):
     model = TripGalleryImage
     extra = 1
@@ -147,6 +152,7 @@ class TripFAQInline(admin.TabularInline):
     extra = 0
     fields = ("question", "answer", "position")
     ordering = ("position",)
+    classes = ("collapse",)
 
 
 class TripBookingOptionInline(admin.TabularInline):
@@ -161,6 +167,7 @@ class TripExtraInline(admin.TabularInline):
     extra = 0
     fields = ("name", "price", "position")
     ordering = ("position",)
+    classes = ("collapse",)
 
 
 class TripRelationInline(admin.TabularInline):
@@ -173,6 +180,7 @@ class TripRelationInline(admin.TabularInline):
     fields = ("to_trip", "position")
     ordering = ("position",)
     autocomplete_fields = ("to_trip",)
+    classes = ("collapse",)
 
 
 class TripItineraryStepInline(admin.TabularInline):
@@ -263,6 +271,7 @@ class BlogPostAdmin(admin.ModelAdmin):
     search_fields = ("title", "subtitle", "excerpt", "intro")
     ordering = ("-published_at", "-created_at")
     readonly_fields = ("slug", "created_at", "updated_at")
+    list_select_related = ("category",)
     fieldsets = (
         (None, {"fields": ("title", "subtitle", "category", "status")}),
         (
@@ -358,6 +367,7 @@ class DestinationGalleryImageAdmin(admin.ModelAdmin):
     list_filter = ("destination",)
     search_fields = ("destination__name", "caption", "image")
     ordering = ("destination__name", "position", "id")
+    list_select_related = ("destination",)
 
 
 @admin.register(SiteConfiguration)
@@ -505,6 +515,60 @@ class TripAdmin(admin.ModelAdmin):
 
     autocomplete_fields = ()  # keep explicit for clarity
 
+    save_on_top = True
+    readonly_fields = ("slug", "created_at", "updated_at")
+    fieldsets = (
+        (
+            "Basics",
+            {
+                "fields": (
+                    "title",
+                    ("destination", "additional_destinations"),
+                    "tour_type_label",
+                    "teaser",
+                )
+            },
+        ),
+        (
+            "Pricing & capacity",
+            {
+                "fields": (
+                    ("base_price_per_person", "child_price_per_person"),
+                    ("duration_days", "group_size_max"),
+                    ("allow_children", "allow_infants", "minimum_age"),
+                )
+            },
+        ),
+        (
+            "Media",
+            {
+                "fields": (
+                    "card_image",
+                    "hero_image",
+                    "hero_image_mobile",
+                )
+            },
+        ),
+        (
+            "Tagging & visibility",
+            {
+                "fields": (
+                    "category_tags",
+                    "languages",
+                    "is_service",
+                    "destination_order",
+                )
+            },
+        ),
+        (
+            "Meta",
+            {
+                "fields": ("slug", "created_at", "updated_at"),
+                "classes": ("collapse",),
+            },
+        ),
+    )
+
     def get_language_codes(self, obj):
         return ", ".join(obj.languages.values_list("code", flat=True))
     get_language_codes.short_description = "Languages"
@@ -523,6 +587,48 @@ class TripItineraryDayAdmin(admin.ModelAdmin):
     ordering = ("trip__title", "day_number")
 
 
+class TravelDateWindowFilter(admin.SimpleListFilter):
+    title = "travel window"
+    parameter_name = "travel_window"
+
+    def lookups(self, request, model_admin):
+        return (
+            ("this_month", "Traveling this month"),
+            ("next_month", "Traveling next month"),
+            ("future", "Upcoming (after today)"),
+            ("past", "Past trips"),
+        )
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if not value:
+            return queryset
+
+        today = timezone.localdate()
+
+        if value == "this_month":
+            start = today.replace(day=1)
+            _, last_day = calendar.monthrange(today.year, today.month)
+            end = start.replace(day=last_day)
+            return queryset.filter(travel_date__range=(start, end))
+
+        if value == "next_month":
+            year = today.year + (1 if today.month == 12 else 0)
+            month = 1 if today.month == 12 else today.month + 1
+            start = date(year, month, 1)
+            _, last_day = calendar.monthrange(start.year, start.month)
+            end = start.replace(day=last_day)
+            return queryset.filter(travel_date__range=(start, end))
+
+        if value == "future":
+            return queryset.filter(travel_date__gt=today)
+
+        if value == "past":
+            return queryset.filter(travel_date__lt=today)
+
+        return queryset
+
+
 @admin.register(TripRelation)
 class TripRelationAdmin(admin.ModelAdmin):
     list_display = ("from_trip", "to_trip", "position")
@@ -530,6 +636,7 @@ class TripRelationAdmin(admin.ModelAdmin):
     search_fields = ("from_trip__title", "to_trip__title")
     ordering = ("from_trip__title", "position")
     autocomplete_fields = ("from_trip", "to_trip")
+    list_select_related = ("from_trip", "to_trip")
 
 
 @admin.register(Booking)
@@ -537,6 +644,7 @@ class BookingAdmin(admin.ModelAdmin):
     inlines = [BookingExtraInline, BookingRewardInline]
 
     list_display = (
+        "reference_code",
         "trip",
         "trip_option_label",
         "travel_date",
@@ -551,12 +659,15 @@ class BookingAdmin(admin.ModelAdmin):
         "status_updated_at",
         "created_at",
     )
-    list_filter = ("trip", "travel_date", "status", "created_at")
-    search_fields = ("full_name", "email", "phone", "trip__title")
+    list_filter = (TravelDateWindowFilter, "status", "trip", "created_at")
+    search_fields = ("full_name", "email", "phone", "trip__title", "group_reference")
     date_hierarchy = "created_at"
     ordering = ("-created_at",)
+    list_select_related = ("trip", "trip_option")
+    autocomplete_fields = ("trip",)
 
     readonly_fields = (
+        "reference_code",
         "base_subtotal",
         "extras_subtotal",
         "grand_total",
@@ -565,6 +676,53 @@ class BookingAdmin(admin.ModelAdmin):
         "trip_option_price_per_person",
         "created_at",
         "status_updated_at",
+    )
+
+    fieldsets = (
+        (
+            "Reference & status",
+            {
+                "fields": (
+                    "reference_code",
+                    "group_reference",
+                    ("status", "status_note"),
+                    "status_updated_at",
+                )
+            },
+        ),
+        (
+            "Trip & option",
+            {
+                "fields": (
+                    "trip",
+                    "trip_option",
+                    "trip_option_label",
+                    "trip_option_price_per_person",
+                )
+            },
+        ),
+        (
+            "Travelers",
+            {
+                "fields": (
+                    "travel_date",
+                    ("adults", "children", "infants"),
+                    "special_requests",
+                )
+            },
+        ),
+        (
+            "Contact",
+            {"fields": ("full_name", "email", "phone")},
+        ),
+        (
+            "Pricing snapshot",
+            {"fields": ("base_subtotal", "extras_subtotal", "grand_total")},
+        ),
+        (
+            "Meta",
+            {"fields": ("created_at",)},
+        ),
     )
 
     actions = (
@@ -619,12 +777,13 @@ class RewardPhaseAdmin(admin.ModelAdmin):
         "discount_percent",
         "currency",
         "position",
+        "eligible_trip_count",
         "updated_at",
     )
     list_filter = ("status", "currency")
     search_fields = ("name", "headline", "description")
     ordering = ("position", "id")
-    readonly_fields = ("created_at", "updated_at")
+    readonly_fields = ("eligible_trips_preview", "created_at", "updated_at")
     fieldsets = (
         (
             None,
@@ -647,6 +806,13 @@ class RewardPhaseAdmin(admin.ModelAdmin):
             },
         ),
         (
+            "Eligibility",
+            {
+                "fields": ("eligible_trips_preview",),
+                "description": "Quick glance at trips linked to this reward phase.",
+            },
+        ),
+        (
             "Timestamps",
             {
                 "classes": ("collapse",),
@@ -654,6 +820,27 @@ class RewardPhaseAdmin(admin.ModelAdmin):
             },
         ),
     )
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.annotate(trip_count=Count("phase_trips"))
+
+    def eligible_trip_count(self, obj):
+        return getattr(obj, "trip_count", None) or obj.phase_trips.count()
+
+    eligible_trip_count.short_description = "Eligible trips"
+    eligible_trip_count.admin_order_field = "trip_count"
+
+    def eligible_trips_preview(self, obj):
+        trips = (
+            obj.phase_trips.select_related("trip")
+            .order_by("position", "id")
+            .values_list("trip__title", flat=True)[:5]
+        )
+        preview = ", ".join(trips)
+        if obj.phase_trips.count() > 5:
+            preview = f"{preview}, …"
+        return preview or "No trips linked yet."
 
 
 @admin.register(RewardPhaseTrip)
@@ -663,6 +850,7 @@ class RewardPhaseTripAdmin(admin.ModelAdmin):
     search_fields = ("phase__name", "trip__title")
     ordering = ("phase__position", "position", "id")
     autocomplete_fields = ("phase", "trip")
+    list_select_related = ("phase", "trip", "trip__destination")
 
 
 @admin.register(BookingReward)
@@ -687,3 +875,4 @@ class BookingRewardAdmin(admin.ModelAdmin):
     )
     date_hierarchy = "applied_at"
     ordering = ("-applied_at",)
+    list_select_related = ("booking", "reward_phase", "trip")

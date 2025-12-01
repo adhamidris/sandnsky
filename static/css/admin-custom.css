@@ -1,0 +1,133 @@
+:root {
+    --admin-accent: #0f766e;
+    --admin-accent-soft: #e0f2f1;
+    --admin-ink: #0f172a;
+    --admin-muted: #475569;
+}
+
+body.django-admin .module,
+body.django-admin .dashboard .module {
+    border-radius: 10px;
+}
+
+#header {
+    background: linear-gradient(120deg, var(--admin-accent), #0ea5e9);
+    color: #fff;
+}
+
+#site-name a {
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+}
+
+.admin-subtitle {
+    display: block;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 12px;
+    margin-top: 2px;
+}
+
+.admin-dashboard {
+    margin-top: 10px;
+}
+
+.dash-hero {
+    background: var(--admin-accent-soft);
+    border: 1px solid #cbd5e1;
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+}
+
+.dash-hero .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 11px;
+    color: var(--admin-muted);
+    margin: 0 0 6px;
+}
+
+.dash-hero h2 {
+    margin: 0 0 4px;
+    color: var(--admin-ink);
+    font-size: 20px;
+    line-height: 1.2;
+}
+
+.dash-hero .lede {
+    margin: 0;
+    color: var(--admin-muted);
+}
+
+.dash-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.dash-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+.dash-card header {
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--admin-ink);
+}
+
+.dash-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.dash-card li {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 6px 0;
+    border-bottom: 1px dashed #e2e8f0;
+}
+
+.dash-card li:last-child {
+    border-bottom: none;
+}
+
+.dash-card a {
+    color: var(--admin-accent);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.dash-card a:hover {
+    text-decoration: underline;
+}
+
+.dash-card span {
+    color: var(--admin-muted);
+    font-size: 12px;
+    margin-left: 12px;
+}
+
+.dash-apps header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.dash-apps h3 {
+    margin: 0;
+    color: var(--admin-ink);
+}
+
+.dash-apps p {
+    margin: 0;
+    color: var(--admin-muted);
+}

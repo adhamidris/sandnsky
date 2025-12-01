@@ -1,0 +1,53 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block content %}
+<div class="admin-dashboard">
+    <div class="dash-hero">
+        <div>
+            <p class="eyebrow">Control center</p>
+            <h2>Operate trips and campaigns with confidence.</h2>
+            <p class="lede">Fast links for the work you do every day. Everything else lives below in the full app list.</p>
+        </div>
+    </div>
+
+    <div class="dash-grid">
+        <section class="dash-card">
+            <header>Bookings &amp; operations</header>
+            <ul>
+                <li><a href="{% url 'admin:web_booking_changelist' %}?status__exact=received">Bookings needing review</a><span>Filter: Received</span></li>
+                <li><a href="{% url 'admin:web_booking_changelist' %}?travel_window=this_month">Traveling this month</a><span>Window filter</span></li>
+                <li><a href="{% url 'admin:web_booking_changelist' %}?travel_window=next_month">Traveling next month</a><span>Window filter</span></li>
+                <li><a href="{% url 'admin:web_bookingreward_changelist' %}">Applied rewards log</a><span>Audits &amp; discounts</span></li>
+            </ul>
+        </section>
+
+        <section class="dash-card">
+            <header>Trips &amp; content</header>
+            <ul>
+                <li><a href="{% url 'admin:web_trip_changelist' %}">Trips</a><span>Inventory, pricing, itineraries</span></li>
+                <li><a href="{% url 'admin:web_destination_changelist' %}">Destinations</a><span>Hero assets &amp; gallery</span></li>
+                <li><a href="{% url 'admin:web_blogpost_changelist' %}">Blog posts</a><span>Stories &amp; guides</span></li>
+                <li><a href="{% url 'admin:web_landinggalleryimage_changelist' %}">Homepage gallery</a><span>Landing cards</span></li>
+            </ul>
+        </section>
+
+        <section class="dash-card">
+            <header>Rewards &amp; settings</header>
+            <ul>
+                <li><a href="{% url 'admin:web_rewardphase_changelist' %}">Reward phases</a><span>Thresholds, copy, eligibility</span></li>
+                <li><a href="{% url 'admin:web_siteconfiguration_changelist' %}">Site configuration</a><span>Hero pairs &amp; CTA labels</span></li>
+                <li><a href="{% url 'admin:web_bookingconfirmationemailsettings_changelist' %}">Booking emails</a><span>Confirmation templates</span></li>
+            </ul>
+        </section>
+    </div>
+
+    <section class="dash-apps">
+        <header>
+            <h3>All admin sections</h3>
+            <p>Full Django admin index, grouped by app.</p>
+        </header>
+        {% include "admin/app_list.html" with app_list=app_list show_changelinks=True %}
+    </section>
+</div>
+{% endblock %}
