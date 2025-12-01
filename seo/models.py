@@ -52,6 +52,13 @@ class SeoEntry(models.Model):
         blank=True,
         help_text="Alt text for the main hero/primary image on the page.",
     )
+    main_image = models.ImageField(
+        upload_to="seo/images/",
+        blank=True,
+        null=True,
+        help_text="Primary image override for this page.",
+        max_length=255,
+    )
     canonical_url = models.CharField(
         max_length=500,
         blank=True,

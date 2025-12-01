@@ -72,6 +72,96 @@ def _update_main_content(entry: SeoEntry, new_body: str):
         return
 
 
+def _source_image_context(entry: SeoEntry):
+    obj = entry.content_object
+    images = []
+    if entry.page_type == PageType.TRIP and isinstance(obj, Trip):
+        images.append(
+            {
+                "label": "Trip hero image",
+                "field": "source_hero_image",
+                "file": obj.hero_image,
+            }
+        )
+        images.append(
+            {
+                "label": "Trip card image",
+                "field": "source_card_image",
+                "file": obj.card_image,
+            }
+        )
+    elif entry.page_type == PageType.DESTINATION and isinstance(obj, Destination):
+        images.append(
+            {
+                "label": "Destination hero image",
+                "field": "source_hero_image",
+                "file": obj.hero_image,
+            }
+        )
+        images.append(
+            {
+                "label": "Destination card image",
+                "field": "source_card_image",
+                "file": getattr(obj, "card_image", None),
+            }
+        )
+    elif entry.page_type == PageType.BLOG_POST and isinstance(obj, BlogPost):
+        images.append(
+            {
+                "label": "Blog hero image",
+                "field": "source_hero_image",
+                "file": obj.hero_image,
+            }
+        )
+        images.append(
+            {
+                "label": "Blog card image",
+                "field": "source_card_image",
+                "file": obj.card_image,
+            }
+        )
+    return [img for img in images if img["file"] or True]
+
+
+def _update_source_images(entry: SeoEntry, files):
+    obj = entry.content_object
+    if not obj:
+        return
+    hero = files.get("source_hero_image")
+    card = files.get("source_card_image")
+
+    if entry.page_type == PageType.TRIP and isinstance(obj, Trip):
+        update_fields = []
+        if hero:
+            obj.hero_image = hero
+            update_fields.append("hero_image")
+        if card:
+            obj.card_image = card
+            update_fields.append("card_image")
+        if update_fields:
+            obj.save(update_fields=update_fields)
+    elif entry.page_type == PageType.DESTINATION and isinstance(obj, Destination):
+        update_fields = []
+        if hero:
+            obj.hero_image = hero
+            update_fields.append("hero_image")
+        if card and hasattr(obj, "card_image"):
+            obj.card_image = card
+            update_fields.append("card_image")
+        if update_fields:
+            obj.save(update_fields=update_fields)
+    elif entry.page_type == PageType.BLOG_POST and isinstance(obj, BlogPost):
+        update_fields = []
+        if hero:
+            obj.hero_image = hero
+            update_fields.append("hero_image")
+        if card:
+            obj.card_image = card
+            update_fields.append("card_image")
+        if update_fields:
+            obj.save(update_fields=update_fields)
+
+
 @method_decorator(staff_member_required, name="dispatch")
 class SeoDashboardOverviewView(TemplateView):
     template_name = "seo/dashboard_overview.html"
@@ -181,7 +271,7 @@ class SeoDashboardDetailView(TemplateView):
     def post(self, request, *args, **kwargs):
         entry = self.entry
         old_path = entry.path
-        form = SeoEntryForm(request.POST, instance=entry)
+        form = SeoEntryForm(request.POST, request.FILES, instance=entry)
         faq_formset = SeoFaqFormSet(request.POST, instance=entry)
         snippet_formset = SeoSnippetFormSet(request.POST, instance=entry)
         main_body = (request.POST.get("main_body") or "").strip()
@@ -193,6 +283,7 @@ class SeoDashboardDetailView(TemplateView):
                 snippet_formset.save()
                 if main_body:
                     _update_main_content(updated_entry, main_body)
+                _update_source_images(updated_entry, request.FILES)
                 if updated_entry.path != old_path and old_path:
                     create_redirect(from_path=old_path, to_path=updated_entry.path, entry=updated_entry)
             messages.success(request, "SEO entry saved.")
@@ -222,6 +313,7 @@ class SeoDashboardDetailView(TemplateView):
             "main_body": main_body_value,
             "flags": _status_flags(entry),
             "redirects": list(entry.redirects.all()),
+            "source_images": _source_image_context(entry),
             **build_seo_context(
                 page_type=entry.page_type,
                 obj=entry.content_object,

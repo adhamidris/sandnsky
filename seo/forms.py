@@ -14,6 +14,7 @@ class SeoEntryForm(forms.ModelForm):
             "meta_description",
             "meta_keywords",
             "alt_text",
+            "main_image",
             "canonical_url",
             "body_override",
             "is_indexable",

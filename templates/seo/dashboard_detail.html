@@ -32,7 +32,7 @@
     </div>
   </div>
 
-  <form method="post" class="seo-grid" style="gap:20px;">
+  <form method="post" enctype="multipart/form-data" class="seo-grid" style="gap:20px;">
     {% csrf_token %}
 
     <div class="seo-card seo-grid seo-grid-2">
@@ -83,11 +83,57 @@
         {{ form.body_override.errors }}<textarea name="{{ form.body_override.html_name }}" rows="4" class="seo-textarea">{{ form.body_override.value|default_if_none:'' }}</textarea>
         <p class="seo-note">Optional SEO-focused copy block (English only).</p>
       </div>
+      <div style="grid-column:1 / -1;">
+        <label class="seo-label">Primary image</label>
+        {{ form.main_image.errors }}{{ form.main_image }}
+        {% if entry.main_image %}
+          <div class="seo-image-card">
+            <div class="seo-image-thumb">
+              <img src="{{ entry.main_image.url }}" alt="" />
+            </div>
+            <div class="seo-image-meta">
+              <div class="seo-image-name">{{ entry.main_image.name }}</div>
+              <a href="{{ entry.main_image.url }}" target="_blank" rel="noopener" class="seo-btn-link">Open</a>
+            </div>
+          </div>
+        {% endif %}
+        <p class="seo-note">Upload an override image for this page (used where applicable).</p>
+      </div>
       <div>
         <label class="seo-label">Indexable</label>
         <div class="seo-inline">{{ form.is_indexable }} <span class="seo-note">Toggle noindex if needed.</span></div>
       </div>
     </div>
+
+    {% if source_images %}
+      <div class="seo-card">
+        <div class="seo-flex-between">
+          <h2>Page images</h2>
+          <span class="seo-note">Edit the live images used on this page.</span>
+        </div>
+        <div class="seo-grid" style="gap:12px;">
+          {% for img in source_images %}
+            <div class="seo-formset-item">
+              <label class="seo-label">{{ img.label }}</label>
+              <input type="file" name="{{ img.field }}" class="seo-input" />
+              {% if img.file %}
+                <div class="seo-image-card">
+                  <div class="seo-image-thumb">
+                    <img src="{{ img.file.url }}" alt="" />
+                  </div>
+                  <div class="seo-image-meta">
+                    <div class="seo-image-name">{{ img.file.name }}</div>
+                    <a href="{{ img.file.url }}" target="_blank" rel="noopener" class="seo-btn-link">Open</a>
+                  </div>
+                </div>
+              {% else %}
+                <p class="seo-note">No image set yet.</p>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
 
     <div class="seo-card">
       <div class="seo-flex-between">
@@ -195,3 +241,13 @@
   </form>
 </section>
 {% endblock %}
+              {% if img.file %}
+                <div class="seo-note" style="margin-top:6px;">
+                  Current: <a href="{{ img.file.url }}" target="_blank" rel="noopener">{{ img.file.name }}</a>
+                  <div style="margin-top:6px;">
+                    <img src="{{ img.file.url }}" alt="" style="max-width:240px;border:1px solid #e5e7eb;border-radius:4px;padding:4px;background:#fff;" />
+                  </div>
+                </div>
+              {% else %}
+                <p class="seo-note">No image set yet.</p>
+              {% endif %}
