@@ -966,6 +966,17 @@ class RewardPhase(models.Model):
     def is_active(self) -> bool:
         return self.status == self.Status.ACTIVE
 
+    def eligible_trips_preview(self) -> str:
+        trips = (
+            self.phase_trips.select_related("trip")
+            .order_by("position", "id")
+            .values_list("trip__title", flat=True)[:5]
+        )
+        preview = ", ".join(trips)
+        if self.phase_trips.count() > 5:
+            preview = f"{preview}, …"
+        return preview or "No trips linked yet."
+
 
 class RewardPhaseTrip(models.Model):
     """
@@ -1001,7 +1012,7 @@ class RewardPhaseTrip(models.Model):
 
 class Booking(models.Model):
     class Status(models.TextChoices):
-        RECEIVED = "received", "Received"
+        RECEIVED = "received", "New booking"
         CONFIRMED = "confirmed", "Confirmed"
         CANCELLED = "cancelled", "Cancelled"
 

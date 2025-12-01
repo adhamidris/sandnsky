@@ -6,13 +6,31 @@
 {% block extrahead %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'css/admin-custom.css' %}">
+    <script>
+        (function() {
+            var root = document.documentElement;
+            root.dataset.theme = "light";
+            try {
+                localStorage.setItem("django_color_scheme", "light");
+                localStorage.setItem("django-color-scheme", "light");
+            } catch (err) {}
+        })();
+    </script>
 {% endblock %}
 
 {% block branding %}
     <h1 id="site-name">
         <a href="{% url 'admin:index' %}">Sand &amp; Sky Control</a>
     </h1>
-    <span class="admin-subtitle">Trips, bookings, rewards, and content in one place.</span>
 {% endblock %}
 
-{% block nav-global %}{% endblock %}
+{% block nav-global %}
+    {% if dashboard_most_used %}
+        <nav class="admin-quick-nav" aria-label="Primary admin links">
+            {% for item in dashboard_most_used %}
+                <a href="{{ item.url }}">{{ item.label }}</a>
+            {% endfor %}
+            <a href="{% url 'admin:index' %}#full-app-list">Full list</a>
+        </nav>
+    {% endif %}
+{% endblock %}

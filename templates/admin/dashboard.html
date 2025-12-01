@@ -3,44 +3,102 @@
 
 {% block content %}
 <div class="admin-dashboard">
-    <div class="dash-hero">
-        <div>
-            <p class="eyebrow">Control center</p>
-            <h2>Operate trips and campaigns with confidence.</h2>
-            <p class="lede">Fast links for the work you do every day. Everything else lives below in the full app list.</p>
+    {% if dashboard_metrics %}
+    <section class="dash-metrics" aria-label="Key booking and reward metrics">
+        {% for metric in dashboard_metrics %}
+            <a class="metric-card" href="{{ metric.url }}">
+                <span class="metric-label">{{ metric.label }}</span>
+                <span class="metric-value">{{ metric.value }}</span>
+                <span class="metric-desc">{{ metric.description }}</span>
+            </a>
+        {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if dashboard_quick_links %}
+    <section class="dash-section">
+        <header class="dash-section-header">
+            <div>
+                <h3>Quick links</h3>
+                <p>Jump straight to the work you do most.</p>
+            </div>
+        </header>
+        <div class="quick-grid">
+            {% for link in dashboard_quick_links %}
+                <a class="quick-card" href="{{ link.url }}">
+                    <span class="quick-card-label">{{ link.label }}</span>
+                    <span class="quick-card-desc">{{ link.description }}</span>
+                </a>
+            {% endfor %}
         </div>
-    </div>
+    </section>
+    {% endif %}
 
-    <div class="dash-grid">
-        <section class="dash-card">
-            <header>Bookings &amp; operations</header>
-            <ul>
-                <li><a href="{% url 'admin:web_booking_changelist' %}?status__exact=received">Bookings needing review</a><span>Filter: Received</span></li>
-                <li><a href="{% url 'admin:web_booking_changelist' %}?travel_window=this_month">Traveling this month</a><span>Window filter</span></li>
-                <li><a href="{% url 'admin:web_booking_changelist' %}?travel_window=next_month">Traveling next month</a><span>Window filter</span></li>
-                <li><a href="{% url 'admin:web_bookingreward_changelist' %}">Applied rewards log</a><span>Audits &amp; discounts</span></li>
-            </ul>
-        </section>
+    {% if dashboard_most_used %}
+    <section class="dash-section">
+        <header class="dash-section-header">
+            <div>
+                <h3>Most-used areas</h3>
+                <p>One click to the primary modules.</p>
+            </div>
+        </header>
+        <div class="most-grid">
+            {% for item in dashboard_most_used %}
+                <a class="most-card" href="{{ item.url }}">
+                    <span class="most-card-label">{{ item.label }}</span>
+                    <span class="most-card-desc">{{ item.description }}</span>
+                </a>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
 
-        <section class="dash-card">
-            <header>Trips &amp; content</header>
-            <ul>
-                <li><a href="{% url 'admin:web_trip_changelist' %}">Trips</a><span>Inventory, pricing, itineraries</span></li>
-                <li><a href="{% url 'admin:web_destination_changelist' %}">Destinations</a><span>Hero assets &amp; gallery</span></li>
-                <li><a href="{% url 'admin:web_blogpost_changelist' %}">Blog posts</a><span>Stories &amp; guides</span></li>
-                <li><a href="{% url 'admin:web_landinggalleryimage_changelist' %}">Homepage gallery</a><span>Landing cards</span></li>
-            </ul>
-        </section>
-
-        <section class="dash-card">
-            <header>Rewards &amp; settings</header>
-            <ul>
-                <li><a href="{% url 'admin:web_rewardphase_changelist' %}">Reward phases</a><span>Thresholds, copy, eligibility</span></li>
-                <li><a href="{% url 'admin:web_siteconfiguration_changelist' %}">Site configuration</a><span>Hero pairs &amp; CTA labels</span></li>
-                <li><a href="{% url 'admin:web_bookingconfirmationemailsettings_changelist' %}">Booking emails</a><span>Confirmation templates</span></li>
-            </ul>
-        </section>
-    </div>
-
+    <section class="dash-section">
+        <details class="dash-full-list" id="full-app-list">
+            <summary>Full app list</summary>
+            {% if app_list %}
+                <div class="app-list">
+                    {% for app in app_list %}
+                        <article class="app-module">
+                            <header>
+                                {% if app.app_url %}
+                                    <h4><a href="{{ app.app_url }}">{{ app.name }}</a></h4>
+                                {% else %}
+                                    <h4>{{ app.name }}</h4>
+                                {% endif %}
+                            </header>
+                            {% if app.models %}
+                                <ul>
+                                    {% for model in app.models %}
+                                        <li>
+                                            <div class="model-row">
+                                                <div>
+                                                    {% if model.admin_url %}
+                                                        <a href="{{ model.admin_url }}">{{ model.name }}</a>
+                                                    {% else %}
+                                                        {{ model.name }}
+                                                    {% endif %}
+                                                </div>
+                                                <div class="model-actions">
+                                                    {% if model.add_url %}
+                                                        <a class="model-add-link" href="{{ model.add_url }}">Add</a>
+                                                    {% endif %}
+                                                    {% if model.view_only %}
+                                                        <span class="model-view-only">View only</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="empty-apps">You don’t have access to any other applications.</p>
+            {% endif %}
+        </details>
+    </section>
 </div>
 {% endblock %}
