@@ -7,8 +7,9 @@
   /* Dashboard Container */
   #content-main {
     padding: 24px;
-    max-width: 1400px;
-    margin: 0 auto;
+    max-width: none;
+    width: 100%;
+    margin: 0;
   }
 
   .dashboard-grid {
@@ -20,7 +21,7 @@
 
   @media (min-width: 960px) {
     .dashboard-grid {
-      grid-template-columns: 2fr 1fr;
+      grid-template-columns: 320px 1fr;
       align-items: start;
     }
   }
@@ -296,37 +297,7 @@
 {% now "Y-m-d" as today %}
 <div id="content-main">
   <div class="dashboard-grid">
-    <!-- Booking Metrics Panel -->
-    <div class="panel" id="booking-metrics">
-      <h3>{% trans "Bookings at a glance" %}</h3>
-      <div class="metrics-grid">
-        <a class="metric-card metric-new" href="{% url 'admin:web_booking_changelist' %}?status__exact=received">
-          <div class="metric-label">{% trans "New Bookings" %}</div>
-          <div class="metric-value">{{ booking_counts.new|default:0 }}</div>
-          <div class="metric-hint">
-            <span class="metric-chip">{% trans "Awaiting confirmation" %}</span>
-          </div>
-        </a>
-        
-        <a class="metric-card metric-confirmed" href="{% url 'admin:web_booking_changelist' %}?status__exact=confirmed">
-          <div class="metric-label">{% trans "Confirmed" %}</div>
-          <div class="metric-value">{{ booking_counts.confirmed|default:0 }}</div>
-          <div class="metric-hint">
-            <span class="metric-chip">{% trans "Upcoming trips" %}</span>
-          </div>
-        </a>
-        
-        <a class="metric-card metric-past" href="{% url 'admin:web_booking_changelist' %}?status__exact=confirmed&travel_date__lt={{ today }}">
-          <div class="metric-label">{% trans "Completed" %}</div>
-          <div class="metric-value">{{ booking_counts.past_confirmed|default:0 }}</div>
-          <div class="metric-hint">
-            <span class="metric-chip">{% trans "Past trips" %}</span>
-          </div>
-        </a>
-      </div>
-    </div>
-
-    <!-- Quick Actions Panel -->
+    <!-- Quick Actions Panel (left column) -->
     <div class="panel" id="quick-actions">
       <h3>{% trans "Quick actions" %}</h3>
       <div class="quick-actions">
@@ -361,7 +332,61 @@
               <span>{% trans "Update published articles" %}</span>
             </a>
           </li>
+          <li>
+            <a href="{% url 'admin:web_review_changelist' %}">
+              {% trans "Reviews" %}
+              <span>{% trans "Moderate guest feedback" %}</span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'seo:dashboard' %}">
+              {% trans "SEO" %}
+              <span>{% trans "Search visibility dashboard" %}</span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'admin:web_rewardphase_changelist' %}">
+              {% trans "Rewards" %}
+              <span>{% trans "Configure reward phases" %}</span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'admin:web_siteconfiguration_change' 1 %}">
+              {% trans "Edit website main page" %}
+              <span>{% trans "Update hero and homepage settings" %}</span>
+            </a>
+          </li>
         </ul>
+      </div>
+    </div>
+
+    <!-- Booking Metrics Panel (right column) -->
+    <div class="panel" id="booking-metrics">
+      <h3>{% trans "Bookings at a glance" %}</h3>
+      <div class="metrics-grid">
+        <a class="metric-card metric-new" href="{% url 'admin:web_booking_changelist' %}?status__exact=received">
+          <div class="metric-label">{% trans "New Bookings" %}</div>
+          <div class="metric-value">{{ booking_counts.new|default:0 }}</div>
+          <div class="metric-hint">
+            <span class="metric-chip">{% trans "Awaiting confirmation" %}</span>
+          </div>
+        </a>
+        
+        <a class="metric-card metric-confirmed" href="{% url 'admin:web_booking_changelist' %}?status__exact=confirmed">
+          <div class="metric-label">{% trans "Confirmed" %}</div>
+          <div class="metric-value">{{ booking_counts.confirmed|default:0 }}</div>
+          <div class="metric-hint">
+            <span class="metric-chip">{% trans "Upcoming trips" %}</span>
+          </div>
+        </a>
+        
+        <a class="metric-card metric-past" href="{% url 'admin:web_booking_changelist' %}?status__exact=confirmed&travel_date__lt={{ today }}">
+          <div class="metric-label">{% trans "Completed" %}</div>
+          <div class="metric-value">{{ booking_counts.past_confirmed|default:0 }}</div>
+          <div class="metric-hint">
+            <span class="metric-chip">{% trans "Past trips" %}</span>
+          </div>
+        </a>
       </div>
     </div>
   </div>

@@ -20,6 +20,7 @@ from django.contrib import admin
 from django.urls import include, path
 
 admin.site.index_template = "admin/index.html"
+admin.site.enable_nav_sidebar = False
 
 urlpatterns = [
     path("nested_admin/", include("nested_admin.urls")),
