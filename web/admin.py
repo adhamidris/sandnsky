@@ -599,12 +599,17 @@ class TripAdmin(NestedModelAdmin):
     )
     list_filter = ("destination", "duration_days", "languages", "is_service")
     search_fields = ("title", "slug", "teaser", "tour_type_label", "destination__name")
-    filter_horizontal = ("languages", "category_tags", "additional_destinations")
+    filter_horizontal = ()
     date_hierarchy = "created_at"
     ordering = ("destination", "destination_order", "title")
     list_editable = ("destination_order",)
 
     autocomplete_fields = ()  # keep explicit for clarity
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        if db_field.name in {"additional_destinations", "languages", "category_tags"}:
+            kwargs["widget"] = forms.CheckboxSelectMultiple
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
 
     def get_language_codes(self, obj):
         return ", ".join(obj.languages.values_list("code", flat=True))
