@@ -5,6 +5,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
+from django.db import models
 from django.db.models import Max
 from django.utils.html import format_html
 from django.http import HttpResponseRedirect
@@ -267,11 +268,27 @@ class TripRelationInline(NestedTabularInline):
     autocomplete_fields = ("to_trip",)
 
 
-class TripItineraryStepInline(NestedTabularInline):
+class TripItineraryStepInline(NestedStackedInline):
     model = TripItineraryStep
     extra = 0
-    fields = ("time_label", "title", "description", "position")
+    fieldsets = (
+        (
+            None,
+            {
+                "classes": ("itinerary-step",),
+                "fields": (("time_label", "position"), "title", "description"),
+            },
+        ),
+    )
     ordering = ("position",)
+    formfield_overrides = {
+        models.TextField: {"widget": forms.Textarea(attrs={"rows": 3})},
+    }
+    verbose_name = "Step"
+    verbose_name_plural = "Steps"
+
+    class Media:
+        css = {"all": ("admin/css/trip_itinerary.css",)}
 
 
 class TripItineraryDayInline(NestedStackedInline):
@@ -364,7 +381,7 @@ class BlogPostAdmin(admin.ModelAdmin):
     ordering = ("-published_at", "-created_at")
     readonly_fields = ("slug", "created_at", "updated_at")
     fieldsets = (
-        (None, {"fields": ("title", "subtitle", "category", "status")}),
+        (None, {"fields": ("title", "subtitle", "status")}),
         (
             "Content",
             {"fields": ("excerpt", "intro")},
@@ -373,18 +390,7 @@ class BlogPostAdmin(admin.ModelAdmin):
             "Media",
             {"fields": ("hero_image", "card_image")},
         ),
-        (
-            "Publishing",
-            {"fields": ("published_at", "read_time_minutes")},
-        ),
-        (
-            "SEO",
-            {"fields": ("seo_title", "seo_description")},
-        ),
-        (
-            "Meta",
-            {"fields": ("slug", "created_at", "updated_at")},
-        ),
+        ("SEO", {"fields": ("seo_title", "seo_description")}),
     )
     date_hierarchy = "published_at"
 
@@ -471,9 +477,7 @@ class SiteConfigurationAdmin(admin.ModelAdmin):
                     "hero_title",
                     "hero_subtitle",
                     "hero_primary_cta_label",
-                    "hero_primary_cta_href",
                     "hero_secondary_cta_label",
-                    "hero_secondary_cta_href",
                 ),
                 "description": "Hero pairs (see inline section) handle imagery; configure copy and links here.",
             },
@@ -746,16 +750,8 @@ class RewardPhaseAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     ("threshold_amount", "discount_percent", "currency"),
-                    "headline",
                     "description",
                 )
-            },
-        ),
-        (
-            "Timestamps",
-            {
-                "classes": ("collapse",),
-                "fields": ("created_at", "updated_at"),
             },
         ),
     )

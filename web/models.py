@@ -283,7 +283,11 @@ class BlogPost(models.Model):
     slug = models.SlugField(max_length=200, unique=True, editable=False)
 
     category = models.ForeignKey(
-        BlogCategory, on_delete=models.PROTECT, related_name="posts"
+        BlogCategory,
+        on_delete=models.SET_NULL,
+        related_name="posts",
+        blank=True,
+        null=True,
     )
 
     hero_image = models.ImageField(upload_to="blog/hero/", blank=True, max_length=255)

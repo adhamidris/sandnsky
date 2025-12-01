@@ -1,0 +1,32 @@
+.inline-group .itinerary-step {
+  border: 1px solid #dfe3e8;
+  border-radius: 6px;
+  padding: 12px 12px 10px;
+  margin-bottom: 10px;
+  background: #ffffff;
+}
+
+.inline-group .itinerary-step .form-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.inline-group .itinerary-step .form-row .field-time_label,
+.inline-group .itinerary-step .form-row .field-position {
+  flex: 1 1 180px;
+  min-width: 140px;
+}
+
+.inline-group .itinerary-step .form-row .field-title {
+  flex: 1 1 100%;
+}
+
+.inline-group .itinerary-step .form-row .field-description {
+  flex: 1 1 100%;
+}
+
+.inline-group .itinerary-step textarea {
+  width: 100%;
+}
