@@ -589,69 +589,6 @@ class TripAdmin(NestedModelAdmin):
         TripRelationInline,
     ]
 
-    readonly_fields = ("slug", "created_at", "updated_at")
-    fieldsets = (
-        (
-            "Basics",
-            {
-                "fields": (
-                    "title",
-                    "destination",
-                    "destination_order",
-                    "tour_type_label",
-                    "teaser",
-                )
-            },
-        ),
-        (
-            "Media",
-            {
-                "fields": (
-                    "card_image",
-                    "hero_image",
-                    "hero_image_mobile",
-                )
-            },
-        ),
-        (
-            "Destinations & tags",
-            {
-                "fields": (
-                    "additional_destinations",
-                    "category_tags",
-                    "languages",
-                )
-            },
-        ),
-        (
-            "Details",
-            {
-                "fields": (
-                    ("duration_days", "group_size_max"),
-                    ("base_price_per_person", "child_price_per_person"),
-                )
-            },
-        ),
-        (
-            "Rules",
-            {
-                "fields": (
-                    "is_service",
-                    "allow_children",
-                    "allow_infants",
-                    "minimum_age",
-                )
-            },
-        ),
-        (
-            "Meta",
-            {
-                "classes": ("collapse",),
-                "fields": ("slug", "created_at", "updated_at"),
-            },
-        ),
-    )
-
     list_display = (
         "title",
         "destination",
