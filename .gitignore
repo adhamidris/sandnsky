@@ -44,7 +44,10 @@ local_settings.py
 # media/
 /media/
 
+# Local backups
+r2-backup/
+full_backup.sql
+
 settings2.py
 
 staticfiles/
-
