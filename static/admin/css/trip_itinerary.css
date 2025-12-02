@@ -1,9 +1,9 @@
 .inline-group .itinerary-step {
-  border: 1px solid #dfe3e8;
+  border: 1px solid var(--border-color, #dfe3e8);
   border-radius: 6px;
   padding: 12px 12px 10px;
   margin-bottom: 10px;
-  background: #ffffff;
+  background: var(--darkened-bg, #f8f8f8);
 }
 
 .inline-group .itinerary-step .form-row {
