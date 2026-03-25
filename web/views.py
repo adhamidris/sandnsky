@@ -421,7 +421,7 @@ def contact_actions():
     return [
         {
             "label": "WhatsApp",
-            "href": "https://wa.me/201234567890",
+            "href": "https://wa.me/201153359889",
             "icon": "whatsapp",
             "aria": "Chat with us on WhatsApp",
         },
@@ -1234,14 +1234,41 @@ class TripListView(TemplateView):
             ).distinct()
             destination_hero = _destination_hero_context(selected_destination)
 
-        filter_values = self._extract_filter_values()
+        duration_buckets = self._duration_buckets(selected_destination)
+        filter_values = self._extract_filter_values(
+            duration_buckets=duration_buckets,
+            group_size_buckets=self.GROUP_SIZE_BUCKETS,
+        )
         active_collection = filter_values.get("collection", "all")
-        trips = self._apply_filters(trips, filter_values)
 
-        if selected_destination:
-            trips = self._order_for_destination(trips, selected_destination)
-        else:
-            trips = self._order_for_collection(trips, active_collection)
+        group_size_filter_values = dict(filter_values)
+        group_size_filter_values["group_sizes"] = []
+        group_size_option_queryset = self._apply_filters(
+            trips,
+            group_size_filter_values,
+            duration_buckets=duration_buckets,
+            group_size_buckets=self.GROUP_SIZE_BUCKETS,
+        )
+        group_size_buckets = self._group_size_buckets(group_size_option_queryset)
+        allowed_group_values = {bucket["value"] for bucket in group_size_buckets}
+        filter_values["group_sizes"] = [
+            value for value in filter_values.get("group_sizes", [])
+            if value in allowed_group_values
+        ]
+
+        trips = self._apply_filters(
+            trips,
+            filter_values,
+            duration_buckets=duration_buckets,
+            group_size_buckets=self.GROUP_SIZE_BUCKETS,
+        )
+
+        trips = self._order_trips(
+            trips,
+            selected_destination=selected_destination,
+            active_collection=active_collection,
+            filters=filter_values,
+        )
 
         paginator = Paginator(trips, 12)
         page_number = self.request.GET.get("page")
@@ -1280,7 +1307,11 @@ class TripListView(TemplateView):
         context["destination_hero"] = destination_hero
         context["contact_actions"] = contact_actions()
         context["destination_gallery"] = _destination_gallery_context(selected_destination)
-        context["filter_options"] = self._filter_options(selected_destination)
+        context["filter_options"] = self._filter_options(
+            selected_destination,
+            duration_buckets=duration_buckets,
+            group_size_buckets=group_size_buckets,
+        )
         context["active_filters"] = filter_values
         context["active_collection"] = active_collection
         context["collection_toggles"] = self._collection_toggle_links(active_collection)
@@ -1299,12 +1330,53 @@ class TripListView(TemplateView):
             .order_by("title")
         )
 
-    def _extract_filter_values(self):
+    def _duration_buckets(self, selected_destination):
+        durations = Trip.objects.all()
+        if selected_destination:
+            durations = durations.filter(
+                Q(destination=selected_destination)
+                | Q(additional_destinations=selected_destination)
+            ).distinct()
+
+        buckets = []
+        for bucket in self.DURATION_BUCKETS:
+            min_days = bucket["min"]
+            max_days = bucket["max"]
+            condition = Q(duration_days__gte=min_days)
+            if max_days is not None:
+                condition &= Q(duration_days__lte=max_days)
+
+            if durations.filter(condition).exists():
+                buckets.append(bucket.copy())
+
+        return buckets
+
+    def _group_size_buckets(self, queryset):
+        buckets = []
+        for bucket in self.GROUP_SIZE_BUCKETS:
+            min_size = bucket.get("min", 0)
+            max_size = bucket.get("max")
+            condition = Q(group_size_max__gte=min_size)
+            if max_size is not None:
+                condition &= Q(group_size_max__lte=max_size)
+
+            if queryset.filter(condition).exists():
+                buckets.append(bucket.copy())
+
+        return buckets
+
+    def _extract_filter_values(self, *, duration_buckets, group_size_buckets):
         params = self.request.GET
 
         def parse_decimal(value):
             if value in {None, ""}:
                 return None
+            if isinstance(value, str):
+                value = value.strip().replace(",", "")
+                if value.startswith("$"):
+                    value = value[1:]
+                if value == "":
+                    return None
             try:
                 return Decimal(value)
             except (ArithmeticError, ValueError):
@@ -1318,8 +1390,8 @@ class TripListView(TemplateView):
             except (TypeError, ValueError):
                 return None
 
-        duration_choices = {bucket["value"] for bucket in self.DURATION_BUCKETS}
-        group_choices = {bucket["value"] for bucket in self.GROUP_SIZE_BUCKETS}
+        duration_choices = {bucket["value"] for bucket in duration_buckets}
+        group_choices = {bucket["value"] for bucket in group_size_buckets}
         collection_choices = {slug for slug, _ in self.COLLECTION_OPTIONS}
 
         return {
@@ -1349,7 +1421,7 @@ class TripListView(TemplateView):
             ),
         }
 
-    def _apply_filters(self, queryset, filters):
+    def _apply_filters(self, queryset, filters, *, duration_buckets, group_size_buckets):
         needs_distinct = False
         price_min = filters.get("price_min")
         price_max = filters.get("price_max")
@@ -1361,7 +1433,7 @@ class TripListView(TemplateView):
         durations = filters.get("duration_ranges", [])
         if durations:
             duration_q = Q()
-            for bucket in self.DURATION_BUCKETS:
+            for bucket in duration_buckets:
                 if bucket["value"] in durations:
                     min_days = bucket["min"]
                     max_days = bucket["max"]
@@ -1379,7 +1451,7 @@ class TripListView(TemplateView):
         group_sizes = filters.get("group_sizes", [])
         if group_sizes:
             group_q = Q()
-            for bucket in self.GROUP_SIZE_BUCKETS:
+            for bucket in group_size_buckets:
                 if bucket["value"] in group_sizes:
                     min_size = bucket.get("min", 0)
                     max_size = bucket.get("max")
@@ -1446,6 +1518,38 @@ class TripListView(TemplateView):
             return queryset.order_by("-base_price_per_person", "title")
         return queryset.order_by("title")
 
+    def _order_for_price(self, queryset, *, selected_destination, descending=False):
+        price_order = "-base_price_per_person" if descending else "base_price_per_person"
+        if selected_destination:
+            priority_case = Case(
+                When(destination=selected_destination, then=Value(0)),
+                default=Value(1),
+                output_field=IntegerField(),
+            )
+            return queryset.order_by(
+                priority_case,
+                price_order,
+                "title",
+            )
+        return queryset.order_by(price_order, "title")
+
+    def _order_trips(self, queryset, *, selected_destination, active_collection, filters):
+        price_min = filters.get("price_min")
+        price_max = filters.get("price_max")
+        has_price_filter = price_min is not None or price_max is not None
+        if has_price_filter:
+            # Price-filtered views should read naturally by price.
+            # If only a max is provided, show highest first within that ceiling.
+            descending = price_max is not None and price_min is None
+            return self._order_for_price(
+                queryset,
+                selected_destination=selected_destination,
+                descending=descending,
+            )
+        if selected_destination:
+            return self._order_for_destination(queryset, selected_destination)
+        return self._order_for_collection(queryset, active_collection)
+
     def _collection_toggle_links(self, active_slug):
         active_slug = active_slug or "all"
         base_params = self.request.GET.copy()
@@ -1470,7 +1574,13 @@ class TripListView(TemplateView):
             )
         return toggles
 
-    def _filter_options(self, selected_destination):
+    def _filter_options(
+        self,
+        selected_destination,
+        *,
+        duration_buckets,
+        group_size_buckets,
+    ):
         trips = self._base_queryset()
         if selected_destination:
             trips = trips.filter(
@@ -1507,8 +1617,8 @@ class TripListView(TemplateView):
                 "min": price_bounds.get("min_price") or Decimal("0"),
                 "max": price_bounds.get("max_price") or Decimal("0"),
             },
-            "durations": self.DURATION_BUCKETS,
-            "group_sizes": self.GROUP_SIZE_BUCKETS,
+            "durations": duration_buckets,
+            "group_sizes": group_size_buckets,
         }
 
 

@@ -1065,10 +1065,9 @@
   .trip-picks__actions{
     display:flex;
     flex-direction:column;
-    gap:10px;
+    gap:8px;
     margin:0;
-    padding: 5px !important;
-    padding-bottom: 12px !important;
+    padding:14px 14px 14px !important;
     border-top:1px solid rgba(17,17,17,.06);
   }
   .trip-picks__actions > *{
@@ -1079,13 +1078,15 @@
     align-items:center;
     justify-content:center;
     width:100%;
+    border:1px solid transparent;
     border-radius:999px;
     font:600 11px/1 Inter,system-ui;
     letter-spacing:.12em;
     text-transform:uppercase;
+    min-height:44px;
     padding:10px 14px;
     text-decoration:none;
-    transition:background .2s ease, color .2s ease, border-color .2s ease, transform .2s ease;
+    transition:background .2s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease;
     cursor:pointer;
     gap:8px;
   }
@@ -1093,29 +1094,52 @@
     background:#1a2b4a;
     color:#fff;
     border-color:#1a2b4a;
-    box-shadow:0 12px 24px rgba(26,43,74,.18);
+    box-shadow:0 9px 18px rgba(26,43,74,.2);
   }
   .trip-picks__action-btn--primary:hover{
-    background:#243b65;
-    transform:translateY(-2px);
+    background:#223a62;
+    border-color:#223a62;
+    transform:translateY(-1px);
+    box-shadow:0 12px 22px rgba(26,43,74,.24);
+  }
+  .trip-picks__action-btn--primary:active{
+    transform:translateY(0);
+    box-shadow:0 6px 14px rgba(26,43,74,.18);
   }
   .trip-picks__action-btn--secondary{
-    background:#f5f1e8;
+    background:#fff;
     color:#1a2b4a;
-    border-color:rgba(201,169,97,.5);
+    border-color:rgba(26,43,74,.22);
+    min-height:40px;
+    font-size:10.5px;
+    letter-spacing:.14em;
   }
   .trip-picks__action-btn--secondary:hover{
-    background:#c9a961;
-    border-color:#c9a961;
+    background:rgba(26,43,74,.06);
+    border-color:rgba(26,43,74,.38);
     color:#1a2b4a;
+    transform:translateY(-1px);
+  }
+  .trip-picks__action-btn--secondary:active{
+    transform:translateY(0);
   }
   .trip-picks__action-btn--remove{
-    background:#8a3d28;
-    color:#fff;
-    border-color:#8a3d28;
+    background:rgba(201,169,97,.24);
+    color:#1a2b4a;
+    border-color:rgba(201,169,97,.62);
+    min-height:40px;
+    font-size:10.5px;
+    letter-spacing:.14em;
+    box-shadow:none;
   }
   .trip-picks__action-btn--remove:hover{
-    background:#743220;
+    background:rgba(201,169,97,.38);
+    border-color:rgba(201,169,97,.78);
+    color:#132645;
+    transform:translateY(-1px);
+  }
+  .trip-picks__action-btn--remove:active{
+    transform:translateY(0);
   }
   .trip-picks__action-btn:focus-visible{
     outline:2px solid #c9a961;
@@ -1279,15 +1303,37 @@
     position:relative;
   }
   .trip-picks__media-inner{
+    position:relative;
+    height:200px;
     border-top-left-radius:18px;
     border-top-right-radius:18px;
     overflow:hidden;
+    background:#ede4d5;
   }
   .trip-picks__image{
     width:100%;
-    height:200px;
+    height:100%;
     object-fit:cover;
     display:block;
+  }
+  .trip-picks__image-fallback{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    display:none;
+    place-items:center;
+    background:#ede4d5;
+    color:#544b40;
+    font:600 12px/1 Inter,system-ui;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+  }
+  .trip-picks__media-inner.is-image-error .trip-picks__image{
+    display:none;
+  }
+  .trip-picks__media-inner.is-image-error .trip-picks__image-fallback{
+    display:grid;
   }
   .trip-picks__image--fallback{
     display:grid;
@@ -1299,10 +1345,10 @@
     text-transform:uppercase;
   }
   .trip-picks__body{
-    padding:20px 20px 22px;
+    padding:18px 18px 20px;
     display:flex;
     flex-direction:column;
-    gap:12px;
+    gap:14px;
     flex:1;
   }
   .trip-picks__package-banner{
@@ -1379,9 +1425,16 @@
   }
   .trip-picks__title{
     font-family:var(--font-heading);
-    font-size:20px;
+    font-size:clamp(18px,1.45vw,20px);
+    line-height:1.25;
     margin:0;
     color:#1a2b4a;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    min-height:calc(1.25em * 2);
   }
   .trip-picks__description{
     margin:0;
@@ -1410,11 +1463,63 @@
   }
 }
   .trip-picks__meta{
-    display:flex;
-    flex-wrap:wrap;
-    gap:10px 16px;
+    display:grid;
+    grid-template-columns:repeat(3, minmax(0, 1fr));
+    gap:12px;
+    margin-top:auto;
     color:#6a6153;
     font-size:13px;
+  }
+  .trip-picks__meta-item{
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  .trip-picks__meta-item--price{
+    align-items:flex-end;
+    text-align:right;
+  }
+  .trip-picks__meta-value{
+    font:600 14px/1.25 Inter,system-ui;
+    color:#1a2b4a;
+    letter-spacing:.01em;
+  }
+  .trip-picks__meta-subvalue{
+    font:600 13px/1.2 Inter,system-ui;
+    color:#5f5649;
+  }
+  .trip-picks__meta-item--location .trip-picks__meta-value{
+    display:-webkit-box;
+    -webkit-box-orient:vertical;
+    -webkit-line-clamp:2;
+    overflow:hidden;
+  }
+  @media (max-width:767px){
+    .trip-picks__title{
+      -webkit-line-clamp:3;
+      min-height:calc(1.25em * 3);
+    }
+    .trip-picks__meta{
+      grid-template-columns:repeat(3, minmax(0, 1fr));
+      gap:8px;
+      align-items:flex-start;
+    }
+    .trip-picks__meta-item--price{
+      grid-column:auto;
+      align-items:flex-end;
+      text-align:right;
+      padding-top:0;
+    }
+    .trip-picks__meta-value{
+      font-size:13px;
+    }
+    .trip-picks__meta-subvalue{
+      font-size:12px;
+    }
+    .trip-picks__meta-item--location .trip-picks__meta-value{
+      -webkit-line-clamp:1;
+    }
   }
   .trip-picks__footer{
     margin-top:auto;
@@ -1487,7 +1592,22 @@
       gap:24px;
     }
     .trip-picks__card{
-      min-width:clamp(300px,28vw,360px);
+      min-width:clamp(280px,26vw,340px);
+    }
+  }
+  @media (min-width:1280px){
+    .trip-picks .wrap{
+      max-width:1480px;
+    }
+    .trip-picks__head{
+      max-width:1200px;
+      margin:0 auto;
+      width:100%;
+    }
+    .trip-picks__card{
+      flex:0 0 calc((100% - 72px) / 3.5);
+      min-width:calc((100% - 72px) / 3.5);
+      max-width:none;
     }
   }
  .trip-picks__arrow{
@@ -1659,11 +1779,21 @@
   .contact-link{display:flex; align-items:center; gap:10px; text-decoration:none; color:rgba(255,255,255,.88)}
   .contact-link:hover{opacity:.92}
   .contact-ico{
-    width:28px; height:28px;
-    border:1px solid rgba(255,255,255,.25);
-    border-radius:999px;
-    display:grid; place-items:center;
-    color:#fff; background:transparent;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:auto;
+    height:auto;
+    border:0;
+    border-radius:0;
+    color:#fff;
+    background:transparent;
+    line-height:1;
+  }
+  .contact-ico svg{
+    width:18px;
+    height:18px;
+    display:block;
   }
   
   /* ==============================
@@ -2403,70 +2533,240 @@
 }
 
 .navcart-header {
-  justify-content: center !important;
-  text-align: center !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  text-align: left !important;
+  gap: 10px !important;
+  margin-bottom: 8px !important;
 }
 
-.navcart-header p {
-  color: white !important;
+.navcart-header h4 {
+  margin: 0 !important;
+  color: #fff !important;
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+}
+
+.navcart-subtitle {
+  margin: 2px 0 0 !important;
+  color: rgba(245, 241, 232, 0.86) !important;
+  font-size: 12px !important;
+  line-height: 1.42 !important;
 }
 
 .navcart-panel {
-  background-color: #1A2B4A !important;
+  background: linear-gradient(180deg, #132a50 0%, #0f2241 100%) !important;
+  border-color: rgba(208, 176, 108, 0.42) !important;
+}
+
+.navcart-list {
+  margin-top: 10px !important;
+  gap: 9px !important;
+  max-height: min(54vh, 21rem) !important;
 }
 
 .navcart-entry {
-  background-color: #F5F1E8 !important;
-  border-color: #C9A961 !important;
+  background-color: #fcf8ef !important;
+  border-color: rgba(208, 176, 108, 0.62) !important;
+  box-shadow: none !important;
+  padding: 11px 11px 10px !important;
 }
 
-.navcart-entry::marker {
-  color: #C9A961 !important;
+.navcart-entry-shell {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.navcart-entry-content {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.navcart-entry-title {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  align-items: flex-start;
 }
 
 .navcart-entry-title h5 {
-  color: #1A2B4A !important;
-  font-weight: 800 !important;
+  color: #13294a !important;
+  font-weight: 700 !important;
+  line-height: 1.32 !important;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .navcart-total {
   display: none !important;
-  border-color: #C9A961 !important;
 }
 
 .navcart-viewtrip {
-  color: #1A2B4A !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 2px;
+  color: #183259 !important;
+  font-weight: 700;
+  font-size: 12px;
+  text-decoration: none;
 }
 
 .navcart-viewtrip:hover {
   text-decoration: underline !important;
+  text-underline-offset: 2px;
+  color: #10284f !important;
 }
 
 .navcart-date {
-  color: #C9A961 !important;
+  color: #a97e35 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-size: 10.5px !important;
 }
 
 .navcart-primary {
-  background-color: #C9A961 !important;
-  color: #F5F1E8 !important;
+  background-color: #d1ad65 !important;
+  color: #102341 !important;
+  border: 1px solid #d1ad65 !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.015em !important;
+  text-decoration: none !important;
+}
+
+.navcart-primary:hover,
+.navcart-primary:focus-visible {
+  background-color: #be994f !important;
+  border-color: #be994f !important;
+  color: #0c1f3b !important;
 }
 
 .navcart-entry-price {
-  color: #1A2B4A !important;
+  color: #162f56 !important;
+  white-space: nowrap;
+  font-weight: 700 !important;
 }
 
 .navcart-label {
-  color: #1A2B4A !important;
+  color: #22395f !important;
+  margin-top: 0 !important;
+}
+
+.navcart-option {
+  color: #607091 !important;
+  margin-top: 0 !important;
+  font-size: 11.5px !important;
+  line-height: 1.35 !important;
+}
+
+.navcart-remove-form {
+  margin: 0;
+  display: flex;
+  align-items: flex-start;
 }
 
 .navcart-remove {
   background-color: transparent !important;
   border: none !important;
-  color: red !important;
+  color: rgba(26, 43, 74, 0.48) !important;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
 }
 
-.navcart-end span {
-  color: white !important;
+.navcart-remove:hover,
+.navcart-remove:focus-visible {
+  background: rgba(178, 76, 62, 0.12) !important;
+  color: #a24538 !important;
+}
+
+.navcart-end {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: rgba(245, 241, 232, 0.9);
+  font-size: 12px;
+  margin-top: 11px;
+  padding-top: 9px;
+  border-top: 1px solid rgba(245, 241, 232, 0.3);
+}
+
+.navcart-end > span:first-child {
+  color: rgba(245, 241, 232, 0.84) !important;
+}
+
+.navcart-end-total {
+  font-weight: 700;
+  color: #fff !important;
+}
+
+.navcart-secondary a {
+  border-color: rgba(245, 241, 232, 0.34) !important;
+  background: rgba(245, 241, 232, 0.08);
+  color: rgba(245, 241, 232, 0.95) !important;
+}
+
+.navcart-secondary a:hover,
+.navcart-secondary a:focus-visible {
+  border-color: rgba(208, 176, 108, 0.64) !important;
+  background: rgba(208, 176, 108, 0.2);
+  color: #fff !important;
+}
+
+.navcart-empty {
+  color: rgba(245, 241, 232, 0.9);
+  gap: 11px;
+}
+
+.navcart-empty__icon {
+  width: 50px;
+  height: 50px;
+  border-color: rgba(208, 176, 108, 0.62) !important;
+  background: rgba(208, 176, 108, 0.22) !important;
+  color: #f0dfbc !important;
+}
+
+.navcart-empty__title {
+  color: #fff !important;
+  font-weight: 700;
+}
+
+.navcart-empty__message {
+  color: rgba(245, 241, 232, 0.88) !important;
+}
+
+.navcart-empty__cta {
+  background: #d1ad65 !important;
+  border-color: #d1ad65 !important;
+  color: #1a2b4a !important;
+  font-weight: 700 !important;
+}
+
+.navcart-empty__cta:hover,
+.navcart-empty__cta:focus-visible {
+  background: #be994f !important;
+  border-color: #be994f !important;
+  color: #132645 !important;
+}
+
+@media (max-width: 420px) {
+  .navcart-panel {
+    width: min(22rem, 94vw);
+  }
+
+  .navcart-entry-title h5 {
+    -webkit-line-clamp: 2;
+  }
 }
 
 /* FOR THE TRIPS PAGE */ 
@@ -2579,7 +2879,9 @@
   justify-content:center;
 }
 
-.destination-hero-texts span, h1, p {
+.destination-hero-texts span,
+.destination-hero-texts h1,
+.destination-hero-texts p {
   color: white !important;
 }
 
@@ -2785,14 +3087,42 @@
 .floating-book-mob {
   background-color: #1A2B4A !important;
   z-index: 9999 !important;
+  transition: opacity .22s ease, transform .22s ease;
+}
+
+.floating-book-mob.is-hidden-by-sheet {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateY(10px);
 }
 
 .floating-book-mob-text p {
   color: white !important;
 }
 
+.floating-book-mob-text .floating-book-mob-price,
+.floating-book-mob-text [data-booking-base-price],
+.floating-book-mob-text .text-foreground {
+  color: #fff !important;
+}
+
+.floating-book-mob-text .floating-book-mob-prefix {
+  color: rgba(255, 255, 255, 0.82) !important;
+  font-weight: 600;
+  margin-inline-end: 0.25rem;
+}
+
+.floating-book-mob-text .text-muted-foreground {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
 .floating-mob-btn {
   background-color: #B8945A !important;
+  min-width: 5.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 1.15rem !important;
 }
 
 #testimonials {
@@ -2855,22 +3185,6 @@
   }
 }
 
-.trip-picks__meta {
-  justify-content: space-between !important;
-}
-
-.trip-picks__body {
-  padding: 15px !important;
-}
-
-.trip-picks__title {
-  display: -webkit-box;
-  -webkit-line-clamp: 3; /* number of lines before truncating */
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .chip {
   background: rgba(0, 0, 0, 0.2);
   color: #fff !important;
@@ -2922,6 +3236,1036 @@
   color: white !important;
 }
 
+/* Checkout: brand alignment pass */
+.checkoutpage {
+  --checkout-navy: #1a2b4a;
+  --checkout-gold: #c9a961;
+  --checkout-text: #4f463a;
+  --checkout-muted: rgba(26, 43, 74, 0.62);
+  --checkout-pill-bg: rgba(26, 43, 74, 0.07);
+  --checkout-pill-border: rgba(26, 43, 74, 0.24);
+  background-color: #f5f1e8 !important;
+}
+
+.checkoutpage .checkout-header {
+  color: var(--checkout-navy) !important;
+  font-family: var(--font-heading, "Cormorant Garamond", serif) !important;
+  letter-spacing: -0.01em;
+  line-height: 1.12;
+}
+
+.checkoutpage .checkout-section-eyebrow {
+  color: var(--checkout-muted) !important;
+  letter-spacing: 0.14em !important;
+}
+
+.checkoutpage .checkout-section-description,
+.checkoutpage .quick-add-empty,
+.checkoutpage .checkout-trip-pricing,
+.checkoutpage .trip-reward-status,
+.checkoutpage .checkout-summary-list,
+.checkoutpage .checkout-trip-meta {
+  color: var(--checkout-text) !important;
+  line-height: 1.5;
+}
+
+.checkoutpage .guest-details,
+.checkoutpage .rewards-web,
+.checkoutpage .checkout-summary-card,
+.checkoutpage .quick-add-section,
+.checkoutpage .checkout-trip-card,
+.checkoutpage [data-mobile-reward-details] {
+  background: #fff !important;
+  border: 1px solid rgba(26, 43, 74, 0.14) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 10px rgba(18, 31, 56, 0.05) !important;
+}
+
+.checkoutpage .guest-detail-h2,
+.checkoutpage .checkout-summary-title,
+.checkoutpage .quick-add-services-title,
+.checkoutpage .quick-add-recommendations-title,
+.checkoutpage .checkout-trip-title,
+.checkoutpage .aside-rewards-titles {
+  color: var(--checkout-navy) !important;
+  line-height: 1.2;
+}
+
+.checkoutpage .aside-rewards-titles-2,
+.checkoutpage .field-label,
+.checkoutpage .quick-add-card-price-note {
+  color: var(--checkout-muted) !important;
+}
+
+.checkoutpage .rewards-count-badge,
+.checkoutpage [data-mobile-reward-count] {
+  background: rgba(201, 169, 97, 0.22) !important;
+  color: #1a2b4a !important;
+  border: 1px solid rgba(201, 169, 97, 0.5) !important;
+  box-shadow: none !important;
+}
+
+.checkoutpage #cart-checkout-form input:not([type="hidden"]),
+.checkoutpage #cart-checkout-form textarea,
+.checkoutpage #cart-checkout-form select {
+  height: 44px;
+  background: #fff !important;
+  border: 1px solid rgba(26, 43, 74, 0.18) !important;
+  border-radius: 10px !important;
+  color: #1a2b4a !important;
+  box-shadow: none !important;
+}
+
+.checkoutpage #cart-checkout-form textarea {
+  min-height: 44px;
+  height: auto;
+}
+
+.checkoutpage #cart-checkout-form input:not([type="hidden"]):focus,
+.checkoutpage #cart-checkout-form textarea:focus,
+.checkoutpage #cart-checkout-form select:focus {
+  border-color: #1a2b4a !important;
+  box-shadow: 0 0 0 3px rgba(26, 43, 74, 0.12) !important;
+  outline: none !important;
+}
+
+.checkoutpage .checkout-summary-row {
+  border-bottom: 1px solid rgba(26, 43, 74, 0.12) !important;
+  align-items: baseline;
+}
+
+.checkoutpage .checkout-summary-row dt {
+  color: var(--checkout-muted) !important;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.checkoutpage .checkout-summary-savings dd {
+  color: #c9a961 !important;
+}
+
+.checkoutpage .checkout-summary-row dd,
+.checkoutpage .trip-price-chip,
+.checkoutpage [data-summary-pre-discount],
+.checkoutpage [data-summary-discount],
+.checkoutpage [data-summary-total],
+.checkoutpage [data-entry-total],
+.checkoutpage [data-reward-total] {
+  font-variant-numeric: tabular-nums;
+}
+
+.checkoutpage .checkout-summary-link,
+.checkoutpage .trip-details-link,
+.checkoutpage .quick-add-link,
+.checkoutpage .trip-action-edit {
+  color: #1a2b4a !important;
+}
+
+.checkoutpage .checkout-summary-link:hover,
+.checkoutpage .checkout-summary-link:focus-visible,
+.checkoutpage .trip-details-link:hover,
+.checkoutpage .trip-details-link:focus-visible,
+.checkoutpage .quick-add-link:hover,
+.checkoutpage .quick-add-link:focus-visible,
+.checkoutpage .trip-action-edit:hover,
+.checkoutpage .trip-action-edit:focus-visible {
+  color: #c9a961 !important;
+}
+
+.checkoutpage .trip-action-view {
+  border: 1px solid rgba(26, 43, 74, 0.28) !important;
+  background: rgba(26, 43, 74, 0.03) !important;
+  color: #1a2b4a !important;
+  text-decoration: none !important;
+  box-shadow: none !important;
+}
+
+.checkoutpage .trip-details-link.trip-action-view:hover,
+.checkoutpage .trip-details-link.trip-action-view:focus-visible {
+  color: #1a2b4a !important;
+  background: rgba(26, 43, 74, 0.08) !important;
+  border-color: rgba(26, 43, 74, 0.4) !important;
+}
+
+.checkoutpage .checkout-trip-actions .trip-action-edit,
+.checkoutpage .checkout-trip-actions .remove-btn {
+  display: inline-block !important;
+  vertical-align: middle !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: #1a2b4a !important;
+  padding: 0 !important;
+  min-height: 0 !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  font-family: inherit !important;
+  font-style: normal !important;
+  letter-spacing: 0.01em !important;
+  text-decoration: none !important;
+  line-height: 1.2 !important;
+}
+
+.checkoutpage .checkout-trip-actions .remove-btn {
+  color: #8f3f32 !important;
+}
+
+.checkoutpage .checkout-trip-actions .trip-action-edit:hover,
+.checkoutpage .checkout-trip-actions .trip-action-edit:focus-visible {
+  color: #c9a961 !important;
+  text-decoration: underline !important;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.checkoutpage .checkout-trip-actions .remove-btn:hover,
+.checkoutpage .checkout-trip-actions .remove-btn:focus-visible {
+  color: #7d352a !important;
+  text-decoration: underline !important;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.checkoutpage .checkout-trip-actions .trip-action-edit svg,
+.checkoutpage .checkout-trip-actions .remove-btn svg {
+  display: none !important;
+}
+
+.checkoutpage .checkout-trip-actions form.inline-flex {
+  display: inline-flex !important;
+  align-items: center !important;
+  margin: 0 !important;
+}
+
+.checkoutpage .trip-price-chip,
+.checkoutpage .quick-add-card-duration {
+  background: rgba(201, 169, 97, 0.18) !important;
+  border: 1px solid rgba(201, 169, 97, 0.45) !important;
+  color: var(--checkout-navy) !important;
+  box-shadow: none !important;
+}
+
+.checkoutpage [data-reward-progress-track] {
+  background: #e8dece !important;
+  height: 0.45rem !important;
+  border-radius: 999px !important;
+}
+
+.checkoutpage [data-reward-progress-fill] {
+  background: #c9a961 !important;
+  border-radius: 999px !important;
+}
+
+.checkoutpage .rewards-web details summary,
+.checkoutpage [data-mobile-reward-details] details summary {
+  color: #1a2b4a !important;
+}
+
+.checkoutpage .rewards-web details summary:hover,
+.checkoutpage .rewards-web details summary:focus-visible,
+.checkoutpage [data-mobile-reward-details] details summary:hover,
+.checkoutpage [data-mobile-reward-details] details summary:focus-visible {
+  color: #c9a961 !important;
+}
+
+.checkoutpage [data-reward-progress-marker] span {
+  width: 0.68rem !important;
+  height: 0.68rem !important;
+  border-color: rgba(26, 43, 74, 0.25) !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.checkoutpage [data-reward-progress-marker][data-phase-status="active"] span {
+  background: #fff !important;
+  border-color: #1a2b4a !important;
+  box-shadow: 0 0 0 2px rgba(26, 43, 74, 0.14) !important;
+}
+
+.checkoutpage [data-reward-progress-marker][data-phase-status="unlocked"] span,
+.checkoutpage [data-reward-progress-marker][data-phase-status="redeemed"] span {
+  background: #c9a961 !important;
+  border-color: #c9a961 !important;
+}
+
+.checkoutpage .rewards-phase-pill {
+  border: 1px solid rgba(26, 43, 74, 0.18) !important;
+  color: rgba(26, 43, 74, 0.75) !important;
+  background: #fff !important;
+}
+
+.checkoutpage .rewards-phase-pill::before {
+  content: none !important;
+  display: none !important;
+}
+
+.checkoutpage .rewards-phase-pill[data-phase-status="active"] {
+  background: #1a2b4a !important;
+  border-color: #1a2b4a !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+.checkoutpage .rewards-phase-pill[data-phase-status="unlocked"],
+.checkoutpage .rewards-phase-pill[data-phase-status="redeemed"] {
+  background: rgba(201, 169, 97, 0.2) !important;
+  border-color: rgba(201, 169, 97, 0.5) !important;
+  color: #1a2b4a !important;
+  box-shadow: none !important;
+}
+
+.checkoutpage [data-reward-phase],
+.checkoutpage [data-reward-trip-card] {
+  background: #fff !important;
+  border: 1px solid rgba(26, 43, 74, 0.14) !important;
+  box-shadow: none !important;
+}
+
+.checkoutpage [data-reward-phase][data-open="true"] {
+  border-color: rgba(26, 43, 74, 0.24) !important;
+  background: #fff !important;
+}
+
+.checkoutpage [data-reward-phase][data-open="true"] [data-reward-phase-toggle] {
+  background: transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0.75rem 1rem !important;
+}
+
+.checkoutpage [data-reward-phase-body] {
+  background: #fff !important;
+  border: 0 !important;
+  border-top: 1px solid rgba(26, 43, 74, 0.12) !important;
+  border-radius: 0 0 16px 16px !important;
+  box-shadow: none !important;
+  margin-top: 0 !important;
+  padding: 0.85rem 1rem 1rem !important;
+}
+
+.checkoutpage [data-reward-trip-action][data-trip-state="available"] {
+  background: #1a2b4a !important;
+  border: 1px solid #1a2b4a !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+.checkoutpage [data-reward-trip-action][data-trip-state="replace"] {
+  background: rgba(26, 43, 74, 0.08) !important;
+  border: 1px solid rgba(26, 43, 74, 0.24) !important;
+  color: #1a2b4a !important;
+  box-shadow: none !important;
+}
+
+.checkoutpage [data-reward-trip-action][data-trip-state="redeemed"] {
+  background: #c9a961 !important;
+  border: 1px solid rgba(201, 169, 97, 0.65) !important;
+  color: #1a2b4a !important;
+  box-shadow: none !important;
+}
+
+.checkoutpage .quick-add-button,
+.checkoutpage .checkout-confirm-btn {
+  background: var(--checkout-navy) !important;
+  background-image: none !important;
+  border: 1px solid var(--checkout-navy) !important;
+  border-radius: 999px !important;
+  min-height: 44px;
+  color: #fff !important;
+  box-shadow: 0 10px 20px rgba(18, 31, 56, 0.18) !important;
+}
+
+.checkoutpage .quick-add-button:hover,
+.checkoutpage .quick-add-button:focus-visible,
+.checkoutpage .checkout-confirm-btn:hover,
+.checkoutpage .checkout-confirm-btn:focus-visible {
+  background: #243b65 !important;
+  border-color: #243b65 !important;
+  color: #fff !important;
+}
+
+.checkoutpage .quick-add-popover {
+  border: 1px solid rgba(26, 43, 74, 0.16) !important;
+  background: #fff !important;
+  box-shadow: 0 16px 32px rgba(18, 31, 56, 0.12) !important;
+}
+
+/* Checkout typography and chip system normalization */
+.checkoutpage .checkout-mobile-rewards__toggle {
+  background: #fff !important;
+  color: var(--checkout-navy) !important;
+  border-color: rgba(26, 43, 74, 0.24) !important;
+  min-height: 42px;
+  box-shadow: none !important;
+}
+
+.checkoutpage .checkout-mobile-rewards__toggle:hover,
+.checkoutpage .checkout-mobile-rewards__toggle:focus-visible {
+  background: rgba(201, 169, 97, 0.18) !important;
+  border-color: rgba(201, 169, 97, 0.45) !important;
+  color: var(--checkout-navy) !important;
+}
+
+.checkoutpage .checkout-mobile-rewards__toggle.is-expanded [data-mobile-reward-toggle-icon] {
+  transform: rotate(180deg);
+}
+
+.checkoutpage [data-empty-cart-state] {
+  background: #fff !important;
+  border: 1px solid rgba(26, 43, 74, 0.14) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 14px 28px rgba(18, 31, 56, 0.08) !important;
+}
+
+.checkoutpage [data-empty-cart-state] > p:first-child {
+  color: var(--checkout-navy) !important;
+}
+
+.checkoutpage [data-empty-cart-state] > p:nth-child(2) {
+  color: var(--checkout-text) !important;
+  line-height: 1.5;
+}
+
+.checkoutpage [data-empty-cart-state] a {
+  background: var(--checkout-navy) !important;
+  border: 1px solid var(--checkout-navy) !important;
+  color: #fff !important;
+  min-height: 42px;
+}
+
+.checkoutpage [data-empty-cart-state] a:hover,
+.checkoutpage [data-empty-cart-state] a:focus-visible {
+  background: #243b65 !important;
+  border-color: #243b65 !important;
+}
+
+@media (min-width: 768px) {
+  .checkoutpage .order-1 > .space-y-6 {
+    display: grid;
+    gap: 0.72rem !important;
+  }
+
+  .checkoutpage .guest-details,
+  .checkoutpage .checkout-summary-card,
+  .checkoutpage .quick-add-section,
+  .checkoutpage .rewards-web {
+    padding: 1.1rem !important;
+    border-radius: 16px !important;
+  }
+
+  .checkoutpage .guest-detail-h2 + form {
+    margin-top: 0.9rem !important;
+  }
+
+  .checkoutpage #cart-checkout-form {
+    gap: 0.9rem !important;
+  }
+
+  .checkoutpage #cart-checkout-form .space-y-1 {
+    row-gap: 0.4rem !important;
+  }
+
+  .checkoutpage .field-label {
+    font-size: 0.7rem !important;
+    letter-spacing: 0.08em !important;
+  }
+
+  .checkoutpage .checkout-trip-card {
+    padding: 0.9rem 0.98rem !important;
+    gap: 0.68rem !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 10px rgba(18, 31, 56, 0.05) !important;
+    transform: none !important;
+  }
+
+  .checkoutpage .checkout-trip-card:hover {
+    box-shadow: 0 4px 10px rgba(18, 31, 56, 0.05) !important;
+    transform: none !important;
+  }
+
+  .checkoutpage [data-cart-entries] > * + * {
+    margin-top: 0.55rem !important;
+  }
+
+  .checkoutpage .checkout-summary-list {
+    margin-top: 0.58rem !important;
+  }
+
+  .checkoutpage .checkout-summary-row {
+    padding: 0.36rem 0 !important;
+  }
+
+  .checkoutpage .quick-add-section {
+    gap: 0.72rem !important;
+  }
+
+  .checkoutpage .quick-add-services-block [data-quick-add-services-list],
+  .checkoutpage .quick-add-recommendations-block [data-quick-add-recommendations-list] {
+    margin-top: 0.55rem !important;
+  }
+
+  .checkoutpage .quick-add-card {
+    padding: 0.78rem !important;
+    gap: 0.62rem !important;
+  }
+
+  .checkoutpage .quick-add-card-media {
+    width: 6rem !important;
+    min-width: 6rem !important;
+    min-height: 6.4rem !important;
+  }
+
+  .checkoutpage .quick-add-card-media > img {
+    min-height: 6.4rem !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .checkoutpage .order-1 > .space-y-6 > header.lg\:block {
+    margin-bottom: 0 !important;
+  }
+
+  .checkoutpage .checkout-sticky-panel .rewards-web {
+    margin-top: 0.7rem !important;
+  }
+}
+
+.checkoutpage .quick-add-subheading,
+.checkoutpage .quick-add-services-title,
+.checkoutpage .quick-add-recommendations-title,
+.checkoutpage .trip-reward-label {
+  line-height: 1.3;
+}
+
+.checkoutpage .quick-add-card-title {
+  color: var(--checkout-navy) !important;
+  line-height: 1.35;
+}
+
+.checkoutpage .quick-add-card-price {
+  color: var(--checkout-navy) !important;
+  font-weight: 700 !important;
+}
+
+.checkoutpage .quick-add-section {
+  padding: 1.15rem !important;
+  border-radius: 16px !important;
+}
+
+.checkoutpage .quick-add-services-block {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.checkoutpage .quick-add-services-block [data-quick-add-services-list] {
+  margin-top: 0.55rem !important;
+}
+
+.checkoutpage .quick-add-service-item {
+  border-radius: 12px !important;
+  padding: 0.65rem 0.75rem !important;
+  min-height: 52px;
+}
+
+.checkoutpage .quick-add-service-title {
+  color: var(--checkout-navy) !important;
+  line-height: 1.35;
+}
+
+.checkoutpage .quick-add-recommendations-block {
+  border-top: 1px solid rgba(26, 43, 74, 0.12);
+  padding-top: 0.9rem;
+}
+
+.checkoutpage .quick-add-heading {
+  gap: 0.2rem !important;
+}
+
+.checkoutpage .quick-add-recommendations-block [data-quick-add-recommendations-list] {
+  margin-top: 0.75rem !important;
+}
+
+.checkoutpage .quick-add-card {
+  border-radius: 14px !important;
+  padding: 0.75rem !important;
+  gap: 0.7rem !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.checkoutpage .quick-add-card:hover {
+  border-color: rgba(26, 43, 74, 0.22) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.checkoutpage .quick-add-card-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.checkoutpage .quick-add-card-meta {
+  gap: 0.45rem !important;
+  row-gap: 0.35rem !important;
+}
+
+.checkoutpage .quick-add-card-price {
+  font-size: 0.93rem !important;
+}
+
+.checkoutpage .quick-add-card-price-note {
+  font-size: 0.66rem !important;
+  line-height: 1.25;
+}
+
+.checkoutpage .quick-add-card .quick-add-button,
+.checkoutpage .quick-add-service-item .quick-add-button,
+.checkoutpage .quick-add-card .quick-add-link {
+  min-height: 34px !important;
+  padding: 0.34rem 0.82rem !important;
+}
+
+.checkoutpage .quick-add-card .quick-add-link {
+  border: 1px solid rgba(26, 43, 74, 0.24) !important;
+  border-radius: 999px !important;
+  background: rgba(26, 43, 74, 0.04) !important;
+  color: var(--checkout-navy) !important;
+  text-decoration: none !important;
+}
+
+.checkoutpage .quick-add-card .quick-add-link:hover,
+.checkoutpage .quick-add-card .quick-add-link:focus-visible {
+  background: rgba(201, 169, 97, 0.18) !important;
+  border-color: rgba(201, 169, 97, 0.45) !important;
+  color: var(--checkout-navy) !important;
+  text-decoration: none !important;
+}
+
+.checkoutpage .rewards-count-badge,
+.checkoutpage [data-mobile-reward-count],
+.checkoutpage .rewards-phase-pill,
+.checkoutpage .trip-price-chip,
+.checkoutpage .quick-add-card-duration,
+.checkoutpage .trip-reward-dropdown,
+.checkoutpage [data-entry-locked-option],
+.checkoutpage [data-action="apply-reward"],
+.checkoutpage [data-action="remove-reward"],
+.checkoutpage [data-reward-trip-action],
+.checkoutpage [data-reward-phase] [data-reward-phase-toggle] span.inline-flex {
+  border-radius: 999px !important;
+  font-size: 0.72rem !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+  letter-spacing: 0.03em !important;
+  box-shadow: none !important;
+}
+
+.checkoutpage [data-reward-phase] [data-reward-phase-toggle] span.inline-flex {
+  padding: 0.32rem 0.78rem !important;
+  border: 1px solid var(--checkout-pill-border) !important;
+  background: var(--checkout-pill-bg) !important;
+  color: var(--checkout-navy) !important;
+}
+
+.checkoutpage [data-reward-phase][data-phase-unlocked="false"] [data-reward-phase-toggle] span.inline-flex {
+  border-style: dashed !important;
+  color: var(--checkout-muted) !important;
+  background: rgba(26, 43, 74, 0.05) !important;
+}
+
+.checkoutpage [data-reward-phase][data-phase-status="unlocked"] [data-reward-phase-toggle] span.inline-flex,
+.checkoutpage [data-reward-phase][data-phase-status="redeemed"] [data-reward-phase-toggle] span.inline-flex {
+  border-style: solid !important;
+  border-color: rgba(201, 169, 97, 0.52) !important;
+  background: rgba(201, 169, 97, 0.22) !important;
+  color: var(--checkout-navy) !important;
+}
+
+.checkoutpage [data-reward-phase][data-phase-status="redeemed"] [data-reward-phase-toggle] span.inline-flex {
+  background: rgba(201, 169, 97, 0.3) !important;
+}
+
+.checkoutpage .trip-reward-dropdown,
+.checkoutpage [data-action="apply-reward"] {
+  background: rgba(26, 43, 74, 0.07) !important;
+  border: 1px solid rgba(26, 43, 74, 0.25) !important;
+  color: var(--checkout-navy) !important;
+  padding: 0.36rem 0.9rem !important;
+}
+
+.checkoutpage .trip-reward-dropdown:hover,
+.checkoutpage .trip-reward-dropdown:focus-visible,
+.checkoutpage [data-action="apply-reward"]:hover,
+.checkoutpage [data-action="apply-reward"]:focus-visible {
+  background: rgba(201, 169, 97, 0.2) !important;
+  border-color: rgba(201, 169, 97, 0.5) !important;
+  color: var(--checkout-navy) !important;
+}
+
+.checkoutpage [data-action="remove-reward"] {
+  background: rgba(178, 76, 62, 0.08) !important;
+  border: 1px solid rgba(178, 76, 62, 0.35) !important;
+  color: #8a3d28 !important;
+  padding: 0.36rem 0.9rem !important;
+}
+
+.checkoutpage [data-action="remove-reward"]:hover,
+.checkoutpage [data-action="remove-reward"]:focus-visible {
+  background: rgba(178, 76, 62, 0.14) !important;
+}
+
+.checkoutpage [data-entry-locked-option] {
+  border: 1px dashed rgba(26, 43, 74, 0.28) !important;
+  background: rgba(26, 43, 74, 0.04) !important;
+  color: var(--checkout-muted) !important;
+  padding: 0.34rem 0.85rem !important;
+}
+
+.checkoutpage [data-reward-phase-body] a.inline-flex[href],
+.checkoutpage [data-reward-phase-body] button[data-action="view-trip"] {
+  background: rgba(26, 43, 74, 0.07) !important;
+  border: 1px solid rgba(26, 43, 74, 0.24) !important;
+  color: var(--checkout-navy) !important;
+  border-radius: 999px !important;
+  padding: 0.36rem 0.9rem !important;
+  font-size: 0.72rem !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+  letter-spacing: 0.03em !important;
+  box-shadow: none !important;
+}
+
+.checkoutpage [data-reward-phase-body] a.inline-flex[href]:hover,
+.checkoutpage [data-reward-phase-body] a.inline-flex[href]:focus-visible,
+.checkoutpage [data-reward-phase-body] button[data-action="view-trip"]:hover,
+.checkoutpage [data-reward-phase-body] button[data-action="view-trip"]:focus-visible {
+  background: rgba(201, 169, 97, 0.2) !important;
+  border-color: rgba(201, 169, 97, 0.5) !important;
+  color: var(--checkout-navy) !important;
+}
+
+.checkoutpage [data-reward-trip-action][data-trip-state="available"],
+.checkoutpage [data-reward-trip-action][data-trip-state="replace"],
+.checkoutpage [data-reward-trip-action][data-trip-state="redeemed"],
+.checkoutpage [data-reward-trip-action][data-trip-state="locked"] {
+  padding: 0.4rem 0.95rem !important;
+}
+
+.checkoutpage [data-phase-applied-target] {
+  background: rgba(201, 169, 97, 0.16) !important;
+  border: 1px solid rgba(201, 169, 97, 0.45) !important;
+  color: var(--checkout-navy) !important;
+  border-radius: 12px !important;
+}
+
+@media (max-width: 767px) {
+  .checkoutpage .checkout-trip-card {
+    padding: 0.9rem !important;
+    gap: 0.72rem !important;
+  }
+
+  .checkoutpage .checkout-trip-main {
+    gap: 0.58rem !important;
+  }
+
+  .checkoutpage .checkout-trip-title {
+    font-size: 1.1rem !important;
+    line-height: 1.3 !important;
+  }
+
+  .checkoutpage .checkout-trip-meta {
+    font-size: 0.86rem !important;
+    line-height: 1.42 !important;
+  }
+
+  .checkoutpage .checkout-trip-pricing {
+    font-size: 0.76rem !important;
+    line-height: 1.36 !important;
+  }
+
+  .checkoutpage .checkout-trip-actions {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 0.58rem !important;
+    margin-top: 0.34rem !important;
+  }
+
+  .checkoutpage .checkout-trip-actions .trip-action-edit,
+  .checkoutpage .checkout-trip-actions .remove-btn {
+    font-size: 0.68rem !important;
+    letter-spacing: 0.02em !important;
+  }
+
+  .checkoutpage .trip-action-view {
+    width: auto !important;
+    justify-content: center !important;
+    min-height: 32px !important;
+    padding: 0.3rem 0.86rem !important;
+    font-size: 0.69rem !important;
+    letter-spacing: 0.025em !important;
+  }
+
+  .checkoutpage .checkout-trip-summary {
+    margin-top: 0.1rem !important;
+    padding-top: 0.52rem !important;
+    border-top: 1px solid rgba(26, 43, 74, 0.12) !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end !important;
+    gap: 0.62rem !important;
+  }
+
+  .checkoutpage .checkout-trip-total-group {
+    align-items: flex-start !important;
+    gap: 0.15rem !important;
+  }
+
+  .checkoutpage .trip-price-chip {
+    padding: 0.24rem 0.72rem !important;
+    font-size: 0.78rem !important;
+  }
+
+  .checkoutpage .trip-price-original,
+  .checkoutpage [data-entry-discount-pill] {
+    font-size: 0.66rem !important;
+  }
+
+  .checkoutpage .trip-details-link.trip-action-view {
+    background: var(--checkout-navy) !important;
+    border-color: var(--checkout-navy) !important;
+    color: #fff !important;
+    white-space: nowrap;
+    text-transform: none !important;
+  }
+
+  .checkoutpage .trip-details-link.trip-action-view:hover,
+  .checkoutpage .trip-details-link.trip-action-view:focus-visible {
+    background: #243b65 !important;
+    border-color: #243b65 !important;
+    color: #fff !important;
+  }
+
+  .checkoutpage .guest-details {
+    padding: 1rem !important;
+    border-radius: 16px !important;
+  }
+
+  .checkoutpage .guest-detail-h2 + form {
+    margin-top: 0.85rem !important;
+  }
+
+  .checkoutpage #cart-checkout-form {
+    gap: 0.75rem !important;
+  }
+
+  .checkoutpage #cart-checkout-form .space-y-1 {
+    row-gap: 0.35rem !important;
+  }
+
+  .checkoutpage .field-label {
+    font-size: 0.68rem !important;
+    letter-spacing: 0.09em !important;
+  }
+
+  .checkoutpage #cart-checkout-form input:not([type="hidden"]),
+  .checkoutpage #cart-checkout-form select {
+    height: 42px !important;
+  }
+
+  .checkoutpage #cart-checkout-form textarea {
+    min-height: 88px !important;
+  }
+
+  .checkoutpage [data-mobile-reward-summary] {
+    margin-top: 1rem !important;
+  }
+
+  .checkoutpage .quick-add-section {
+    margin-top: 1rem !important;
+    padding: 0.9rem !important;
+  }
+
+  .checkoutpage .quick-add-services-title,
+  .checkoutpage .quick-add-recommendations-title {
+    font-size: 0.98rem !important;
+  }
+
+  .checkoutpage .quick-add-subheading {
+    font-size: 0.8rem !important;
+    color: var(--checkout-muted) !important;
+  }
+
+  .checkoutpage .quick-add-service-item {
+    padding: 0.58rem 0.65rem !important;
+  }
+
+  .checkoutpage .quick-add-service-title {
+    font-size: 0.84rem !important;
+  }
+
+  .checkoutpage .quick-add-card {
+    gap: 0.55rem !important;
+    padding: 0.62rem !important;
+  }
+
+  .checkoutpage .quick-add-card-media {
+    width: 5.25rem !important;
+    min-width: 5.25rem !important;
+    min-height: 5.65rem !important;
+    border-radius: 10px !important;
+  }
+
+  .checkoutpage .quick-add-card-media > img {
+    min-height: 5.65rem !important;
+  }
+
+  .checkoutpage .quick-add-card-title {
+    font-size: 0.84rem !important;
+    line-height: 1.32 !important;
+  }
+
+  .checkoutpage .quick-add-card-price {
+    font-size: 0.86rem !important;
+  }
+
+  .checkoutpage .quick-add-card-price-note {
+    font-size: 0.62rem !important;
+  }
+
+  .checkoutpage .quick-add-card .quick-add-button,
+  .checkoutpage .quick-add-service-item .quick-add-button,
+  .checkoutpage .quick-add-card .quick-add-link {
+    min-height: 32px !important;
+    padding: 0.3rem 0.7rem !important;
+    font-size: 0.68rem !important;
+    letter-spacing: 0.02em !important;
+  }
+
+  .checkoutpage .checkout-summary-card {
+    padding: 1rem !important;
+    border-radius: 16px !important;
+  }
+
+  .checkoutpage .checkout-summary-title {
+    font-size: 1rem !important;
+  }
+
+  .checkoutpage .checkout-summary-list {
+    margin-top: 0.6rem !important;
+    gap: 0 !important;
+  }
+
+  .checkoutpage .checkout-summary-row {
+    padding: 0.36rem 0 !important;
+    gap: 0.6rem !important;
+  }
+
+  .checkoutpage .checkout-summary-link {
+    margin-top: 0.55rem !important;
+    font-size: 0.82rem !important;
+  }
+
+  .checkoutpage .checkout-confirm-btn {
+    margin-top: 0.75rem !important;
+    min-height: 42px !important;
+  }
+
+  .checkoutpage [data-empty-cart-state] {
+    padding: 1.2rem 1rem !important;
+    border-radius: 14px !important;
+  }
+
+  .checkoutpage [data-empty-cart-state] > p:first-child {
+    font-size: 1.08rem !important;
+  }
+
+  .checkoutpage [data-empty-cart-state] > p:nth-child(2) {
+    margin-top: 0.45rem !important;
+    font-size: 0.88rem !important;
+  }
+
+  .checkoutpage [data-empty-cart-state] a {
+    margin-top: 0.9rem !important;
+    min-height: 40px !important;
+    padding: 0.45rem 1.05rem !important;
+  }
+
+  .checkoutpage .checkout-summary-row dt {
+    font-size: 0.68rem;
+  }
+
+  .checkoutpage .rewards-count-badge,
+  .checkoutpage [data-mobile-reward-count],
+  .checkoutpage .rewards-phase-pill,
+  .checkoutpage .trip-price-chip,
+  .checkoutpage .quick-add-card-duration,
+  .checkoutpage .trip-reward-dropdown,
+  .checkoutpage [data-entry-locked-option],
+  .checkoutpage [data-action="apply-reward"],
+  .checkoutpage [data-action="remove-reward"],
+  .checkoutpage [data-reward-trip-action] {
+    font-size: 0.69rem !important;
+    letter-spacing: 0.02em !important;
+  }
+
+  .checkoutpage .checkout-mobile-rewards {
+    gap: 0.75rem !important;
+  }
+
+  .checkoutpage [data-mobile-progress] [data-reward-progress-block] {
+    padding: 0.95rem !important;
+  }
+
+  .checkoutpage [data-mobile-progress] [data-reward-progress-block] > p {
+    display: none;
+  }
+
+  .checkoutpage .checkout-mobile-rewards__toggle {
+    background: #fff !important;
+    color: var(--checkout-navy) !important;
+    border-color: rgba(26, 43, 74, 0.24) !important;
+    min-height: 42px;
+    box-shadow: none !important;
+  }
+
+  .checkoutpage .checkout-mobile-rewards__toggle:hover,
+  .checkoutpage .checkout-mobile-rewards__toggle:focus-visible {
+    background: rgba(201, 169, 97, 0.18) !important;
+    border-color: rgba(201, 169, 97, 0.45) !important;
+    color: var(--checkout-navy) !important;
+  }
+
+  .checkoutpage .checkout-mobile-rewards__toggle.is-expanded [data-mobile-reward-toggle-icon] {
+    transform: rotate(180deg);
+  }
+
+  .checkoutpage [data-mobile-reward-details] {
+    padding: 0.9rem !important;
+    border-radius: 16px !important;
+  }
+
+  .checkoutpage [data-mobile-reward-details] > details {
+    border: 1px solid rgba(26, 43, 74, 0.16) !important;
+    border-style: solid !important;
+    background: #fff !important;
+    border-radius: 12px !important;
+    padding: 0.7rem 0.8rem !important;
+  }
+
+  .checkoutpage [data-mobile-phase-list] {
+    gap: 0.6rem !important;
+  }
+
+  .checkoutpage [data-mobile-phase-list] [data-reward-phase] {
+    border-radius: 14px !important;
+  }
+}
+
 .quick-add-card-media {
   max-height: 120px !important;
   height: 100% !important;
@@ -2948,4 +4292,83 @@
 
 .trip-collections-mobile .trip-picks__toggle-group a {
   padding: 8px !important;
+}
+
+@media (max-width: 767px) {
+  #trip-picks .trip-picks__toggle-group {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: stretch;
+    justify-content: initial !important;
+    gap: 4px;
+    width: 100%;
+    padding: 4px !important;
+    flex-wrap: nowrap !important;
+    overflow: visible !important;
+  }
+
+  #trip-picks .trip-picks__toggle {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    padding: 10px 2px;
+    font-size: clamp(8.4px, 2.45vw, 10.25px);
+    letter-spacing: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  #trip-picks .trip-picks__toggle.is-active {
+    box-shadow: 0 6px 14px rgba(0,0,0,.12);
+  }
+
+  #trip-picks .trip-picks__toggle[data-trip-toggle="luxury"] {
+    display: none !important;
+  }
+}
+
+/* Trip-detail booking form CTA color alignment */
+#booking-form [data-booking-submit] button[name="action"][value="book_only"] {
+  background: #1A2B4A !important;
+  border-color: #1A2B4A !important;
+  color: #fff !important;
+}
+
+#booking-form [data-booking-submit] button[name="action"][value="book_only"]:hover {
+  background: #223A62 !important;
+  border-color: #223A62 !important;
+}
+
+#booking-form [data-booking-submit] button[name="action"][value="add_to_list"] {
+  background: #fff !important;
+  border-color: rgba(26, 43, 74, 0.34) !important;
+  color: #1A2B4A !important;
+}
+
+#booking-form [data-booking-submit] button[name="action"][value="add_to_list"]:hover {
+  background: rgba(26, 43, 74, 0.08) !important;
+  border-color: rgba(26, 43, 74, 0.5) !important;
+}
+
+#booking-form [data-booking-submit] a {
+  color: #1A2B4A !important;
+}
+
+#booking-form [data-booking-submit] a:hover {
+  color: #223A62 !important;
+}
+
+/* Booking form counters: keep only custom +/- controls */
+#booking-form [data-counter] input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+#booking-form [data-counter] input[type="number"]::-webkit-outer-spin-button,
+#booking-form [data-counter] input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }

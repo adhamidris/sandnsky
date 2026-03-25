@@ -28,6 +28,9 @@
   const mobileProgressContainer = document.querySelector("[data-mobile-progress]");
   const mobileCountEl = document.querySelector("[data-mobile-reward-count]");
   const mobileToggle = document.querySelector("[data-mobile-reward-toggle]");
+  const mobileToggleLabel = mobileToggle
+    ? mobileToggle.querySelector("[data-mobile-reward-toggle-label]")
+    : null;
   const mobileDetails = document.querySelector("[data-mobile-reward-details]");
   const mobilePhaseList = document.querySelector("[data-mobile-phase-list]");
   const mobileAlertBox = document.querySelector("[data-mobile-rewards-alert]");
@@ -278,11 +281,22 @@
   function setMobileExpanded(expanded) {
     if (!mobileDetails) return;
     const isExpanded = !!expanded;
+    const collapsedLabel =
+      (mobileToggle && mobileToggle.getAttribute("data-mobile-label-collapsed")) ||
+      "Show reward phases";
+    const expandedLabel =
+      (mobileToggle && mobileToggle.getAttribute("data-mobile-label-expanded")) ||
+      "Hide reward phases";
     mobileDetails.dataset.mobileExpanded = isExpanded ? "true" : "false";
     mobileDetails.classList.toggle("hidden", !isExpanded);
     mobileDetails.classList.toggle("block", isExpanded);
     if (mobileToggle) {
-      mobileToggle.textContent = isExpanded ? "Hide rewards" : "Redeem here";
+      if (mobileToggleLabel) {
+        mobileToggleLabel.textContent = isExpanded ? expandedLabel : collapsedLabel;
+      } else {
+        mobileToggle.textContent = isExpanded ? expandedLabel : collapsedLabel;
+      }
+      mobileToggle.classList.toggle("is-expanded", isExpanded);
       mobileToggle.setAttribute("aria-expanded", isExpanded ? "true" : "false");
     }
   }
@@ -1110,7 +1124,7 @@
     const detailLink =
       entry.trip_slug && config.tripUrlTemplate
         ? `<a href="${buildTripUrl(config.tripUrlTemplate, entry.trip_slug || "")}"
-               class="trip-details-link text-xs font-semibold uppercase tracking-wide">
+               class="trip-details-link trip-action-view inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide">
              View trip details
            </a>`
         : "";
@@ -1145,7 +1159,7 @@
         data-trip-id="${escapeHtml(entry.trip_id)}"
         data-trip-slug="${escapeHtml(entry.trip_slug || "")}"
       >
-        <div class="space-y-3">
+        <div class="checkout-trip-main space-y-3">
           <h2 class="checkout-trip-title font-serif text-xl text-foreground">${tripTitle}</h2>
           <ul class="checkout-trip-meta text-sm text-muted-foreground">
             ${travelDate}
@@ -1170,13 +1184,15 @@
             </div>
           </div>
         </div>
-        <div class="flex flex-col items-end gap-2">
-          <span class="trip-price-chip rounded-full bg-primary/10 px-4 py-1 text-sm font-semibold text-primary" data-entry-total>${escapeHtml(
-            currency
-          )} ${escapeHtml(entry.grand_total_display || "")}</span>
-          <span class="trip-price-original text-xs text-muted-foreground line-through ${hasDiscount ? "" : "hidden"}" data-entry-original>${escapeHtml(
-            currency
-          )} ${escapeHtml(entry.original_grand_total_display || "")}</span>
+        <div class="checkout-trip-summary flex flex-col items-end gap-2">
+          <div class="checkout-trip-total-group flex flex-col items-end gap-1">
+            <span class="trip-price-chip rounded-full bg-primary/10 px-4 py-1 text-sm font-semibold text-primary" data-entry-total>${escapeHtml(
+              currency
+            )} ${escapeHtml(entry.grand_total_display || "")}</span>
+            <span class="trip-price-original text-xs text-muted-foreground line-through ${hasDiscount ? "" : "hidden"}" data-entry-original>${escapeHtml(
+              currency
+            )} ${escapeHtml(entry.original_grand_total_display || "")}</span>
+          </div>
           <span class="${discountPillClass}" data-entry-discount-pill>
             ${entry.applied_reward ? `Saved ${escapeHtml(entry.applied_reward.discount_display || "")}` : ""}
           </span>
@@ -1521,6 +1537,18 @@
     entriesContainer.classList.toggle("hidden", !hasEntries);
     if (emptyStateEl) {
       emptyStateEl.classList.toggle("hidden", hasEntries);
+    }
+    if (quickAddRoot) {
+      quickAddRoot.classList.toggle("hidden", !hasEntries);
+    }
+    if (mobileSummary) {
+      mobileSummary.classList.toggle("hidden", !hasEntries);
+      if (!hasEntries) {
+        setMobileExpanded(false);
+      }
+    }
+    if (root) {
+      root.classList.toggle("hidden", !hasEntries);
     }
   }
 

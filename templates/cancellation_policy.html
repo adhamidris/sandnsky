@@ -59,16 +59,29 @@
       padding-left: 20px;
       list-style: disc;
     }
-    .policy-section a {
-      color: #8a3d28;
-      text-decoration: underline;
-      text-decoration-thickness: 1px;
-      text-underline-offset: 4px;
-    }
-    @media (max-width: 640px) {
-      .policy-container {
-        padding: 56px 20px 80px;
-      }
+	    .policy-section a {
+	      color: #8a3d28;
+	      text-decoration: underline;
+	      text-decoration-thickness: 1px;
+	      text-underline-offset: 4px;
+	    }
+	    .policy-callout {
+	      margin: 18px 0 0;
+	      padding: 16px 18px;
+	      border-radius: 14px;
+	      border: 1px solid rgba(31, 27, 18, 0.12);
+	      background: rgba(138, 61, 40, 0.06);
+	    }
+	    .policy-callout p {
+	      margin: 0;
+	    }
+	    .policy-callout p + p {
+	      margin-top: 10px;
+	    }
+	    @media (max-width: 640px) {
+	      .policy-container {
+	        padding: 56px 20px 80px;
+	      }
       .policy-section ul {
         padding-left: 18px;
       }
@@ -81,36 +94,39 @@
     <div class="policy-container">
       <span class="policy-eyebrow">Booking Policies</span>
       <h1 class="policy-title">Cancellation &amp; Refund Policy</h1>
-      <p class="policy-updated">Last updated: 15 September 2024</p>
+      <p class="policy-updated">Last updated: 25 March 2026</p>
 
-      <section class="policy-section" id="guest-cancellations">
-        <h2>1. If You Cancel</h2>
-        <p>The timing of your written cancellation determines the refund available:</p>
+	      <section class="policy-section" id="guest-cancellations">
+	        <h2>1. If You Cancel</h2>
+	        <p>
+	          The timing of your written cancellation determines the refund available. All cancellation times are measured against the scheduled start time of your experience (local Egypt time).
+	        </p>
         <ul>
-          <li><strong>≥ 30 days</strong> before the trip start: Full refund minus any non-recoverable supplier costs already paid (see below).</li>
-          <li><strong>14 – 29 days</strong> before start: 70% refund, or one complimentary date change if availability allows.</li>
-          <li><strong>7 – 13 days</strong> before start: 50% refund.</li>
-          <li><strong>&lt; 7 days</strong> before start or no-show: No refund.</li>
+          <li><strong>≥ 72 hours</strong> before the scheduled start time: Full refund.</li>
+          <li><strong>&lt; 72 hours</strong> before the scheduled start time: No refund.</li>
+          <li><strong>No-show:</strong> No refund.</li>
         </ul>
-        <p>
-          Some services (e.g., special desert permits, exclusive lodges, charter flights) are fully non-refundable once booked.
-          We will flag these items before you pay your deposit.
-        </p>
-      </section>
+	        <p>
+	          If your booking includes any third-party items that are expressly marked as non-refundable at checkout or in writing (for example: limited-capacity permits or pre-booked components), those items may not be recoverable once confirmed. We will always disclose this before you complete payment.
+	        </p>
+	        <div class="policy-callout" role="note" aria-label="How to cancel">
+	          <p><strong>How to cancel:</strong> Send your cancellation request in writing and include your booking reference.</p>
+	          <p><strong>Email:</strong> [ADD EMAIL]</p>
+	          <p><strong>Phone / WhatsApp:</strong> +20 115 335 9889</p>
+	        </div>
+	      </section>
 
       <section class="policy-section" id="company-cancellations">
         <h2>2. If We Cancel or Significantly Change Your Tour</h2>
         <p>
-          Should Kaya Tours need to cancel or make a major change that materially affects your experience, you may select one of the following:
+          Should Kaya Tours need to cancel or make a major change that materially affects your experience, you may choose one of the following:
         </p>
         <ul>
-          <li>Move to a comparable new departure date.</li>
-          <li>Switch to another Kaya tour and pay or receive any price difference.</li>
-          <li>Receive a full refund of all amounts paid to us.</li>
+          <li><strong>Reschedule</strong> to a comparable new date (subject to availability).</li>
+          <li><strong>Switch</strong> to another Kaya experience and pay/receive any price difference.</li>
+          <li><strong>Full refund</strong> of all amounts paid to Kaya Tours.</li>
         </ul>
-        <p>
-          The above options exclude events beyond our reasonable control where force-majeure terms apply (see below).
-        </p>
+        <p>The above options may be affected by events beyond our reasonable control where force majeure terms apply (see below).</p>
       </section>
 
       <section class="policy-section" id="force-majeure">
@@ -118,14 +134,14 @@
         <p>
           Force majeure covers extraordinary events such as extreme weather, government closures or restrictions, strikes, civil unrest, and public health emergencies.
           In these situations we prioritize offering a new date or future travel credit so you can still enjoy your experience when conditions improve.
-          Cash refunds depend on what we are able to recover from local suppliers.
+          If a cash refund is requested, it may depend on what we are able to recover from any third parties involved in delivering your booking.
         </p>
       </section>
 
       <section class="policy-section" id="refund-processing">
         <h2>4. Refund Timing &amp; Method</h2>
         <p>
-          Approved refunds are processed within 10 business days to the original payment method. Bank processing times, international transfers, and card issuer policies may affect how quickly funds appear in your account.
+          Approved refunds are processed to the original payment method. We typically initiate refunds within 10 business days; your bank/card issuer may take additional time for the funds to appear.
         </p>
       </section>
 
@@ -133,11 +149,9 @@
         <h2>Questions?</h2>
         <p>
           We know plans can change. Reach us anytime at
-          <a href="mailto:hello@sandandskytours.com">hello@sandandskytours.com</a> or via WhatsApp at +20 XXX XXX XXXX so we can walk you through options.
+          <a href="mailto:hello@sandandskytours.com">hello@sandandskytours.com</a> or via WhatsApp at +20 115 335 9889 so we can walk you through options.
         </p>
-        <p>
-          You’ll also find a quick summary on each trip page (“Free date change ≥7 days…”) linking back here for the full policy.
-        </p>
+        <p>You’ll also find a quick summary on each trip page linking back here for the full policy.</p>
       </section>
     </div>
   </article>

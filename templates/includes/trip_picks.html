@@ -62,6 +62,9 @@
                     <div class="trip-picks__media-inner">
                       {% if trip.image_url %}
                       <img src="{{ trip.image_url }}" alt="{{ trip.title }}" loading="lazy" class="trip-picks__image" />
+                      <div class="trip-picks__image-fallback" aria-hidden="true">
+                        <span>Image coming soon</span>
+                      </div>
                       {% else %}
                       <div class="trip-picks__image trip-picks__image--fallback">
                         <span>Image coming soon</span>
@@ -70,17 +73,6 @@
                     </div>
                   </div>
                   <div class="trip-picks__body">
-                    {% if trip.route_steps %}
-                    <div class="trip-picks__package-banner" aria-label="Trip route">
-                      <span class="trip-picks__package-eyebrow">Signature route</span>
-                      <div class="trip-picks__package-route">
-                        {% for stop in trip.route_steps %}
-                        <span class="trip-picks__package-stop">{{ stop }}</span>
-                        {% endfor %}
-                      </div>
-                    </div>
-                  {% endif %}
-
                     <!-- {% if trip.category %}
                     <span class="trip-picks__badge">{{ trip.category }}</span>
                     {% endif %} -->
@@ -88,16 +80,19 @@
                     <!-- {% if trip.is_package_trip and trip.description %}
                     <p class="trip-picks__description trip-picks__description--package">{{ trip.description }}</p>
                     {% endif %} -->
-                    <div class="trip-picks__meta">
-                      <span>{{ trip.duration }}</span>
-                      <!-- <span>{{ trip.group_size }}</span> -->
-                      <span>{{ trip.location }}</span>
-                      <span class="trip-picks__price">
-                        <span class="block text-[11px] text-muted-foreground">Adult: {{ trip.price }}</span>
+                    <div class="trip-picks__meta" aria-label="Trip summary">
+                      <div class="trip-picks__meta-item trip-picks__meta-item--duration">
+                        <span class="trip-picks__meta-value">{{ trip.duration }}</span>
+                      </div>
+                      <div class="trip-picks__meta-item trip-picks__meta-item--location">
+                        <span class="trip-picks__meta-value">{{ trip.location }}</span>
+                      </div>
+                      <div class="trip-picks__meta-item trip-picks__meta-item--price">
+                        <span class="trip-picks__meta-value">Adult {{ trip.price }}</span>
                         {% if trip.has_child_price and trip.child_price %}
-                        <span class="block text-[11px] text-muted-foreground">Children: {{ trip.child_price }}</span>
+                        <span class="trip-picks__meta-subvalue">Child {{ trip.child_price }}</span>
                         {% endif %}
-                      </span>
+                      </div>
                     </div>
                   </div>
                 </a>
@@ -744,10 +739,23 @@ window.addEventListener('booking:cart-update', (event) => {
 
     const media = carousel.querySelectorAll('img');
     media.forEach((img) => {
+      const handleImageError = () => {
+        const mediaInner = img.closest('.trip-picks__media-inner');
+        if (mediaInner) {
+          mediaInner.classList.add('is-image-error');
+        }
+        update();
+      };
+
       if (img.complete) {
-        scheduleUpdate();
+        if (img.naturalWidth === 0) {
+          handleImageError();
+        } else {
+          scheduleUpdate();
+        }
       } else {
         img.addEventListener('load', scheduleUpdate, { once: true });
+        img.addEventListener('error', handleImageError, { once: true });
       }
     });
 

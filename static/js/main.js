@@ -93,9 +93,51 @@
     const toast     = cart.querySelector('[data-cart-toast]');
     const toastMsg  = cart.querySelector('[data-cart-toast-message]');
     const toastIcon = cart.querySelector('[data-cart-toast-icon]');
+    const focusableSelector = [
+      'a[href]',
+      'button:not([disabled])',
+      'input:not([disabled])',
+      'select:not([disabled])',
+      'textarea:not([disabled])',
+      '[tabindex]:not([tabindex="-1"])',
+    ].join(', ');
 
-    const open  = () => { cart.dataset.open = 'true';  trigger?.setAttribute('aria-expanded', 'true'); };
-    const close = () => { cart.dataset.open = 'false'; trigger?.setAttribute('aria-expanded', 'false'); };
+    if (trigger && panel?.id) {
+      trigger.setAttribute('aria-controls', panel.id);
+    }
+
+    const getFocusable = () => {
+      if (!panel) return [];
+      return Array.from(panel.querySelectorAll(focusableSelector)).filter((node) => {
+        if (!(node instanceof HTMLElement)) return false;
+        return !node.hasAttribute('disabled') && node.tabIndex !== -1;
+      });
+    };
+
+    const setPanelA11y = (isOpen) => {
+      if (!panel) return;
+      panel.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+    };
+
+    const open  = () => {
+      cart.dataset.open = 'true';
+      trigger?.setAttribute('aria-expanded', 'true');
+      setPanelA11y(true);
+      window.requestAnimationFrame(() => {
+        const focusable = getFocusable();
+        const firstTarget = focusable.length ? focusable[0] : panel;
+        if (firstTarget && typeof firstTarget.focus === 'function') {
+          firstTarget.focus({ preventScroll: true });
+        }
+      });
+    };
+    const close = () => {
+      cart.dataset.open = 'false';
+      trigger?.setAttribute('aria-expanded', 'false');
+      setPanelA11y(false);
+    };
+
+    setPanelA11y(false);
 
     trigger?.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -108,6 +150,21 @@
 
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') close();
+    });
+
+    panel?.addEventListener('keydown', (e) => {
+      if (e.key !== 'Tab' || cart.dataset.open !== 'true') return;
+      const focusable = getFocusable();
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     });
 
     const getTokens = (button, attr) => {
@@ -180,7 +237,7 @@
       const countBadge = cart.querySelector('[data-cart-count-badge]');
       if (countBadge) {
         countBadge.textContent = String(count);
-        countBadge.classList.remove('hidden');
+        countBadge.classList.toggle('hidden', count <= 0);
       }
 
       const labelText = cart.querySelector('[data-cart-label-text]');
@@ -193,7 +250,7 @@
       }
 
       const panel = cart.querySelector('[data-cart-panel]');
-      if (panel && panelHtml) {
+      if (panel && typeof panelHtml === 'string') {
         panel.innerHTML = panelHtml;
       }
 
@@ -201,14 +258,14 @@
       broadcastCartUpdate(payload);
     };
 
-    const showToast = (message, icon = '✓') => {
+    const showToast = (message, icon = '✓', state = 'added') => {
       if (!toast || !toastMsg) return;
       toastMsg.textContent = message || 'Updated your list';
       if (toastIcon) {
         toastIcon.textContent = icon || '';
       }
       cart.dataset.toast = 'show';
-      toast.dataset.state = 'added';
+      toast.dataset.state = state === 'removed' ? 'removed' : 'added';
       window.setTimeout(() => {
         cart.dataset.toast = '';
         toast.dataset.state = '';
@@ -240,7 +297,8 @@
         const payload = await response.json();
         updateCartUI(payload);
         const message = payload.toast_message || (payload.in_cart ? 'Added to your list' : 'Removed from your list');
-        showToast(message, payload.in_cart ? '✓' : '−');
+        const toastState = payload.in_cart ? 'added' : 'removed';
+        showToast(message, payload.in_cart ? '✓' : '−', toastState);
       } catch (error) {
         console.error('Failed to update cart:', error);
         form.submit();

@@ -333,6 +333,13 @@
     .sahari-cart__actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
     .sahari-cart__cta { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; padding: 10px 16px; border-radius: 999px; font-weight: 700; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; }
     .sahari-cart__cta--primary { background: var(--desert-gold); color: var(--night-sky); border: 1px solid rgba(26,22,20,0.25); }
+    .sahari-cart__cta--primary.is-disabled,
+    .sahari-cart__cta--primary[aria-disabled="true"] {
+      opacity: 0.45;
+      pointer-events: none;
+      cursor: not-allowed;
+      filter: saturate(0.7);
+    }
     .sahari-cart__cta--ghost { background: transparent; color: var(--sand-50); border: 1px solid rgba(245,241,232,0.22); }
     .sahari-cart__total { margin-left: auto; font-weight: 700; color: #fff; font-size: 13px; }
 
@@ -1367,7 +1374,12 @@
       <div class="sahari-cart__footer">
         <span class="sahari-cart__total" data-sahari-cart-total>{% if booking_cart_entries %}Total: {{ booking_cart_currency }} {{ booking_cart_total_display }}{% endif %}</span>
         <div class="sahari-cart__actions">
-          <a href="{% url 'web:booking-cart-checkout' %}" class="sahari-cart__cta sahari-cart__cta--primary">Proceed to checkout</a>
+          <a
+            href="{% url 'web:booking-cart-checkout' %}"
+            class="sahari-cart__cta sahari-cart__cta--primary{% if not booking_cart_entries %} is-disabled{% endif %}"
+            data-sahari-checkout-cta
+            {% if not booking_cart_entries %}aria-disabled="true" tabindex="-1"{% else %}aria-disabled="false"{% endif %}
+          >Proceed to checkout</a>
           <button type="button" class="sahari-cart__cta sahari-cart__cta--ghost" data-sahari-cart-close>Close cart</button>
         </div>
       </div>
@@ -1491,7 +1503,7 @@
                 designed for every kind of desert wanderer.
               </p>
             </div>
-            <a class="reach-us" href="https://wa.me/201108741159?text=Hello%20Sand%20%26%20Sky%20Tours%2C%20I%20would%20like%20to%20know%20more%20about%20Sahari%20Trips." target="_blank" rel="noopener">
+            <a class="reach-us" href="https://wa.me/201153359889?text=Hello%20Sand%20%26%20Sky%20Tours%2C%20I%20would%20like%20to%20know%20more%20about%20Sahari%20Trips." target="_blank" rel="noopener">
               Reach us, we'll help
               <span>→</span>
             </a>
@@ -1778,6 +1790,7 @@
     const cartPanel = document.querySelector('[data-sahari-cart-panel]');
     const cartBody = document.querySelector('[data-sahari-cart-body]');
     const cartTotal = document.querySelector('[data-sahari-cart-total]');
+    const checkoutCta = document.querySelector('[data-sahari-checkout-cta]');
     const cartCloseEls = document.querySelectorAll('[data-sahari-cart-close]');
     const quickAddUrlTemplate = "{% url 'web:booking-cart-quick-add' '__slug__' %}";
     // Quick add elements
@@ -1844,11 +1857,29 @@
       }
     });
 
+    const setCheckoutState = (enabled) => {
+      if (!checkoutCta) return;
+      const isEnabled = !!enabled;
+      checkoutCta.classList.toggle('is-disabled', !isEnabled);
+      checkoutCta.setAttribute('aria-disabled', isEnabled ? 'false' : 'true');
+      checkoutCta.tabIndex = isEnabled ? 0 : -1;
+    };
+
+    if (checkoutCta) {
+      checkoutCta.addEventListener('click', function (e) {
+        if (checkoutCta.getAttribute('aria-disabled') === 'true') {
+          e.preventDefault();
+        }
+      });
+    }
+
     const updateCartBadge = (count) => {
-      if (!cartBadge) return;
       const n = Number(count || 0);
-      cartBadge.textContent = n > 0 ? String(n) : '';
-      cartBadge.classList.toggle('is-visible', n > 0);
+      setCheckoutState(n > 0);
+      if (cartBadge) {
+        cartBadge.textContent = n > 0 ? String(n) : '';
+        cartBadge.classList.toggle('is-visible', n > 0);
+      }
       if (cartBtn) {
         const base = 'Open booking list';
         cartBtn.setAttribute('aria-label', n > 0 ? `${base} (${n} item${n === 1 ? '' : 's'})` : base);
@@ -1931,6 +1962,9 @@
     try {
       const initial = parseInt((cartBadge && cartBadge.textContent) || '0', 10) || 0;
       updateCartBadge(initial);
+      if (initial === 0 && cartBody) {
+        setCheckoutState(!!cartBody.querySelector('.sahari-cart__item'));
+      }
     } catch (e) {}
 
     // Initialize CTA states from server summary
@@ -2315,7 +2349,7 @@
 
   <!-- Sticky WhatsApp FAB (consistent with site-wide) -->
   <a
-    href="https://wa.me/201108741159?text=Hello%20Sand%20%26%20Sky%20Tours%2C%20I%20would%20like%20to%20know%20more%20about%20Sahari%20Trips."
+    href="https://wa.me/201153359889?text=Hello%20Sand%20%26%20Sky%20Tours%2C%20I%20would%20like%20to%20know%20more%20about%20Sahari%20Trips."
     class="whatsapp-fab"
     target="_blank"
     rel="noopener"

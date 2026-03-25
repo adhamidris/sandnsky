@@ -37,6 +37,42 @@
       body.trip-detail-page .whatsapp-fab {
         bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
       }
+
+      body.trip-detail-page [data-mobile-sheet-content] {
+        gap: 0 !important;
+      }
+
+      body.trip-detail-page .booking-card__mobile-header {
+        position: relative;
+        z-index: 24;
+        background: #fff;
+        padding-bottom: 0.5rem;
+      }
+
+      body.trip-detail-page .booking-drawer__panel {
+        overflow-x: hidden;
+      }
+
+      body.trip-detail-page [data-booking-scroll] {
+        padding-right: 0 !important;
+        overflow-x: hidden;
+      }
+
+      body.trip-detail-page .booking-drawer__summary {
+        position: relative;
+        z-index: 23;
+        background: #fff !important;
+        border-bottom: 1px solid rgba(26, 43, 74, 0.12);
+        padding: 0.25rem 0 0.75rem;
+      }
+
+      body.trip-detail-page .booking-drawer__summary::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background: #fff;
+      }
     }
 
     @media (min-width: 1024px) {
@@ -44,11 +80,40 @@
         bottom: calc(9.5rem + env(safe-area-inset-bottom, 0px));
       }
     }
+
+    @media (max-width: 767px) {
+      body.trip-detail-page .trip-detail-hero__inner {
+        padding-top: 5rem !important;
+        padding-bottom: 1.75rem !important;
+      }
+
+      body.trip-detail-page .trip-detail-hero__layout {
+        margin-top: 1.25rem !important;
+        gap: 1rem !important;
+      }
+
+      body.trip-detail-page .trip-detail-hero__headline {
+        padding: 0.6rem 0.7rem !important;
+        border-radius: 12px !important;
+        background: rgba(0, 0, 0, 0.22) !important;
+      }
+
+      body.trip-detail-page .trip-detail-hero__title {
+        font-size: clamp(1.95rem, 7.4vw, 2.35rem) !important;
+        line-height: 1.08 !important;
+      }
+
+      body.trip-detail-page .trip-lead {
+        font-size: 1.06rem !important;
+        line-height: 1.45 !important;
+        max-width: 30ch !important;
+      }
+    }
   </style>
 {% endblock %}
 
 {% block content %}
-<header class="relative isolate overflow-hidden bg-black text-white">
+<header class="trip-detail-hero relative isolate overflow-hidden bg-black text-white">
 {% if trip.hero_image_url or trip.hero_image_mobile_url %}
   {% with mobile_src=trip.hero_image_mobile_url|default:trip.hero_image_url %}
     {% if mobile_src %}
@@ -62,7 +127,7 @@
   {% endwith %}
 {% endif %}
 
-  <div class="relative z-10 mx-auto max-w-7xl px-4 pb-16 pt-28 sm:px-6 lg:px-8">
+  <div class="trip-detail-hero__inner relative z-10 mx-auto max-w-7xl px-4 pb-16 pt-28 sm:px-6 lg:px-8">
     <nav class="crumb-url flex items-center gap-2 text-sm text-white/70" aria-label="Breadcrumb">
       {% for crumb in trip.breadcrumbs %}
       {% if crumb.url %}
@@ -74,10 +139,10 @@
       {% endfor %}
     </nav>
 
-    <div class="mt-10 grid gap-12 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
+    <div class="trip-detail-hero__layout mt-10 grid gap-12 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
       <div class="space-y-8">
-        <div class="chip-hero space-y-4">
-          <h1 class="font-serif text-4xl leading-tight sm:text-5xl">{{ trip.title }}</h1>
+        <div class="trip-detail-hero__headline chip-hero space-y-4">
+          <h1 class="trip-detail-hero__title font-serif text-4xl leading-tight sm:text-5xl">{{ trip.title }}</h1>
           {% if trip.lead %}
           <p class="trip-lead max-w-2xl text-lg text-white/85">{{ trip.lead }}</p>
           {% endif %}
@@ -286,7 +351,10 @@
 <div class="lg:hidden">
     <div class="floating-book-mob fixed inset-x-4 bottom-4 z-40 flex items-center justify-between rounded-full bg-white px-5 py-3 shadow-xl" style="z-index: 9999;">
     <div class="floating-book-mob-text text-sm">
-      <p class="font-semibold text-foreground"><span data-booking-base-price>{{ pricing.base_price_display }}</span></p>
+      <p class="floating-book-mob-price font-semibold text-foreground">
+        <span class="floating-book-mob-prefix">From</span>
+        <span data-booking-base-price>{{ pricing.base_price_display }}</span>
+      </p>
       <p class="text-xs text-muted-foreground">{{ trip.tour_length }}</p>
     </div>
     <button type="button" class="floating-mob-btn rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-mobile-sheet-open aria-expanded="false" aria-controls="booking-drawer">
@@ -298,28 +366,29 @@
 <div class="booking-drawer" data-mobile-sheet-container aria-hidden="true">
   <div class="booking-card__overlay booking-drawer__overlay" data-mobile-sheet-overlay aria-hidden="true"></div>
   <div class="booking-card booking-drawer__panel border border-border bg-white text-sm text-foreground shadow-2xl" data-mobile-sheet data-booking-root role="dialog" aria-modal="true" aria-hidden="true" id="booking-drawer">
-    <div class="flex w-full flex-1 flex-col gap-6 overflow-hidden p-6" data-mobile-sheet-content>
+    <div class="flex w-full flex-1 flex-col overflow-hidden p-6" data-mobile-sheet-content>
       <div class="booking-card__mobile-header flex items-start justify-between lg:hidden">
         <div>
           <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Booking details</p>
           <p class="text-sm text-muted-foreground">Complete the steps to secure your spot.</p>
         </div>
-        <button type="button" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-mobile-sheet-close aria-label="Close booking form">
+        <button type="button" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-primary bg-primary text-primary-foreground transition-colors hover:bg-primary/90 hover:text-primary-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-mobile-sheet-close aria-label="Close booking form">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4">
             <path stroke-linecap="round" stroke-linejoin="round" d="M7 7l10 10M17 7 7 17" />
           </svg>
         </button>
       </div>
 
-      <div class="flex-1 overflow-y-auto pr-2 scrollbar-none lg:pr-0" data-booking-scroll>
+      <div class="booking-drawer__summary space-y-1 bg-white">
+        <p class="text-xs uppercase tracking-wide text-muted-foreground">Estimated total</p>
+        <p class="text-3xl font-serif text-primary" data-booking-total>{{ pricing.total_display }}</p>
+        <p class="text-xs text-muted-foreground" data-traveler-summary>
+          Estimate · {{ pricing.traveler_summary_display }}
+        </p>
+      </div>
+
+      <div class="flex-1 overflow-y-auto overflow-x-hidden pr-0 scrollbar-none lg:pr-0" data-booking-scroll>
         <div class="space-y-6 pb-6">
-          <div class="sticky top-0 z-10 space-y-1 bg-white pb-4">
-            <p class="text-xs uppercase tracking-wide text-muted-foreground">Estimated total</p>
-            <p class="text-3xl font-serif text-primary" data-booking-total>{{ pricing.total_display }}</p>
-            <p class="text-xs text-muted-foreground" data-traveler-summary>
-              Estimate · {{ pricing.traveler_summary_display }}
-            </p>
-          </div>
 
           <details class="group rounded-lg border border-border bg-card p-4" data-module="price-breakdown">
             <summary class="flex cursor-pointer items-center justify-between text-sm font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
@@ -388,7 +457,7 @@
           {% for action in trip.contact_actions %}
           {% if action.icon == "whatsapp" %}
           {% with whatsapp_message="Hello Kaya Tours, I would like to know more about "|add:trip.title|add:" "|add:request.build_absolute_uri|add:"." %}
-          <a href="https://wa.me/201108741159?text={{ whatsapp_message|urlencode }}" class="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" aria-label="{{ action.aria }}" target="_blank" rel="noopener">
+          <a href="https://wa.me/201153359889?text={{ whatsapp_message|urlencode }}" class="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" aria-label="{{ action.aria }}" target="_blank" rel="noopener">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-3.5 w-3.5 text-primary">
               <path d="M12.04 2a9.84 9.84 0 0 0-8.8 14.48L2 22l5.66-1.22A9.83 9.83 0 1 0 12.04 2Zm0 17.73c-1.57 0-3.11-.41-4.46-1.17l-.32-.18-3.36.72.72-3.26-.2-.33A7.86 7.86 0 1 1 12.04 19.73Zm4.38-5.83c-.24-.12-1.43-.7-1.65-.78-.22-.08-.38-.12-.54.12-.16.24-.62.78-.76.94-.14.16-.28.18-.52.06-.24-.12-1-.37-1.9-1.2-.7-.63-1.18-1.4-1.32-1.64-.14-.24-.02-.37.1-.49.1-.09.24-.24.36-.36.12-.12.16-.2.24-.34.08-.14.04-.27-.02-.39-.06-.12-.54-1.31-.74-1.79-.2-.48-.4-.41-.54-.42h-.46c-.16 0-.4.06-.62.3-.22.24-.84.82-.84 2s.86 2.36.98 2.52c.12.16 1.7 2.6 4.12 3.65.58.25 1.03.4 1.38.52.58.18 1.12.16 1.54.1.47-.07 1.43-.58 1.63-1.14.2-.56.2-1.04.14-1.14-.06-.1-.22-.16-.46-.28Z" />
             </svg>
@@ -599,14 +668,10 @@
 
 <section id="reviews" class="bg-background px-4 py-16 sm:px-6 lg:px-8 scroll-mt-32" data-review-section data-review-count="{{ trip.review_count }}">
   <div class="mx-auto max-w-7xl">
-    <div class="reviews-header flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+    <div class="reviews-header">
       <div class="space-y-3">
         <h2 class="font-serif text-3xl text-foreground">Guest reviews</h2>
         <p class="text-sm text-muted-foreground">See how other travelers rated their experience and what stood out most to them.</p>
-        <p class="text-sm font-medium text-muted-foreground" data-review-summary>{{ trip.review_summary }}</p>
-      </div>
-      <div class="flex flex-col items-start gap-2 sm:flex-row sm:items-center">
-        <button type="button" class="type-review rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary/60" data-review-toggle data-review-toggle-label="Write a review" data-review-toggle-active-label="Close review form">Write a review</button>
       </div>
     </div>
 
@@ -677,7 +742,7 @@
       {% for action in trip.contact_actions %}
       {% if action.icon == "whatsapp" %}
       {% with whatsapp_message="Hello Kaya Tours, I would like to know more about "|add:trip.title|add:" "|add:request.build_absolute_uri|add:"." %}
-      <a href="https://wa.me/201108741159?text={{ whatsapp_message|urlencode }}" class="inline-flex items-center gap-3 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" aria-label="{{ action.aria }}" target="_blank" rel="noopener">
+      <a href="https://wa.me/201153359889?text={{ whatsapp_message|urlencode }}" class="inline-flex items-center gap-3 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" aria-label="{{ action.aria }}" target="_blank" rel="noopener">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4 text-primary">
           <path d="M12.04 2a9.84 9.84 0 0 0-8.8 14.48L2 22l5.66-1.22A9.83 9.83 0 1 0 12.04 2Zm0 17.73c-1.57 0-3.11-.41-4.46-1.17l-.32-.18-3.36.72.72-3.26-.2-.33A7.86 7.86 0 1 1 12.04 19.73Zm4.38-5.83c-.24-.12-1.43-.7-1.65-.78-.22-.08-.38-.12-.54.12-.16.24-.62.78-.76.94-.14.16-.28.18-.52.06-.24-.12-1-.37-1.9-1.2-.7-.63-1.18-1.4-1.32-1.64-.14-.24-.02-.37.1-.49.1-.09.24-.24.36-.36.12-.12.16-.2.24-.34.08-.14.04-.27-.02-.39-.06-.12-.54-1.31-.74-1.79-.2-.48-.4-.41-.54-.42h-.46c-.16 0-.4.06-.62.3-.22.24-.84.82-.84 2s.86 2.36.98 2.52c.12.16 1.7 2.6 4.12 3.65.58.25 1.03.4 1.38.52.58.18 1.12.16 1.54.1.47-.07 1.43-.58 1.63-1.14.2-.56.2-1.04.14-1.14-.06-.1-.22-.16-.46-.28Z" />
         </svg>

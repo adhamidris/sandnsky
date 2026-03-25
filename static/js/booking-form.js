@@ -264,6 +264,7 @@
     const closeButton = sheet.querySelector('[data-mobile-sheet-close]');
     const mediaQuery = window.matchMedia('(min-width: 1024px)');
     const floater = document.querySelector('[data-booking-floater]');
+    const mobilePill = document.querySelector('.floating-book-mob');
     const summaryCard = document.querySelector('[data-trip-summary]');
     const focusableSelector = 'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
     const scrollContainer = sheet.querySelector('[data-booking-scroll]');
@@ -279,6 +280,12 @@
   
     const setScrollLock = (locked) => {
       document.body.style.overflow = locked ? 'hidden' : '';
+    };
+
+    const setMobilePillVisibility = (visible) => {
+      if (!(mobilePill instanceof HTMLElement)) return;
+      mobilePill.classList.toggle('is-hidden-by-sheet', !visible);
+      mobilePill.setAttribute('aria-hidden', visible ? 'false' : 'true');
     };
   
     const trapFocus = (event) => {
@@ -361,6 +368,7 @@
   
       setScrollLock(true);
       setAriaExpanded(true);
+      setMobilePillVisibility(false);
       isOpen = true;
   
       const initialFocus = closeButton || sheet.querySelector(focusableSelector);
@@ -387,6 +395,7 @@
   
       setScrollLock(false);
       setAriaExpanded(false);
+      setMobilePillVisibility(true);
       isOpen = false;
   
       if (restoreFocus && lastFocusedElement instanceof HTMLElement) {
@@ -443,8 +452,9 @@
         overlay.classList.remove('is-visible');
         overlay.setAttribute('aria-hidden', 'true');
       }
-  
+
       setScrollLock(false);
+      setMobilePillVisibility(true);
       updateFloaterForViewport();
     };
   

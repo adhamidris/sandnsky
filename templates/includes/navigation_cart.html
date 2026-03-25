@@ -2,7 +2,8 @@
 <div class="navcart" data-open="false" data-navcart>
   <button type="button"
           class="navcart-trigger {% if booking_cart_count %}has-items{% endif %}"
-          aria-haspopup="menu" aria-expanded="false"
+          aria-haspopup="dialog" aria-expanded="false"
+          aria-controls="navcart-panel"
           data-cart-trigger>
     <span class="sr-only">Open saved trips</span>
 
@@ -28,7 +29,16 @@
     </span>
   </button>
 
-  <div data-cart-panel class="navcart-panel" role="menu" aria-label="Saved trips panel">
+  <div
+    id="navcart-panel"
+    data-cart-panel
+    class="navcart-panel"
+    role="dialog"
+    aria-modal="false"
+    aria-hidden="true"
+    aria-label="Saved trips panel"
+    tabindex="-1"
+  >
     {% include 'includes/navigation_cart_panel.html' %}
   </div>
 
