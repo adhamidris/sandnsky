@@ -35,6 +35,10 @@ db.sqlite3
 *.pyc
 *.pyo
 __pycache__/
+__pycache__/
+*.pyc
+data.json
+
 
 # Django stuff
 *.log
