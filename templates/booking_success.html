@@ -5,11 +5,11 @@
 
 {% block content %}
 <section class="booking-page booking-success-page px-4 py-16 sm:px-6 lg:px-8">
-  <div class="mx-auto max-w-5xl space-y-10">
+  <div class="mx-auto max-w-6xl space-y-10">
     <div class="booking-success booking-success-card rounded-3xl border border-border bg-card px-6 py-8 shadow-subtle sm:px-10 sm:py-12">
       <div class="flex flex-col gap-10">
-        <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-          <div class="flex-1 space-y-8 lg:pr-10">
+        <div class="flex flex-col gap-6">
+          <div class="space-y-8">
             <div class="space-y-4">
             <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
               <span class="booking-status-chip inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.28em] ring-1 ring-inset {% if booking_status.code == 'confirmed' %}bg-emerald-50 text-emerald-700 ring-emerald-200{% elif booking_status.code == 'cancelled' %}bg-red-50 text-red-700 ring-red-200{% else %}bg-amber-50 text-amber-700 ring-amber-200{% endif %}">
@@ -22,18 +22,24 @@
                 </svg>
                 <span>Print or save PDF</span>
               </button>
+              <button type="button" class="booking-print-button booking-print-button-desktop hidden items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary lg:inline-flex" onclick="window.print()">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 9V4h12v5M6 19h12v-6H6v6Zm12 0V9H6v10" />
+                </svg>
+                <span>Print or save PDF</span>
+              </button>
             </div>
             <h1 class="booking-success-title font-serif text-3xl text-foreground sm:text-4xl">Thanks for choosing Kaya Tours</h1>
-            <p class="booking-success-intro max-w-xl text-sm text-muted-foreground">Your travel specialist is reviewing the details and will reach out within 24 hours to confirm availability, customise the itinerary, and finalise payment arrangements.</p>
-            <dl class="booking-meta-grid mt-4 grid grid-cols-1 gap-3 text-sm text-muted-foreground sm:grid-cols-3">
+            <p class="booking-success-intro text-sm text-muted-foreground">Your travel specialist is reviewing the details and will reach out within 24 hours to confirm your booking and any additional required details.</p>
+            <dl class="booking-meta-grid mt-4 grid grid-cols-1 gap-3 text-sm text-muted-foreground sm:grid-cols-2">
               <div>
               <dt class="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Booking reference</dt>
-              <dd class="flex items-center gap-3 font-mono text-base text-foreground whitespace-nowrap">
-                <span data-reference-code>{{ primary_reference }}</span>
+              <dd class="booking-reference-row flex items-center gap-3 font-mono text-base text-foreground whitespace-nowrap">
+                <span class="booking-reference-code" data-reference-code>{{ primary_reference }}</span>
                 {% if additional_reference_codes %}
                 <span class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">(+{{ additional_reference_codes|length }} more)</span>
                 {% endif %}
-                <button type="button" class="inline-flex h-7 w-7 shrink-0 items-center justify-center text-muted-foreground transition-colors hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-copy-to-clipboard="{{ reference_copy }}" aria-label="Copy booking reference">
+                <button type="button" class="booking-reference-copy inline-flex h-7 w-7 shrink-0 items-center justify-center text-muted-foreground transition-colors hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-copy-to-clipboard="{{ reference_copy }}" aria-label="Copy booking reference">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-3.5 w-3.5">
                     <rect x="9" y="9" width="11" height="11" rx="2" ry="2"></rect>
                     <path d="M5 15V5a2 2 0 0 1 2-2h10" stroke-linecap="round" stroke-linejoin="round" />
@@ -43,81 +49,91 @@
               </dd>
             </div>
             <div>
-              <dt class="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Status updated</dt>
-              <dd>
-                {{ booking_status.updated_at|date:"j M Y, H:i" }}
-                {% if booking_status.updated_at %}
-                ({{ booking_status.updated_at|date:"T" }})
-                {% endif %}
-              </dd>
-            </div>
-            <div>
               <dt class="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Submitted</dt>
-              <dd>{{ booking_created_at|date:"j M Y, H:i" }} ({{ booking_created_at|date:"T" }})</dd>
+              <dd>{{ booking_created_at|date:"j M Y" }}</dd>
             </div>
-          </dl>
+            </dl>
+            {% if contact_details.name or contact_details.email or contact_details.phone or contact_details.nationality %}
+            <div class="mt-4 text-sm">
+              <dl class="booking-meta-grid booking-details-grid mt-2 grid gap-3 sm:grid-cols-2">
+                {% if contact_details.name %}
+                <div>
+                  <dt class="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Name</dt>
+                  <dd class="mt-0.5 text-foreground">{{ contact_details.name }}</dd>
+                </div>
+                {% endif %}
+                {% if contact_details.nationality %}
+                <div>
+                  <dt class="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Nationality</dt>
+                  <dd class="mt-0.5 text-foreground">{{ contact_details.nationality }}</dd>
+                </div>
+                {% endif %}
+                {% if contact_details.email %}
+                <div>
+                  <dt class="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Email</dt>
+                  <dd class="mt-0.5 text-foreground break-all">{{ contact_details.email }}</dd>
+                </div>
+                {% endif %}
+                {% if contact_details.phone %}
+                <div>
+                  <dt class="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Phone</dt>
+                  <dd class="mt-0.5 text-foreground">{{ contact_details.phone }}</dd>
+                </div>
+                {% endif %}
+              </dl>
+            </div>
+            {% endif %}
             {% if booking_status.note %}
           <p class="text-xs text-muted-foreground">Note from our team: <span class="text-foreground">{{ booking_status.note }}</span></p>
             {% endif %}
-            <p class="text-xs text-muted-foreground">No payment has been processed yet.</p>
             {% if summary_pricing.has_discount %}
             <p class="text-xs font-semibold text-emerald-600">Reward savings applied: You saved {{ summary_pricing.discount_display }} with your booking rewards{% if applied_rewards %}{% if applied_rewards|length == 1 %} · {{ applied_rewards.0.phase_name }} ({{ applied_rewards.0.discount_percent|floatformat:"-2" }}% off){% else %} across {{ applied_rewards|length }} rewards{% endif %}{% endif %}.</p>
             {% endif %}
-            <a href="{{ primary_trip_url }}" class="inline-flex items-center gap-2 text-sm font-semibold text-primary transition-colors hover:text-primary/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
-              {% if multi_booking %}View primary trip details{% else %}View trip details{% endif %}
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m9 5 7 7-7 7" />
-              </svg>
-            </a>
             </div>
 
             <section class="booking-section space-y-8">
+              {% if multi_booking %}
               <header class="booking-section-header space-y-2">
                 <p class="booking-section-eyebrow text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Trip overview</p>
-                {% if multi_booking %}
                 <h2 class="booking-section-title text-2xl font-serif text-foreground">Trips in your booking list</h2>
                 <p class="booking-section-description text-sm text-muted-foreground">You're confirming {{ bookings_count }} trip{{ bookings_count|pluralize }}. Review each itinerary below.</p>
-                {% else %}
-                <h2 class="booking-section-title text-2xl font-serif text-foreground">{{ trip.title }}</h2>
-                <p class="booking-section-description text-sm text-muted-foreground">Trip date {{ primary_travel_date_display }} · {{ traveler_summary }}</p>
-                {% endif %}
               </header>
+              {% endif %}
 
           <div class="space-y-6 order-1 lg:order-none">
             {% for item in bookings_detail %}
-            <article class="booking-trip-card space-y-6 rounded-2xl border border-border bg-background/60 p-5">
-                  <div class="space-y-2">
-                    <p class="booking-trip-eyebrow text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Trip {{ forloop.counter }}</p>
-                    <h3 class="booking-trip-title font-serif text-xl text-foreground">{{ item.trip_title }}</h3>
-                    <p class="booking-trip-subtitle text-sm text-muted-foreground">Trip date {{ item.travel_date_display }} · {{ item.traveler_summary }}</p>
-                    {% if item.trip_url %}
-                    <a href="{{ item.trip_url }}" class="booking-trip-link inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-primary transition-colors hover:text-primary/80">
-                      View trip details
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-3.5 w-3.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m9 5 7 7-7 7" />
-                      </svg>
-                    </a>
-                    {% endif %}
-                  </div>
-
-                  <div class="grid gap-6 sm:grid-cols-2">
-                    <div class="space-y-2 text-sm">
-                      <p class="booking-trip-label text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Primary destination</p>
-                      <p class="booking-trip-value text-foreground">{{ item.destination_name }}</p>
-                      {% if item.additional_destinations %}
-                      <p class="booking-trip-meta text-muted-foreground">Also visiting: {{ item.additional_destinations|join:", " }}</p>
+                <article class="booking-trip-card space-y-6 rounded-2xl border border-border bg-background/60 p-5">
+                  <div class="booking-trip-overview">
+                    <div class="booking-trip-visual hidden lg:block" aria-hidden="true">
+                      {% if item.trip_image_url %}
+                      <img src="{{ item.trip_image_url }}" alt="{{ item.trip_title }}" loading="lazy" decoding="async">
+                      {% else %}
+                      <div class="booking-trip-visual-fallback">Image coming soon</div>
                       {% endif %}
                     </div>
-                    <div class="space-y-2 text-sm">
-                      <p class="booking-trip-label text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Lead traveler</p>
-                      {% if contact_details.name %}<p class="text-foreground">{{ contact_details.name }}</p>{% endif %}
-                      {% if contact_details.email or contact_details.phone %}
-                      <p class="booking-trip-meta text-muted-foreground">
-                        {% if contact_details.email %}{{ contact_details.email }}{% endif %}
-                        {% if contact_details.email and contact_details.phone %} · {% endif %}
-                        {% if contact_details.phone %}{{ contact_details.phone }}{% endif %}
-                      </p>
-                      {% endif %}
+                    <div class="booking-trip-overview-content">
+                      <div class="space-y-2">
+                        {% if multi_booking %}
+                        <p class="booking-trip-eyebrow text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Trip {{ forloop.counter }}</p>
+                        {% endif %}
+                        <h3 class="booking-trip-title font-serif text-xl text-foreground">{{ item.trip_title }}</h3>
+                        <div class="booking-trip-meta-row">
+                          <p class="booking-trip-subtitle text-sm text-muted-foreground">Trip date {{ item.travel_date_display }} · {{ item.traveler_summary }}</p>
+                          {% if item.trip_url %}
+                          <a href="{{ item.trip_url }}" class="booking-trip-link inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-primary transition-colors hover:text-primary/80">
+                            View trip
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-3.5 w-3.5">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="m9 5 7 7-7 7" />
+                            </svg>
+                          </a>
+                          {% endif %}
+                        </div>
+                      </div>
+
+                      <div class="space-y-2 text-sm">
+                        <p class="booking-trip-label text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Destinations</p>
+                        <p class="booking-trip-value text-foreground">{{ item.destination_line|default:item.destination_name }}</p>
+                      </div>
                     </div>
                   </div>
 
@@ -129,33 +145,25 @@
                   {% endif %}
 
                   <div class="space-y-4">
-                    <h3 class="booking-trip-label text-sm font-semibold uppercase tracking-[0.25em] text-muted-foreground">Pricing summary ({{ item.pricing.currency }})</h3>
                     <div class="booking-price-card price-summary space-y-2 rounded-2xl border border-border bg-background/80 p-4 text-sm text-foreground">
-                      <div class="flex items-center justify-between">
-                        <span>Base for travelers</span>
-                        <span>{{ item.pricing.base_display }}</span>
+                      {% for row in item.pricing.traveler_breakdown %}
+                      <div class="booking-price-line flex items-center justify-between">
+                        <span>{{ row.label }} ({{ row.count }} x {{ row.unit_display }})</span>
+                        <span>{{ row.line_display }}</span>
                       </div>
-                      <div class="flex items-center justify-between">
+                      {% endfor %}
+                      {% if item.pricing.show_extras_line %}
+                      <div class="booking-price-line booking-price-line--extras flex items-center justify-between">
                         <span>Optional extras</span>
                         <span>{{ item.pricing.extras_display }}</span>
                       </div>
+                      {% endif %}
                       {% if item.pricing.has_discount %}
-                      <div class="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>Original total before rewards</span>
-                        <span>{{ item.pricing.pre_discount_total_display }}</span>
-                      </div>
-                      <div class="flex items-center justify-between text-sm font-semibold text-emerald-600">
+                      <div class="booking-price-line flex items-center justify-between text-sm font-semibold text-emerald-600">
                         <span>Reward savings</span>
                         <span>-{{ item.pricing.discount_display }}</span>
                       </div>
                       {% endif %}
-                      <div class="border-t border-border pt-3 text-base font-semibold">
-                        <div class="flex items-center justify-between">
-                          <span>Total estimate</span>
-                          <span>{{ item.pricing.total_display }}</span>
-                        </div>
-                        <p class="mt-1 text-xs text-muted-foreground">Payable once your travel specialist confirms availability.</p>
-                      </div>
                     </div>
                     {% if item.pricing.has_discount and item.applied_rewards %}
                     <div class="booking-reward-card rounded-2xl bg-emerald-50/80 p-4 text-xs text-emerald-700">
@@ -188,106 +196,60 @@
                 {% endfor %}
               </div>
             </section>
-          </div>
 
-          <div class="booking-side-card booking-totals-card mt-6 space-y-4 rounded-2xl border border-border bg-background/80 px-5 py-5 text-sm text-muted-foreground lg:hidden">
-            <p class="booking-side-eyebrow text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Booking totals ({{ summary_pricing.currency }})</p>
-            <div class="booking-side-values space-y-2 text-foreground">
-              <div class="booking-side-row flex items-center justify-between">
-                <span>Base for all travelers</span>
-                <span>{{ summary_pricing.base_display }}</span>
-              </div>
-              <div class="booking-side-row flex items-center justify-between">
-                <span>Optional extras</span>
-                <span>{{ summary_pricing.extras_display }}</span>
-              </div>
-              {% if summary_pricing.has_discount %}
-              <div class="booking-side-row flex items-center justify-between font-semibold text-emerald-600">
-                <span>Reward savings</span>
-                <span>-{{ summary_pricing.discount_display }}</span>
-              </div>
-              {% endif %}
-              <div class="booking-side-total border-t border-border pt-3 text-base font-semibold">
-                <div class="flex items-center justify-between">
-                  <span>Total estimate</span>
-                  <span>{{ summary_pricing.total_display }}</span>
+            <div class="booking-followup-grid mt-6">
+              <div class="booking-side-card booking-totals-card space-y-4 rounded-2xl border border-border bg-background/80 px-5 py-5 text-sm text-muted-foreground">
+                <p class="booking-side-eyebrow text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Booking totals ({{ summary_pricing.currency }})</p>
+                <div class="booking-side-values space-y-2 text-foreground">
+                  <div class="booking-side-row flex items-center justify-between">
+                    <span>Base for all travelers</span>
+                    <span>{{ summary_pricing.base_display }}</span>
+                  </div>
+                  <div class="booking-side-row flex items-center justify-between">
+                    <span>Optional extras</span>
+                    <span>{{ summary_pricing.extras_display }}</span>
+                  </div>
+                  {% if summary_pricing.has_discount %}
+                  <div class="booking-side-row flex items-center justify-between font-semibold text-emerald-600">
+                    <span>Reward savings</span>
+                    <span>-{{ summary_pricing.discount_display }}</span>
+                  </div>
+                  {% endif %}
+                  <div class="booking-side-total border-t border-border pt-3 text-base font-semibold">
+                    <div class="flex items-center justify-between">
+                      <span>Total estimate</span>
+                      <span>{{ summary_pricing.total_display }}</span>
+                    </div>
+                  </div>
                 </div>
+                {% if summary_pricing.has_discount %}
+                <p class="booking-side-note text-xs text-muted-foreground">Original total before rewards {{ summary_pricing.pre_discount_total_display }}. You saved {{ summary_pricing.discount_display }} via rewards.</p>
+                {% endif %}
+              </div>
+
+              <div class="booking-updates w-full text-sm">
+              <p class="booking-side-eyebrow text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Need updates?</p>
+              <p class="booking-side-copy mt-2 text-muted-foreground">Share your reference <span class="font-mono text-xs text-foreground">{{ primary_reference }}</span>{% if additional_reference_codes %} (plus {% for code in additional_reference_codes %}<span class="font-mono text-xs text-foreground">{{ code }}</span>{% if not forloop.last %}, {% endif %}{% endfor %}){% endif %} when you email or WhatsApp our team.</p>
+              <div class="booking-updates-actions">
+                {% for action in contact_actions %}
+                {% if action.label != "Call" %}
+                <a href="{{ action.href }}" class="contact-button booking-updates-action rounded-full border border-border/60 px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" target="_blank" rel="noopener">
+                  {{ action.label }}
+                </a>
+                {% endif %}
+                {% endfor %}
+              </div>
               </div>
             </div>
-            {% if summary_pricing.has_discount %}
-            <p class="booking-side-note text-xs text-muted-foreground">Original total before rewards {{ summary_pricing.pre_discount_total_display }}. You saved {{ summary_pricing.discount_display }} via rewards.</p>
-            <p class="booking-side-note text-xs">We'll confirm final pricing once we secure availability. Nothing is charged until you approve.</p>
-            {% else %}
-            <p class="booking-side-note text-xs">We'll confirm final pricing once we secure availability. Nothing is charged until you approve.</p>
+
+            {% if contact_details.notes %}
+            <div class="booking-side-card w-full rounded-2xl border border-border/60 bg-background/80 px-5 py-5 text-sm text-muted-foreground">
+              <p class="booking-side-eyebrow text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Notes you shared</p>
+              <p class="booking-side-copy mt-2 whitespace-pre-line text-foreground">{{ contact_details.notes }}</p>
+            </div>
             {% endif %}
           </div>
-
-          <aside class="mt-4 flex flex-col items-stretch gap-4 lg:mt-0 lg:w-72 lg:items-end">
-            <button type="button" class="booking-print-button booking-print-button-desktop order-0 items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary lg:self-end" onclick="window.print()">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 9V4h12v5M6 19h12v-6H6v6Zm12 0V9H6v10" />
-            </svg>
-            <span>Print or save PDF</span>
-          </button>
-          <div class="booking-side-card booking-updates order-3 lg:order-1 w-full rounded-2xl border border-border/60 bg-background/80 px-5 py-5 text-sm">
-            <p class="booking-side-eyebrow text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Need updates?</p>
-            <p class="booking-side-copy mt-2 text-muted-foreground">Share your reference <span class="font-mono text-xs text-foreground">{{ primary_reference }}</span>{% if additional_reference_codes %} (plus {% for code in additional_reference_codes %}<span class="font-mono text-xs text-foreground">{{ code }}</span>{% if not forloop.last %}, {% endif %}{% endfor %}){% endif %} when you call, email, or WhatsApp our team.</p>
-            <div class="mt-4 space-y-2">
-              {% for action in contact_actions %}
-              <a href="{{ action.href }}" class="contact-button block rounded-full border border-border/60 px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" target="_blank" rel="noopener">
-                {{ action.label }}
-              </a>
-              {% endfor %}
-            </div>
-          </div>
-
-          <div class="booking-side-card booking-totals-card order-2 hidden space-y-4 rounded-2xl border border-border bg-background/80 px-5 py-5 text-sm text-muted-foreground lg:block">
-            <p class="booking-side-eyebrow text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Booking totals ({{ summary_pricing.currency }})</p>
-            <div class="booking-side-values space-y-2 text-foreground">
-              <div class="booking-side-row flex items-center justify-between">
-                <span>Base for all travelers</span>
-                <span>{{ summary_pricing.base_display }}</span>
-              </div>
-              <div class="booking-side-row flex items-center justify-between">
-                <span>Optional extras</span>
-                <span>{{ summary_pricing.extras_display }}</span>
-              </div>
-              {% if summary_pricing.has_discount %}
-              <div class="booking-side-row flex items-center justify-between font-semibold text-emerald-600">
-                <span>Reward savings</span>
-                <span>-{{ summary_pricing.discount_display }}</span>
-              </div>
-              {% endif %}
-              <div class="booking-side-total border-t border-border pt-3 text-base font-semibold">
-                <div class="flex items-center justify-between">
-                  <span>Total estimate</span>
-                  <span>{{ summary_pricing.total_display }}</span>
-                </div>
-              </div>
-            </div>
-            {% if summary_pricing.has_discount %}
-            <p class="booking-side-note text-xs text-muted-foreground">Original total before rewards {{ summary_pricing.pre_discount_total_display }}. You saved {{ summary_pricing.discount_display }} via rewards.</p>
-            <p class="booking-side-note text-xs">We'll confirm final pricing once we secure availability. Nothing is charged until you approve.</p>
-            {% else %}
-            <p class="booking-side-note text-xs">We'll confirm final pricing once we secure availability. Nothing is charged until you approve.</p>
-            {% endif %}
-          </div>
-
-          {% if contact_details.notes %}
-          <div class="booking-side-card order-4 lg:order-3 w-full rounded-2xl border border-border/60 bg-background/80 px-5 py-5 text-sm text-muted-foreground">
-            <p class="booking-side-eyebrow text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Notes you shared</p>
-            <p class="booking-side-copy mt-2 whitespace-pre-line text-foreground">{{ contact_details.notes }}</p>
-          </div>
-          {% endif %}
-          <div class="booking-next-steps next-steps order-5 lg:order-4 w-full rounded-2xl border border-dashed border-border px-5 py-5 text-xs text-muted-foreground">
-            <p class="booking-side-eyebrow font-semibold uppercase tracking-[0.25em]">Next steps</p>
-            <ol class="booking-side-list mt-3 space-y-2 text-sm">
-              <li>1. Our team reviews your request and confirms availability.</li>
-              <li>2. We fine-tune the itinerary with you.</li>
-              <li>3. You receive a secure payment link to confirm your booking.</li>
-            </ol>
-          </div>
-        </aside>
+        </div>
       </div>
     </div>
   </div>
@@ -296,21 +258,319 @@
 
 {% block scripts %}
 <style>
-
-.booking-updates {
-  background-color: transparent;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-
-  
-}
-
 .booking-page {
   background-color: #EBE2D3;
 }
 
+.booking-success-card {
+  border-color: rgba(26, 43, 74, 0.16) !important;
+  background: rgba(250, 248, 243, 0.94) !important;
+}
+
+.booking-trip-card,
+.booking-side-card,
+.booking-price-card,
+.booking-extra-card {
+  border-color: rgba(26, 43, 74, 0.14) !important;
+  background: rgba(255, 255, 255, 0.78) !important;
+  box-shadow: none !important;
+}
+
+.booking-updates {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.booking-followup-grid {
+  display: grid;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .booking-followup-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+  }
+
+  .booking-followup-grid .booking-updates {
+    order: 1;
+  }
+
+  .booking-followup-grid .booking-totals-card {
+    order: 2;
+  }
+}
+
+.booking-followup-grid .booking-totals-card {
+  margin-top: 0 !important;
+}
+
+.booking-updates .booking-side-copy {
+  max-width: 44ch;
+}
+
+.booking-updates-actions {
+  margin-top: 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.booking-updates .contact-button {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: auto !important;
+  min-width: 9rem;
+}
+
+@media (max-width: 767.98px) {
+  .booking-updates-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+
+  .booking-updates .contact-button {
+    width: 100% !important;
+    min-width: 0;
+  }
+}
+
+.booking-trip-card {
+  border: 1px solid #D4A574 !important;
+  background: rgba(255, 255, 255, 0.86) !important;
+}
+
+.booking-trip-card > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 1.1rem !important;
+}
+
+.booking-trip-overview {
+  display: block;
+}
+
+.booking-trip-overview-content {
+  min-width: 0;
+}
+
+.booking-trip-visual {
+  width: 8.25rem;
+  height: 8.25rem;
+  border-radius: 0.9rem;
+  overflow: hidden;
+  border: 1px solid rgba(26, 43, 74, 0.18);
+  background: rgba(26, 43, 74, 0.06);
+  flex: 0 0 8.25rem;
+}
+
+.booking-trip-visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.booking-trip-visual-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.58rem;
+  font-weight: 700;
+  color: rgba(26, 43, 74, 0.55);
+}
+
+@media (min-width: 1024px) {
+  .booking-trip-overview {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .booking-trip-overview-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    flex: 1 1 auto;
+  }
+}
+
+.booking-trip-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.booking-trip-meta-row .booking-trip-subtitle {
+  flex: 1 1 auto;
+  min-width: 14rem;
+}
+
+.booking-trip-link {
+  color: #1A2B4A !important;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 0.26em;
+  white-space: nowrap;
+}
+
+.booking-trip-link:hover,
+.booking-trip-link:focus-visible {
+  color: #1A2B4A !important;
+  text-decoration-color: #D4A574;
+}
+
+.booking-trip-card .booking-price-card {
+  border-color: rgba(26, 43, 74, 0.18) !important;
+  background: #FFFFFF !important;
+  color: rgba(26, 43, 74, 0.9) !important;
+}
+
+.booking-trip-card .booking-price-card .booking-price-line {
+  color: rgba(26, 43, 74, 0.9) !important;
+}
+
+.booking-trip-card .booking-price-card .booking-price-line span:last-child {
+  font-weight: 700;
+}
+
+.booking-trip-card .booking-price-card .booking-price-line--extras {
+  border-top: 1px solid rgba(26, 43, 74, 0.15);
+  margin-top: 0.35rem;
+  padding-top: 0.65rem;
+}
+
+.booking-trip-card .booking-price-card .text-muted-foreground {
+  color: rgba(58, 51, 40, 0.72) !important;
+  line-height: 1.35;
+}
+
+.booking-reference-row {
+  align-items: center;
+  line-height: 1.1;
+}
+
+.booking-reference-code {
+  line-height: 1;
+}
+
+.booking-reference-copy {
+  width: 1.65rem;
+  height: 1.65rem;
+  padding: 0;
+  transform: translateY(-1px);
+}
+
+.booking-reference-copy svg {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.booking-totals-card {
+  border-color: rgba(244, 238, 227, 0.2) !important;
+  background: var(--brand-navy, #1A2B4A) !important;
+  color: rgba(244, 238, 227, 0.9) !important;
+}
+
+.booking-totals-card .booking-side-eyebrow {
+  color: #D4A574 !important;
+}
+
+.booking-totals-card .booking-side-values,
+.booking-totals-card .booking-side-row span,
+.booking-totals-card .booking-side-note {
+  color: rgba(244, 238, 227, 0.9) !important;
+}
+
+.booking-totals-card .booking-side-total {
+  border-color: rgba(212, 165, 116, 0.45) !important;
+}
+
+.booking-totals-card .booking-side-total .flex,
+.booking-totals-card .booking-side-total span:first-child {
+  color: rgba(244, 238, 227, 0.94) !important;
+}
+
+.booking-totals-card .booking-side-total span:last-child {
+  color: #D4A574 !important;
+}
+
+.booking-totals-card .booking-side-row.font-semibold.text-emerald-600 span {
+  color: #9AD3AE !important;
+}
+
+.booking-success-title,
+.booking-section-title,
+.booking-trip-title,
+.booking-section-eyebrow,
+.booking-side-eyebrow,
+.booking-trip-link {
+  color: #1A2B4A !important;
+}
+
+.booking-success-intro,
+.booking-section-description,
+.booking-trip-subtitle,
+.booking-trip-meta,
+.booking-side-copy,
+.booking-side-note {
+  color: rgba(58, 51, 40, 0.86) !important;
+}
+
+.booking-details-grid dt {
+  letter-spacing: 0.14em !important;
+  color: #6B8A9E !important;
+}
+
+.booking-print-button {
+  border-color: rgba(26, 43, 74, 0.24) !important;
+  background: #fff !important;
+  color: #1A2B4A !important;
+}
+
+.booking-print-button:hover,
+.booking-print-button:focus-visible {
+  border-color: rgba(201, 169, 97, 0.75) !important;
+  background: rgba(201, 169, 97, 0.14) !important;
+  color: #1A2B4A !important;
+}
+
 .contact-button {
-  background-color: #4e8ea2;
-  color: #EBE2D3;
+  border: 1px solid rgba(26, 43, 74, 0.28) !important;
+  background: #fff !important;
+  color: #1A2B4A !important;
+}
+
+.contact-button:hover,
+.contact-button:focus-visible {
+  border-color: rgba(201, 169, 97, 0.75) !important;
+  background: rgba(201, 169, 97, 0.14) !important;
+  color: #1A2B4A !important;
+}
+
+.booking-updates .contact-button:first-child {
+  background: #1A2B4A !important;
+  border-color: #1A2B4A !important;
+  color: #fff !important;
+}
+
+.booking-updates .contact-button:first-child:hover,
+.booking-updates .contact-button:first-child:focus-visible {
+  background: #22375D !important;
+  border-color: #22375D !important;
+  color: #fff !important;
 }
 
 .booking-print-button-desktop {
@@ -318,19 +578,26 @@
 }
 
 @media print {
-  body {
-    background: #fff !important;
+  @page {
+    size: auto;
+    margin: 10mm;
   }
 
-  nav,
-  header,
-  footer,
-  .site-header,
-  .site-footer {
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    height: auto !important;
+  }
+
+  body > * {
     display: none !important;
   }
 
   main {
+    display: block !important;
+    margin: 0 !important;
     padding: 0 !important;
   }
 
@@ -340,11 +607,15 @@
 
   .booking-success-page {
     display: block !important;
+    margin: 0 !important;
     padding: 0 !important;
+    break-after: avoid-page;
+    page-break-after: avoid;
   }
 
   .booking-success-page .mx-auto {
     max-width: 100% !important;
+    margin: 0 !important;
   }
 
   .booking-success-card {
@@ -353,7 +624,50 @@
     background: #fff !important;
   }
 
-  .booking-success-page .booking-print-button {
+  .booking-success-card,
+  .booking-trip-card,
+  .booking-totals-card,
+  .booking-updates {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Keep print layout aligned with desktop composition */
+  .booking-trip-overview {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 1rem !important;
+  }
+
+  .booking-trip-overview-content {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.85rem !important;
+    flex: 1 1 auto !important;
+  }
+
+  .booking-trip-visual {
+    display: block !important;
+    width: 8.25rem !important;
+    height: 8.25rem !important;
+    flex: 0 0 8.25rem !important;
+  }
+
+  .booking-followup-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) !important;
+  }
+
+  .booking-followup-grid .booking-updates {
+    order: 1 !important;
+  }
+
+  .booking-followup-grid .booking-totals-card {
+    order: 2 !important;
+  }
+
+  .booking-success-page .booking-print-button,
+  .booking-success-page [data-copy-to-clipboard],
+  .booking-success-page [data-copy-feedback] {
     display: none !important;
   }
 }

@@ -1039,6 +1039,7 @@ class Booking(models.Model):
     full_name = models.CharField(max_length=150)
     email = models.EmailField()
     phone = models.CharField(max_length=40)
+    nationality = models.CharField(max_length=100, blank=True, default="")
 
     special_requests = models.TextField(blank=True)
 
@@ -1076,7 +1077,7 @@ class Booking(models.Model):
         if self.pk is None:
             return "PENDING"
         timestamp = self.created_at or timezone.now()
-        return f"SKY{timestamp:%y%m%d}-{self.pk:06d}"
+        return f"KAYA{timestamp:%y%m%d}-{self.pk:06d}"
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None

@@ -10,6 +10,7 @@ from .views import (
     TripListView,
     CartCheckoutView,
     CartQuickAddView,
+    CartEntryUpdateView,
     CartCheckoutSuccessView,
     BookingSuccessView,
     BookingStatusView,
@@ -76,6 +77,11 @@ urlpatterns = [
         "booking/cart/rewards/",
         CartRewardsSummaryView.as_view(),
         name="booking-cart-rewards",
+    ),
+    path(
+        "booking/cart/entry/update/",
+        CartEntryUpdateView.as_view(),
+        name="booking-cart-entry-update",
     ),
     path(
         "booking/cart/rewards/apply/",

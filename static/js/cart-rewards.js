@@ -17,13 +17,17 @@
   const entriesContainer = document.querySelector("[data-cart-entries]");
   const emptyStateEl = document.querySelector("[data-empty-cart-state]");
   const quickAddRoot = document.querySelector("[data-quick-add-root]");
+  const navcart = document.querySelector("[data-navcart]");
+  const toast = navcart?.querySelector("[data-cart-toast]") || document.querySelector("[data-cart-toast]");
+  const toastMsg = toast?.querySelector("[data-cart-toast-message]");
+  const toastIcon = toast?.querySelector("[data-cart-toast-icon]");
   const quickAddUrlTemplate = quickAddRoot?.dataset.quickAddUrlTemplate || "";
   const tripUrlTemplate = quickAddRoot?.dataset.tripUrlTemplate || "";
   const checkoutUrl = quickAddRoot?.dataset.checkoutUrl || "";
+  const entryUpdateUrl = root?.dataset.entryUpdateUrl || "";
   const progressContainer = root.querySelector("[data-reward-progress-container]");
   const phaseList = root.querySelector("[data-reward-phase-list]");
   const alertBox = root.querySelector("[data-rewards-alert]");
-  const badgeEl = root.querySelector("[data-reward-badge]");
   const mobileSummary = document.querySelector("[data-mobile-reward-summary]");
   const mobileProgressContainer = document.querySelector("[data-mobile-progress]");
   const mobileCountEl = document.querySelector("[data-mobile-reward-count]");
@@ -39,10 +43,13 @@
   const summaryPreEl = document.querySelector("[data-summary-pre-discount]");
   const summaryDiscountEl = document.querySelector("[data-summary-discount]");
   const summaryTotalEl = document.querySelector("[data-summary-total]");
+  const checkoutForm = document.getElementById("cart-checkout-form");
 
   const APPLY_CLASS = "inline-flex items-center gap-1 rounded-full border border-primary/40 bg-background px-3 py-1 text-xs font-semibold text-primary transition hover:bg-primary/10";
   const LOCKED_CLASS = "inline-flex items-center gap-1 rounded-full border border-dashed border-muted px-3 py-1 text-xs font-semibold text-muted-foreground";
   const REMOVE_CLASS = "inline-flex items-center gap-1 rounded-full border border-destructive/40 px-3 py-1 text-xs font-semibold text-destructive transition hover:bg-destructive/10";
+  const QUICK_ADD_GAP_PX = 8;
+  const QUICK_ADD_VIEWPORT_PADDING_PX = 12;
   let activeQuickAddContainer = null;
 
   function isoLocalDateString(date) {
@@ -159,6 +166,9 @@
       return;
     }
     popover.classList.add("hidden");
+    popover.classList.remove("quick-add-popover--above", "quick-add-popover--below");
+    popover.style.maxHeight = "";
+    popover.style.overflowY = "";
     popover.dataset.state = "closed";
     if (trigger) {
       trigger.setAttribute("aria-expanded", "false");
@@ -182,6 +192,38 @@
     });
   }
 
+  function placeQuickAddPopover(container) {
+    const { popover, trigger } = getQuickAddElements(container);
+    if (!popover || !trigger || popover.dataset.state !== "open") {
+      return;
+    }
+
+    popover.classList.remove("quick-add-popover--above", "quick-add-popover--below");
+    popover.style.maxHeight = "";
+    popover.style.overflowY = "";
+
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+    const triggerRect = trigger.getBoundingClientRect();
+    const popoverRect = popover.getBoundingClientRect();
+
+    const spaceAbove = Math.max(0, triggerRect.top - QUICK_ADD_VIEWPORT_PADDING_PX);
+    const spaceBelow = Math.max(0, viewportHeight - triggerRect.bottom - QUICK_ADD_VIEWPORT_PADDING_PX);
+    const requiredHeight = popoverRect.height + QUICK_ADD_GAP_PX;
+
+    const placeAbove = spaceBelow < requiredHeight && spaceAbove > spaceBelow;
+    const availableSpace = placeAbove ? spaceAbove : spaceBelow;
+
+    popover.classList.add(placeAbove ? "quick-add-popover--above" : "quick-add-popover--below");
+
+    if (availableSpace > 0 && availableSpace < requiredHeight) {
+      const maxHeight = Math.floor(availableSpace - QUICK_ADD_GAP_PX);
+      if (maxHeight > 0) {
+        popover.style.maxHeight = `${maxHeight}px`;
+        popover.style.overflowY = "auto";
+      }
+    }
+  }
+
   function openQuickAddPopover(container) {
     const { popover, trigger } = getQuickAddElements(container);
     if (!popover) {
@@ -203,11 +245,12 @@
     setQuickAddCardActive(container, true);
     activeQuickAddContainer = container;
     const { dateInput } = getQuickAddElements(container);
-    if (dateInput) {
-      window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
+      placeQuickAddPopover(container);
+      if (dateInput) {
         dateInput.focus();
-      });
-    }
+      }
+    });
   }
 
   function stepTravelerCount(container, direction, target) {
@@ -345,6 +388,39 @@
   function showAlert(message, isError = true) {
     applyAlertState(alertBox, message, isError);
     applyAlertState(mobileAlertBox, message, isError);
+  }
+
+  function showToast(message, state = "added", icon = "✓") {
+    const content = (message || "").trim();
+    if (!content || !toast || !toastMsg) {
+      return false;
+    }
+    window.clearTimeout(toast._hideTimer);
+    toastMsg.textContent = content;
+    if (toastIcon) {
+      toastIcon.textContent = icon || "";
+    }
+    toast.dataset.state = state;
+    if (navcart) {
+      navcart.dataset.toast = "show";
+    }
+    toast._hideTimer = window.setTimeout(() => {
+      toast.dataset.state = "";
+      if (toastIcon) {
+        toastIcon.textContent = "";
+      }
+      if (navcart) {
+        delete navcart.dataset.toast;
+      }
+    }, 2200);
+    return true;
+  }
+
+  function showNonRewardFeedback(message, isError = true) {
+    if (!isError && showToast(message, "added", "✓")) {
+      return;
+    }
+    showAlert(message, isError);
   }
 
   function clearAlert() {
@@ -1084,6 +1160,87 @@
     return "";
   }
 
+  function renderEntryTravelEditor(entry) {
+    if (!entry || entry.id === undefined || entry.id === null) {
+      return "";
+    }
+
+    const idSuffix = String(entry.id);
+    const dateId = `checkout-entry-date-${idSuffix}`;
+    const adultsId = `checkout-entry-adults-${idSuffix}`;
+    const childrenId = `checkout-entry-children-${idSuffix}`;
+    const infantsId = `checkout-entry-infants-${idSuffix}`;
+    const travelDateValue = entry.travel_date || todayIsoDate();
+    const adultsValue = clampTravelerCount(entry.adult_count, 1, 16);
+    const childrenValue = clampTravelerCount(entry.child_count, 0, 12);
+    const infantsValue = clampTravelerCount(entry.infant_count, 0, 6);
+
+    return `
+      <div class="relative" data-quick-add-container>
+        <button
+          type="button"
+          class="trip-action-edit inline-flex items-center gap-1 rounded-full px-3 py-1 font-semibold transition"
+          data-quick-add-trigger
+          aria-haspopup="dialog"
+          aria-expanded="false"
+        >
+          Adjust travel details
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8.25h.008v.008H12V8.25Zm0 3.75h.008v.008H12V12Zm0 3.75h.008v.008H12v-.008ZM4.5 6.75A2.25 2.25 0 0 1 6.75 4.5h10.5A2.25 2.25 0 0 1 19.5 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 17.25V6.75Z" />
+          </svg>
+        </button>
+        <div
+          class="quick-add-popover absolute left-0 z-30 mt-2 hidden w-64 rounded-xl border border-border bg-card p-4 text-left shadow-subtle sm:left-auto sm:right-0"
+          data-quick-add-popover
+          role="dialog"
+          aria-label="Adjust travel details"
+          data-state="closed"
+        >
+          <div class="space-y-3">
+            <div class="space-y-1">
+              <label for="${escapeHtml(dateId)}" class="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Travel date</label>
+              <input
+                id="${escapeHtml(dateId)}"
+                type="date"
+                name="date"
+                value="${escapeHtml(travelDateValue)}"
+                class="w-full rounded-md border border-border/70 bg-background px-2.5 py-2 text-xs font-medium text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                data-quick-add-date
+              />
+            </div>
+            <div class="space-y-2">
+              <p class="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Travellers</p>
+              <div class="space-y-2">
+                <div class="flex items-center gap-2">
+                  <label for="${escapeHtml(adultsId)}" class="w-14 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Adults</label>
+                  <button type="button" class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-quick-add-step="down" data-quick-add-target="adults" aria-label="Decrease adults">-</button>
+                  <input id="${escapeHtml(adultsId)}" type="number" name="adults" min="1" max="16" value="${escapeHtml(adultsValue)}" class="h-8 w-12 rounded-md border border-border/70 bg-background text-center text-xs font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-quick-add-input="adults" />
+                  <button type="button" class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-quick-add-step="up" data-quick-add-target="adults" aria-label="Increase adults">+</button>
+                </div>
+                <div class="flex items-center gap-2">
+                  <label for="${escapeHtml(childrenId)}" class="w-14 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Children</label>
+                  <button type="button" class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-quick-add-step="down" data-quick-add-target="children" aria-label="Decrease children">-</button>
+                  <input id="${escapeHtml(childrenId)}" type="number" name="children" min="0" max="12" value="${escapeHtml(childrenValue)}" class="h-8 w-12 rounded-md border border-border/70 bg-background text-center text-xs font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-quick-add-input="children" />
+                  <button type="button" class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-quick-add-step="up" data-quick-add-target="children" aria-label="Increase children">+</button>
+                </div>
+                <div class="flex items-center gap-2">
+                  <label for="${escapeHtml(infantsId)}" class="w-14 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Infants</label>
+                  <button type="button" class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-quick-add-step="down" data-quick-add-target="infants" aria-label="Decrease infants">-</button>
+                  <input id="${escapeHtml(infantsId)}" type="number" name="infants" min="0" max="6" value="${escapeHtml(infantsValue)}" class="h-8 w-12 rounded-md border border-border/70 bg-background text-center text-xs font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-quick-add-input="infants" />
+                  <button type="button" class="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-xs font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-quick-add-step="up" data-quick-add-target="infants" aria-label="Increase infants">+</button>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center justify-end gap-2">
+              <button type="button" class="inline-flex items-center rounded-md border border-border/60 px-2.5 py-1 text-[0.65rem] font-semibold text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-quick-add-cancel>Cancel</button>
+              <button type="button" class="inline-flex items-center rounded-md bg-primary px-2.5 py-1 text-[0.65rem] font-semibold text-primary-foreground transition hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-quick-add-confirm data-entry-id="${escapeHtml(entry.id)}">Update</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   function renderEntryCard(entry, summary, config) {
     const rewards = summary.rewards || {};
     const currency = entry.currency || config.currency || "";
@@ -1091,20 +1248,26 @@
     const travelDate = entry.travel_date_display
       ? `<li><span class="font-medium text-foreground">Trip date:</span> ${escapeHtml(entry.travel_date_display)}</li>`
       : "";
+    const optionLine = entry.option_label
+      ? `<li><span class="font-medium text-foreground">Experience:</span> ${escapeHtml(entry.option_label)}</li>`
+      : "";
     const travelerLabel = `<li><span class="font-medium text-foreground">Travelers:</span> ${escapeHtml(
       entry.traveler_label || ""
     )}</li>`;
+    const adultsLabel = Number(entry.adult_count || 0);
+    const adultsTotal = entry.adult_total_display || "0.00";
+    const childCount = Number(entry.child_count || 0);
+    const childTotal = entry.child_total_display || "0.00";
+    const hasChildPrice = !!entry.has_child_price;
+    const childPricing = childCount
+      ? `<p>
+           <span class="font-medium text-foreground">Children (${escapeHtml(childCount)})</span>
+           · ${escapeHtml(currency)} ${escapeHtml(childTotal)}
+           ${!hasChildPrice ? '<span class="text-muted-foreground">(same as adult rate)</span>' : ""}
+         </p>`
+      : "";
 
-    const editLink =
-      entry.trip_slug && config.tripUrlTemplate
-        ? `<a href="${buildTripUrl(config.tripUrlTemplate, entry.trip_slug || "", "#booking-form")}"
-               class="trip-action-edit inline-flex items-center gap-1 rounded-full px-3 py-1 font-semibold transition">
-             Edit trip
-             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
-               <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 19.5 10.5M16.5 7.5 8.25 15.75 6 18l2.25-.75L16.5 9" />
-             </svg>
-           </a>`
-        : "";
+    const editControl = renderEntryTravelEditor(entry);
 
     const removeForm =
       config.checkoutUrl && config.csrfToken
@@ -1163,10 +1326,18 @@
           <h2 class="checkout-trip-title font-serif text-xl text-foreground">${tripTitle}</h2>
           <ul class="checkout-trip-meta text-sm text-muted-foreground">
             ${travelDate}
+            ${optionLine}
             ${travelerLabel}
           </ul>
+          <div class="checkout-trip-pricing text-xs text-muted-foreground">
+            <p>
+              <span class="font-medium text-foreground">Adults (${escapeHtml(adultsLabel)})</span>
+              · ${escapeHtml(currency)} ${escapeHtml(adultsTotal)}
+            </p>
+            ${childPricing}
+          </div>
           <div class="checkout-trip-actions flex flex-wrap gap-3 text-sm">
-            ${editLink || ""}
+            ${editControl || ""}
             ${removeForm || ""}
           </div>
           <div class="${rewardBoxClasses.join(" ")}" data-entry-reward-box>
@@ -1209,7 +1380,7 @@
 
   function renderQuickAddServices(services) {
     if (!Array.isArray(services) || services.length === 0) {
-      return `<p class="quick-add-empty mt-4 text-xs text-muted-foreground" data-quick-add-services-empty>No services available to add right now.</p>`;
+      return "";
     }
     const items = services
       .map(
@@ -1422,10 +1593,21 @@
     quickAddRoot.querySelectorAll("[data-reward-trip-card].quick-add-active").forEach((card) => {
       card.classList.remove("quick-add-active");
     });
+    const servicesBlock = quickAddRoot.querySelector("[data-quick-add-services]");
+    const recommendationsBlock = quickAddRoot.querySelector("[data-quick-add-recommendations]");
     const servicesBody = quickAddRoot.querySelector("[data-quick-add-services-body]");
     const recommendationsBody = quickAddRoot.querySelector("[data-quick-add-recommendations-body]");
     if (servicesBody) {
-      servicesBody.innerHTML = renderQuickAddServices(payload.services || []);
+      const services = Array.isArray(payload.services) ? payload.services : [];
+      servicesBody.innerHTML = renderQuickAddServices(services);
+      if (servicesBlock) {
+        const hasServices = services.length > 0;
+        servicesBlock.classList.toggle("hidden", !hasServices);
+        servicesBlock.hidden = !hasServices;
+        if (recommendationsBlock) {
+          recommendationsBlock.classList.toggle("quick-add-recommendations-block--standalone", !hasServices);
+        }
+      }
     }
     if (recommendationsBody) {
       recommendationsBody.innerHTML = renderQuickAddRecommendations(payload.recommendations || []);
@@ -1437,6 +1619,8 @@
     const entryEl = entriesContainer.querySelector(`[data-entry-id="${entry.id}"]`);
     if (!entryEl) return;
 
+    const metaEl = entryEl.querySelector(".checkout-trip-meta");
+    const pricingEl = entryEl.querySelector(".checkout-trip-pricing");
     const totalEl = entryEl.querySelector("[data-entry-total]");
     const originalEl = entryEl.querySelector("[data-entry-original]");
     const pillEl = entryEl.querySelector("[data-entry-discount-pill]");
@@ -1446,6 +1630,53 @@
     const rewardBox = entryEl.querySelector("[data-entry-reward-box]");
 
     const currency = entry.currency || currentSummary.currency || root.dataset.currency || "";
+
+    if (metaEl) {
+      const travelDate = entry.travel_date_display
+        ? `<li><span class="font-medium text-foreground">Trip date:</span> ${escapeHtml(entry.travel_date_display)}</li>`
+        : "";
+      const optionLine = entry.option_label
+        ? `<li><span class="font-medium text-foreground">Experience:</span> ${escapeHtml(entry.option_label)}</li>`
+        : "";
+      const travelerLine = `<li><span class="font-medium text-foreground">Travelers:</span> ${escapeHtml(
+        entry.traveler_label || ""
+      )}</li>`;
+      metaEl.innerHTML = `${travelDate}${optionLine}${travelerLine}`;
+    }
+
+    if (pricingEl) {
+      const adultsLabel = Number(entry.adult_count || 0);
+      const adultsTotal = entry.adult_total_display || "0.00";
+      const childCount = Number(entry.child_count || 0);
+      const childTotal = entry.child_total_display || "0.00";
+      const childPricing = childCount
+        ? `<p>
+             <span class="font-medium text-foreground">Children (${escapeHtml(childCount)})</span>
+             · ${escapeHtml(currency)} ${escapeHtml(childTotal)}
+             ${entry.has_child_price ? "" : '<span class="text-muted-foreground">(same as adult rate)</span>'}
+           </p>`
+        : "";
+      pricingEl.innerHTML = `
+        <p>
+          <span class="font-medium text-foreground">Adults (${escapeHtml(adultsLabel)})</span>
+          · ${escapeHtml(currency)} ${escapeHtml(adultsTotal)}
+        </p>
+        ${childPricing}
+      `;
+    }
+
+    const dateInput = entryEl.querySelector("[data-quick-add-date]");
+    if (dateInput) {
+      dateInput.value = entry.travel_date || todayIsoDate();
+      dateInput.min = todayIsoDate();
+    }
+    const adultsInput = entryEl.querySelector('[data-quick-add-input="adults"]');
+    if (adultsInput) adultsInput.value = String(clampTravelerCount(entry.adult_count, 1, 16));
+    const childrenInput = entryEl.querySelector('[data-quick-add-input="children"]');
+    if (childrenInput) childrenInput.value = String(clampTravelerCount(entry.child_count, 0, 12));
+    const infantsInput = entryEl.querySelector('[data-quick-add-input="infants"]');
+    if (infantsInput) infantsInput.value = String(clampTravelerCount(entry.infant_count, 0, 6));
+
     setText(totalEl, `${currency} ${entry.grand_total_display}`);
 
     if (originalEl) {
@@ -1516,7 +1747,6 @@
     const existingIds = new Set(
       Array.from(entriesContainer.querySelectorAll("[data-entry-id]")).map((node) => node.dataset.entryId)
     );
-    const summaryIds = new Set(entries.map((entry) => String(entry.id)));
     const shouldRebuild =
       entries.length !== existingIds.size ||
       entries.some((entry) => !existingIds.has(String(entry.id)));
@@ -1576,15 +1806,6 @@
     }
     if (mobileProgressContainer) {
       mobileProgressContainer.innerHTML = progressHtml;
-    }
-    if (badgeEl) {
-      if (!totalPhases) {
-        badgeEl.textContent = "No rewards yet";
-      } else if (unlockedCount) {
-        badgeEl.textContent = `${unlockedCount}/${totalPhases} unlocked`;
-      } else {
-        badgeEl.textContent = `${totalPhases} available`;
-      }
     }
     if (mobileCountEl) {
       if (!totalPhases) {
@@ -1707,6 +1928,42 @@
   async function handleQuickAdd(button, options = {}) {
     if (!quickAddRoot) return;
     const opts = options || {};
+    const entryId = button?.dataset?.entryId || opts.entryId || "";
+    if (entryId) {
+      if (!entryUpdateUrl) return;
+
+      const relatedTrigger =
+        opts.relatedTrigger && opts.relatedTrigger !== button ? opts.relatedTrigger : null;
+      toggleBusy(button, true);
+      if (relatedTrigger) {
+        toggleBusy(relatedTrigger, true);
+      }
+      clearAlert();
+      try {
+        const data = await postJson(entryUpdateUrl, {
+          entry_id: entryId,
+          date: opts.date || "",
+          adults: opts.adults || "",
+          children: opts.children || "0",
+          infants: opts.infants || "0",
+        });
+        if (data && data.cart_summary) {
+          currentSummary = data.cart_summary;
+          updateSummaryScript(currentSummary);
+          updateRewardsUI(currentSummary);
+        }
+        showNonRewardFeedback((data && data.toast_message) || "Travel details updated.", false);
+      } catch (error) {
+        showNonRewardFeedback(error.message || "Unable to update travel details right now.");
+      } finally {
+        toggleBusy(button, false);
+        if (relatedTrigger) {
+          toggleBusy(relatedTrigger, false);
+        }
+      }
+      return;
+    }
+
     const slug = button?.dataset?.tripSlug || opts.slug;
     if (!slug) return;
     if (!quickAddUrlTemplate) return;
@@ -1766,10 +2023,10 @@
         highlightEntryByTripId(data.trip_id);
       }
       if (data && data.toast_message) {
-        showAlert(data.toast_message, false);
+        showNonRewardFeedback(data.toast_message, false);
       }
     } catch (error) {
-      showAlert(error.message || "Unable to update your booking list right now.");
+      showNonRewardFeedback(error.message || "Unable to update your booking list right now.");
     } finally {
       toggleBusy(button, false);
       if (relatedTrigger) {
@@ -1930,6 +2187,74 @@
       }
     });
   });
+
+  window.addEventListener("resize", () => {
+    if (activeQuickAddContainer) {
+      placeQuickAddPopover(activeQuickAddContainer);
+    }
+  });
+
+  if (checkoutForm) {
+    let firstInvalidField = null;
+    let invalidFocusQueued = false;
+
+    const isFormControl = (element) =>
+      element instanceof HTMLInputElement
+      || element instanceof HTMLTextAreaElement
+      || element instanceof HTMLSelectElement;
+
+    const markInvalid = (field) => {
+      field.classList.add("checkout-invalid-field");
+      field.setAttribute("aria-invalid", "true");
+    };
+
+    const clearInvalid = (field) => {
+      if (!isFormControl(field)) return;
+      if (field.checkValidity()) {
+        field.classList.remove("checkout-invalid-field");
+        field.removeAttribute("aria-invalid");
+      }
+    };
+
+    const focusFirstInvalid = () => {
+      invalidFocusQueued = false;
+      const target = firstInvalidField;
+      firstInvalidField = null;
+      if (!isFormControl(target)) return;
+      target.focus({ preventScroll: true });
+      target.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+        inline: "nearest",
+      });
+    };
+
+    checkoutForm.addEventListener(
+      "invalid",
+      (event) => {
+        const target = event.target;
+        if (!isFormControl(target)) return;
+        event.preventDefault();
+        markInvalid(target);
+        if (!firstInvalidField) {
+          firstInvalidField = target;
+        }
+        if (!invalidFocusQueued) {
+          invalidFocusQueued = true;
+          window.requestAnimationFrame(focusFirstInvalid);
+        }
+      },
+      true
+    );
+
+    checkoutForm.addEventListener("input", (event) => {
+      clearInvalid(event.target);
+    });
+
+    checkoutForm.addEventListener("change", (event) => {
+      clearInvalid(event.target);
+    });
+  }
 
   updateRewardsUI(currentSummary);
 })();

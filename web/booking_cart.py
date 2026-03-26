@@ -111,6 +111,7 @@ def update_contact(
     name: str | None = None,
     email: str | None = None,
     phone: str | None = None,
+    nationality: str | None = None,
     notes: str | None = None,
 ) -> Dict[str, Any]:
     cart = get_cart(session)
@@ -121,6 +122,8 @@ def update_contact(
         contact["email"] = email.strip()
     if phone is not None:
         contact["phone"] = phone.strip()
+    if nationality is not None:
+        contact["nationality"] = nationality.strip()
     if notes is not None:
         contact["notes"] = notes.strip()
     save_cart(session, cart)
@@ -532,6 +535,7 @@ def _serialize_summary_entry(entry: Dict[str, Any]) -> Dict[str, Any]:
         "id": entry.get("id"),
         "trip_id": entry.get("trip_id"),
         "trip_title": entry.get("trip_title", ""),
+        "travel_date": travel_date.isoformat() if travel_date else "",
         "travel_date_display": travel_date_display,
         "traveler_label": traveler_label,
         "currency": currency,
@@ -544,6 +548,7 @@ def _serialize_summary_entry(entry: Dict[str, Any]) -> Dict[str, Any]:
         "discount_total_display": _format_money_cents(discount_cents) if discount_cents else "0.00",
         "adult_count": adults,
         "child_count": children,
+        "infant_count": infants,
         "adult_price_display": _format_money_cents(adult_price_cents) if adult_price_cents else "",
         "child_price_display": _format_money_cents(child_price_cents) if has_child_price else "",
         "adult_total_display": _format_money_cents(adult_total_cents) if adult_total_cents else "",
@@ -865,7 +870,7 @@ def add_entry(session, entry: Dict[str, Any], *, contact: Dict[str, str] | None 
         update_payload = {
             key: value
             for key, value in contact.items()
-            if key in {"name", "email", "phone"}
+            if key in {"name", "email", "phone", "nationality"}
             and isinstance(value, str)
             and value.strip()
         }
@@ -874,6 +879,42 @@ def add_entry(session, entry: Dict[str, Any], *, contact: Dict[str, str] | None 
             for key, value in update_payload.items():
                 contact_values[key] = value.strip()
     cart.setdefault("entries", []).append(entry)
+    save_cart(session, cart)
+    return cart
+
+
+def update_entry_details(
+    session,
+    *,
+    entry_id: str,
+    trip: Trip,
+    cleaned_data: Dict[str, Any],
+) -> Dict[str, Any] | None:
+    cart = get_cart(session)
+    entries = cart.get("entries", [])
+    if not isinstance(entries, list):
+        return None
+
+    target_index = None
+    target_entry: Dict[str, Any] | None = None
+    for index, entry in enumerate(entries):
+        if not isinstance(entry, dict):
+            continue
+        if str(entry.get("id", "")) == str(entry_id):
+            target_index = index
+            target_entry = entry
+            break
+
+    if target_index is None or target_entry is None:
+        return None
+
+    updated_entry = build_cart_entry(trip, cleaned_data)
+    updated_entry["id"] = target_entry.get("id", updated_entry.get("id"))
+    if target_entry.get("created_at"):
+        updated_entry["created_at"] = target_entry.get("created_at")
+
+    entries[target_index] = updated_entry
+    cart["entries"] = entries
     save_cart(session, cart)
     return cart
 

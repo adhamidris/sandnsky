@@ -1,8 +1,13 @@
 {% load static %}
 <section id="journal" class="blogs" aria-labelledby="blogs-title">
   <div class="wrap">
-    <h2 id="blogs-title">{{ blog_section.title }}</h2>
-    <p class="sub">{{ blog_section.subtitle }}</p>
+    <div class="home-section-head">
+      <span class="home-section-eyebrow">{{ blog_section.eyebrow|default:"Journal" }}</span>
+      <h2 id="blogs-title" class="home-section-title">{{ blog_section.title }}</h2>
+      {% if blog_section.subtitle %}
+      <p class="home-section-subtitle">{{ blog_section.subtitle }}</p>
+      {% endif %}
+    </div>
 
     {% if blog_section.items %}
       <div class="blog-grid">

@@ -131,6 +131,7 @@ class BookingSubmissionTests(TestCase):
                 "name": "Jordan Traveler",
                 "email": "jordan@example.com",
                 "phone": "+20123456789",
+                "nationality": "Egyptian",
                 "message": "Please arrange sunset viewing.",
             },
             follow=True,
@@ -155,6 +156,7 @@ class BookingSubmissionTests(TestCase):
         self.assertEqual(booking.full_name, "Jordan Traveler")
         self.assertEqual(booking.email, "jordan@example.com")
         self.assertEqual(booking.phone, "+20123456789")
+        self.assertEqual(booking.nationality, "Egyptian")
         self.assertEqual(booking.special_requests, "Please arrange sunset viewing.")
 
         expected_base = (Decimal("150.00") * 2) + Decimal("90.00")
@@ -189,6 +191,7 @@ class BookingSubmissionTests(TestCase):
             full_name="Sam",
             email="sam@example.com",
             phone="123",
+            nationality="Egyptian",
             special_requests="",
             base_subtotal=Decimal("150.00"),
             extras_subtotal=Decimal("0.00"),
@@ -199,6 +202,57 @@ class BookingSubmissionTests(TestCase):
         response = self.client.get(f"{url}?ref={token}")
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, booking.reference_code)
+
+    def test_checkout_entry_update_endpoint_updates_travel_details(self):
+        session = self.client.session
+        original_date = date.today() + timedelta(days=15)
+        entry = build_cart_entry(
+            self.trip,
+            {
+                "date": original_date,
+                "adults": 2,
+                "children": 0,
+                "infants": 0,
+                "extras": [],
+                "message": "",
+            },
+        )
+        add_entry(session, entry)
+        session.save()
+
+        updated_date = date.today() + timedelta(days=35)
+        response = self.client.post(
+            reverse("web:booking-cart-entry-update"),
+            data=json.dumps(
+                {
+                    "entry_id": entry["id"],
+                    "date": updated_date.isoformat(),
+                    "adults": 3,
+                    "children": 2,
+                    "infants": 1,
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertIn("cart_summary", payload)
+        summary_entry = payload["cart_summary"]["entries"][0]
+        self.assertEqual(summary_entry["travel_date"], updated_date.isoformat())
+        self.assertEqual(summary_entry["adult_count"], 3)
+        self.assertEqual(summary_entry["child_count"], 2)
+        self.assertEqual(summary_entry["infant_count"], 1)
+        self.assertEqual(summary_entry["grand_total_cents"], 63000)
+
+        cart = get_cart(self.client.session)
+        self.assertEqual(len(cart["entries"]), 1)
+        updated_entry = cart["entries"][0]
+        self.assertEqual(updated_entry["id"], entry["id"])
+        self.assertEqual(updated_entry["travel_date"], updated_date.isoformat())
+        self.assertEqual(updated_entry["adults"], 3)
+        self.assertEqual(updated_entry["children"], 2)
+        self.assertEqual(updated_entry["infants"], 1)
 
     def test_cart_checkout_uses_single_reference_for_multiple_bookings(self):
         travel_date_one = date.today() + timedelta(days=45)
@@ -239,6 +293,7 @@ class BookingSubmissionTests(TestCase):
             "name": "Alex Traveler",
             "email": "alex@example.com",
             "phone": "+20123456789",
+            "nationality": "Egyptian",
             "notes": "Looking forward to the journeys.",
         }
 
@@ -261,10 +316,7 @@ class BookingSubmissionTests(TestCase):
         self.assertEqual(reference_codes, {shared_reference})
 
         token = signing.dumps(
-            {
-                "bookings": [booking.pk for booking in bookings],
-                "contact": contact,
-            },
+            shared_reference,
             salt=BOOKING_CART_REFERENCE_SALT,
         )
 
@@ -485,6 +537,7 @@ class CartRewardsCheckoutTests(RewardTestSetupMixin, TestCase):
             "name": "Taylor Traveler",
             "email": "taylor@example.com",
             "phone": "+201001234567",
+            "nationality": "Egyptian",
             "notes": "",
         }
 
@@ -533,6 +586,7 @@ class BookingConfirmationEmailTests(TestCase):
             "full_name": "Alex Voyager",
             "email": "alex@example.com",
             "phone": "+201201234567",
+            "nationality": "Egyptian",
             "special_requests": "",
             "base_subtotal": Decimal("900.00"),
             "extras_subtotal": Decimal("0.00"),

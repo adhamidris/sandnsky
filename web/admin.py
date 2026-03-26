@@ -658,6 +658,7 @@ class BookingAdmin(admin.ModelAdmin):
         "full_name",
         "email",
         "phone",
+        "nationality",
         "adults",
         "children",
         "infants",
@@ -666,7 +667,7 @@ class BookingAdmin(admin.ModelAdmin):
         "created_at",
     )
     list_filter = ("trip", "travel_date", "status", "created_at")
-    search_fields = ("full_name", "email", "phone", "trip__title")
+    search_fields = ("full_name", "email", "phone", "nationality", "trip__title")
     date_hierarchy = "created_at"
     ordering = ("-created_at",)
 

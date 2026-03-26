@@ -182,7 +182,7 @@
         {% endif %}
       </div>
 
-      <div class="grid gap-4 sm:grid-cols-2">
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <div class="space-y-2">
           <label for="{{ form.email.id_for_label }}" class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{{ form.email.label }}</label>
           {{ form.email }}
@@ -195,6 +195,13 @@
           {{ form.phone }}
           {% if form.phone.errors %}
           <p class="text-sm text-red-600">{{ form.phone.errors|striptags }}</p>
+          {% endif %}
+        </div>
+        <div class="space-y-2">
+          <label for="{{ form.nationality.id_for_label }}" class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{{ form.nationality.label }}</label>
+          {{ form.nationality }}
+          {% if form.nationality.errors %}
+          <p class="text-sm text-red-600">{{ form.nationality.errors|striptags }}</p>
           {% endif %}
         </div>
       </div>

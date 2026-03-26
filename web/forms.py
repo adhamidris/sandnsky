@@ -30,6 +30,7 @@ class BookingRequestForm(forms.Form):
     name = forms.CharField(label="Full Name", max_length=100)
     email = forms.EmailField(label="Email")
     phone = forms.CharField(label="Phone Number", max_length=30)
+    nationality = forms.CharField(label="Nationality", max_length=100, required=False)
     message = forms.CharField(
         label="Special Requests",
         required=False,
@@ -145,6 +146,7 @@ class BookingRequestForm(forms.Form):
                 "name",
                 "email",
                 "phone",
+                "nationality",
                 "message",
             ]
         )
@@ -178,6 +180,7 @@ class BookingCartCheckoutForm(forms.Form):
     name = forms.CharField(label="Full Name", max_length=150)
     email = forms.EmailField(label="Email")
     phone = forms.CharField(label="Phone Number", max_length=40)
+    nationality = forms.CharField(label="Nationality", max_length=100, required=False)
     notes = forms.CharField(
         label="Additional Notes",
         required=False,

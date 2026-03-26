@@ -45,6 +45,7 @@ from .booking_cart import (
     summarize_cart,
     apply_reward_selection,
     remove_reward_selection,
+    update_entry_details,
     update_contact,
 )
 from .models import (
@@ -173,6 +174,21 @@ def _all_destination_names(trip):
     return names
 
 
+def _human_join_with_ampersand(items):
+    cleaned = []
+    for item in items:
+        value = (item or "").strip()
+        if value and value not in cleaned:
+            cleaned.append(value)
+    if not cleaned:
+        return ""
+    if len(cleaned) == 1:
+        return cleaned[0]
+    if len(cleaned) == 2:
+        return f"{cleaned[0]} & {cleaned[1]}"
+    return f"{', '.join(cleaned[:-1])} & {cleaned[-1]}"
+
+
 def _destination_hero_context(destination):
     if not destination:
         return None
@@ -272,15 +288,44 @@ def load_cart_bookings_from_token(token, *, max_age=BOOKING_CART_REFERENCE_MAX_A
         raise Http404("Booking reference invalid.")
 
     contact_info = {}
-    if isinstance(payload, dict):
-        booking_ids = payload.get("bookings", [])
-        raw_contact = payload.get("contact", {})
-        if isinstance(raw_contact, dict):
-            contact_info = {
-                key: value for key, value in raw_contact.items() if isinstance(value, str)
-            }
+    booking_ids = []
+    reference_code = ""
+
+    if isinstance(payload, str):
+        reference_code = payload.strip()
+    elif isinstance(payload, dict):
+        raw_reference = payload.get("reference", "")
+        if isinstance(raw_reference, str):
+            reference_code = raw_reference.strip()
+
+        # Backward-compatible support for legacy payloads:
+        # {"bookings": [...], "contact": {...}}
+        if not reference_code:
+            booking_ids = payload.get("bookings", [])
+            raw_contact = payload.get("contact", {})
+            if isinstance(raw_contact, dict):
+                contact_info = {
+                    key: value
+                    for key, value in raw_contact.items()
+                    if isinstance(value, str)
+                }
     else:
         booking_ids = payload
+
+    if reference_code:
+        bookings = list(
+            Booking.objects.select_related("trip", "trip__destination")
+            .prefetch_related(
+                "trip__additional_destinations",
+                "booking_extras__extra",
+                "rewards__reward_phase",
+            )
+            .filter(group_reference__iexact=reference_code)
+            .order_by("pk")
+        )
+        if not bookings:
+            raise Http404("Booking reference invalid.")
+        return bookings, contact_info
 
     if not isinstance(booking_ids, (list, tuple)) or not booking_ids:
         raise Http404("Booking reference invalid.")
@@ -313,10 +358,14 @@ def build_trip_card(trip):
     languages = serialize_trip_languages(trip)
     if not destination_names:
         destinations_label = ""
+        destinations_label_mobile = ""
     elif len(destination_names) == 1:
         destinations_label = destination_names[0]
+        destinations_label_mobile = destination_names[0].split()[0]
     else:
         destinations_label = f"{destination_names[0]} +{len(destination_names) - 1}"
+        primary_mobile = destination_names[0].split()[0] if destination_names[0].split() else destination_names[0]
+        destinations_label_mobile = f"{primary_mobile} +{len(destination_names) - 1}"
     child_price = trip.get_child_price_per_person()
     has_child_price = child_price != trip.base_price_per_person
     destination_ids = []
@@ -345,6 +394,7 @@ def build_trip_card(trip):
         "duration": duration_label(trip.duration_days),
         "group_size": f"Up to {trip.group_size_max} guests",
         "location": destinations_label,
+        "location_mobile": destinations_label_mobile,
         "price": format_currency(trip.base_price_per_person),
         "child_price": format_currency(child_price) if has_child_price else "",
         "has_child_price": has_child_price,
@@ -641,7 +691,6 @@ class HomePageView(TemplateView):
 
         context["destinations_section"] = {
             "title": "Featured Destinations",
-            "subtitle": "Explore the most captivating experiences Egypt has to offer",
             "items": self._featured_destinations(),
         }
         context["trip_picks_section"] = self._trip_picks_section()
@@ -661,7 +710,6 @@ class HomePageView(TemplateView):
 
         context["gallery_section"] = {
             "title": "Moments from the Sahara",
-            "subtitle": "A glimpse into the landscapes and quiet rituals that shape our journeys.",
             "items": gallery_items,
             "rows": gallery_rows,
             "background_image": gallery_background,
@@ -699,9 +747,7 @@ class HomePageView(TemplateView):
             "title": "About Kaya Tours",
             "subtitle": (
                 "Kaya Tours is a boutique travel agency devoted exclusively to the magic of the Egyptian "
-                "Sahara. We craft immersive journeys that capture the soul of Egypt's most breathtaking desert "
-                "landscapes - from the tranquil oases of Siwa, Fayoum, Bahariya, and Farafra to the surreal beauty "
-                "of the White and Black Deserts."
+                "Sahara. We craft immersive journeys that capture the soul of Egypt's most breathtaking deserts."
             ),
         }
 
@@ -736,7 +782,6 @@ class HomePageView(TemplateView):
 
         context["blog_section"] = {
             "title": "From the Journal",
-            "subtitle": "Insights from our travel curators to help shape your next desert escape.",
             "items": self._recent_blog_posts(),
         }
 
@@ -830,10 +875,7 @@ class HomePageView(TemplateView):
 
         return {
             "eyebrow": "Trips",
-            "title": "Our Picks for Every Kind of Traveler",
-            "subtitle": (
-                "Switch between curated collections to find the perfect rhythm—from quick escapes to indulgent journeys."
-            ),
+            "title": "Traveler Picks",
             "toggles": toggles,
             "view_all_href": reverse("web:trips"),
         }
@@ -1706,7 +1748,7 @@ class TripDetailView(TemplateView):
         else:
             initial = {"date": timezone.localdate()}
             contact_initial = get_contact(self.request.session)
-            for field in ("name", "email", "phone"):
+            for field in ("name", "email", "phone", "nationality"):
                 value = contact_initial.get(field)
                 if value:
                     initial[field] = value
@@ -1814,7 +1856,7 @@ class TripDetailView(TemplateView):
         if form.is_valid():
             contact_details = {
                 key: form.cleaned_data.get(key, "")
-                for key in ("name", "email", "phone")
+                for key in ("name", "email", "phone", "nationality")
             }
             remove_trip_entries(request.session, trip.pk)
             entry = build_cart_entry(trip, form.cleaned_data)
@@ -2519,6 +2561,7 @@ class CartCheckoutView(TemplateView):
             "name": contact.get("name", ""),
             "email": contact.get("email", ""),
             "phone": contact.get("phone", ""),
+            "nationality": contact.get("nationality", ""),
             "notes": contact.get("notes", ""),
         }
 
@@ -2570,6 +2613,7 @@ class CartCheckoutView(TemplateView):
                 name=cleaned.get("name"),
                 email=cleaned.get("email"),
                 phone=cleaned.get("phone"),
+                nationality=cleaned.get("nationality"),
                 notes=cleaned.get("notes"),
             )
 
@@ -2584,13 +2628,9 @@ class CartCheckoutView(TemplateView):
                 messages.error(request, "We couldn't process your booking list. Please try again.")
                 return redirect(reverse("web:booking-cart-checkout"))
 
-            booking_ids = [booking.pk for booking in bookings]
-            contact_payload = {
-                key: cleaned.get(key, "")
-                for key in ("name", "email", "phone", "notes")
-            }
+            primary_reference = bookings[0].reference_code
             token = signing.dumps(
-                {"bookings": booking_ids, "contact": contact_payload},
+                primary_reference,
                 salt=BOOKING_CART_REFERENCE_SALT,
             )
 
@@ -2610,6 +2650,7 @@ class CartCheckoutView(TemplateView):
         name = (contact.get("name") or "").strip()
         email = (contact.get("email") or "").strip()
         phone = (contact.get("phone") or "").strip()
+        nationality = (contact.get("nationality") or "").strip()
         notes = (contact.get("notes") or "").strip()
 
         if not (name and email and phone):
@@ -2738,6 +2779,7 @@ class CartCheckoutView(TemplateView):
                     full_name=name,
                     email=email,
                     phone=phone,
+                    nationality=nationality,
                     special_requests=special_requests,
                     base_subtotal=base_total,
                     extras_subtotal=extras_total,
@@ -2834,6 +2876,187 @@ class CartRewardsPayloadMixin:
     @staticmethod
     def _json_error(message, status=400):
         return JsonResponse({"error": message}, status=status)
+
+
+class CartEntryUpdateView(CartRewardsPayloadMixin, View):
+    http_method_names = ["post"]
+    DEFAULT_ADULTS = 1
+
+    @staticmethod
+    def _date_from_entry(raw_entry: Mapping[str, Any]) -> dt.date:
+        date_raw = raw_entry.get("travel_date")
+        if isinstance(date_raw, dt.date):
+            return date_raw
+        if isinstance(date_raw, str):
+            try:
+                return dt.date.fromisoformat(date_raw)
+            except ValueError:
+                pass
+        return timezone.localdate()
+
+    @staticmethod
+    def _entry_int(raw_entry: Mapping[str, Any], key: str, fallback: int) -> int:
+        value = raw_entry.get(key, fallback)
+        try:
+            parsed = int(value)
+        except (TypeError, ValueError):
+            parsed = fallback
+        return parsed
+
+    def post(self, request, *args, **kwargs):
+        if not hasattr(request, "session"):
+            return self._json_error("Session support required.", status=400)
+
+        payload = self._parse_payload(request)
+        entry_id = str(payload.get("entry_id") or "")
+        if not entry_id:
+            return self._json_error("Entry identifier is required.")
+
+        cart = get_cart(request.session)
+        entries = cart.get("entries", [])
+        if not isinstance(entries, list):
+            entries = []
+
+        raw_entry = None
+        for candidate in entries:
+            if not isinstance(candidate, Mapping):
+                continue
+            if str(candidate.get("id", "")) == entry_id:
+                raw_entry = candidate
+                break
+
+        if raw_entry is None:
+            return self._json_error("That trip is no longer in your booking list.", status=404)
+
+        trip_id = self._positive_int(raw_entry.get("trip_id"))
+        if trip_id is None:
+            return self._json_error("Unable to update this trip.", status=400)
+
+        trip = get_object_or_404(
+            Trip.objects.select_related("destination").prefetch_related("extras", "booking_options"),
+            pk=trip_id,
+        )
+
+        today = timezone.localdate()
+        fallback_date = self._date_from_entry(raw_entry)
+
+        date_raw = payload.get("date")
+        if date_raw:
+            try:
+                parsed_date = dt.date.fromisoformat(str(date_raw))
+            except ValueError:
+                parsed_date = fallback_date
+        else:
+            parsed_date = fallback_date
+        if parsed_date < today:
+            parsed_date = today
+
+        max_group_size_raw = getattr(trip, "group_size_max", None)
+        try:
+            max_group_size_int = int(max_group_size_raw)
+        except (TypeError, ValueError):
+            max_group_size_int = None
+        else:
+            if max_group_size_int <= 0:
+                max_group_size_int = None
+
+        fallback_adults = self._entry_int(raw_entry, "adults", self.DEFAULT_ADULTS)
+        adults_raw = payload.get("adults")
+        if adults_raw is None:
+            adults_count = fallback_adults
+        else:
+            try:
+                adults_count = int(adults_raw)
+            except (TypeError, ValueError):
+                adults_count = fallback_adults
+        if adults_count < 1:
+            adults_count = 1
+        if max_group_size_int:
+            adults_count = min(adults_count, max_group_size_int)
+        else:
+            adults_count = min(adults_count, 16)
+
+        allow_children = getattr(trip, "allow_children", True)
+        allow_infants = getattr(trip, "allow_infants", True)
+
+        fallback_children = self._entry_int(raw_entry, "children", 0)
+        children_raw = payload.get("children")
+        if allow_children:
+            if children_raw is None:
+                children_count = fallback_children
+            else:
+                try:
+                    children_count = int(children_raw)
+                except (TypeError, ValueError):
+                    children_count = fallback_children
+            if children_count < 0:
+                children_count = 0
+            if max_group_size_int:
+                available_children = max(max_group_size_int - adults_count, 0)
+                children_count = min(children_count, available_children)
+            else:
+                children_count = min(children_count, 12)
+        else:
+            children_count = 0
+
+        fallback_infants = self._entry_int(raw_entry, "infants", 0)
+        infants_raw = payload.get("infants")
+        if allow_infants:
+            if infants_raw is None:
+                infants_count = fallback_infants
+            else:
+                try:
+                    infants_count = int(infants_raw)
+                except (TypeError, ValueError):
+                    infants_count = fallback_infants
+            if infants_count < 0:
+                infants_count = 0
+            infants_count = min(infants_count, 6)
+        else:
+            infants_count = 0
+
+        extras_ids = []
+        for extra in raw_entry.get("extras", []):
+            if not isinstance(extra, Mapping):
+                continue
+            extra_id = self._positive_int(extra.get("id"))
+            if extra_id:
+                extras_ids.append(extra_id)
+
+        option_payload = raw_entry.get("option")
+        option_id = None
+        if isinstance(option_payload, Mapping):
+            option_id = self._positive_int(option_payload.get("id"))
+        if option_id is None:
+            option_id = self._positive_int(raw_entry.get("option_id"))
+
+        cleaned_data = {
+            "date": parsed_date,
+            "adults": adults_count,
+            "children": children_count,
+            "infants": infants_count,
+            "extras": extras_ids,
+            "message": (raw_entry.get("message") or ""),
+        }
+        if option_id is not None:
+            cleaned_data["option"] = str(option_id)
+
+        updated_cart = update_entry_details(
+            request.session,
+            entry_id=entry_id,
+            trip=trip,
+            cleaned_data=cleaned_data,
+        )
+        if updated_cart is None:
+            return self._json_error("Unable to update that trip right now.", status=404)
+
+        summary = summarize_cart(request.session)
+        return JsonResponse(
+            {
+                "cart_summary": summary,
+                "toast_message": f'Updated travel details for "{trip.title}"',
+            }
+        )
 
 
 class CartRewardsSummaryView(CartRewardsPayloadMixin, View):
@@ -2942,6 +3165,7 @@ class BookingSuccessView(TemplateView):
                 "name": booking.full_name,
                 "email": booking.email,
                 "phone": booking.phone,
+                "nationality": booking.nationality,
                 "notes": booking.special_requests,
             }
             return [booking], contact_details
@@ -2991,6 +3215,24 @@ class BookingSuccessView(TemplateView):
             additional_destinations = [
                 destination.name for destination in trip.additional_destinations.all()
             ]
+            trip_image_url = ""
+            trip_image_field = trip.card_image or trip.hero_image
+            if trip_image_field:
+                try:
+                    trip_image_url = trip_image_field.url
+                except Exception:  # pragma: no cover - storage edge case fallback
+                    trip_image_url = ""
+            primary_destination_name = trip.destination.name if trip.destination else ""
+            additional_destinations_text = _human_join_with_ampersand(
+                additional_destinations
+            )
+            if primary_destination_name and additional_destinations_text:
+                destination_line = (
+                    f"{primary_destination_name}, also visiting "
+                    f"{additional_destinations_text}"
+                )
+            else:
+                destination_line = primary_destination_name or additional_destinations_text
 
             reward_records = list(booking.rewards.all())
             discount_total = Decimal("0")
@@ -3018,6 +3260,67 @@ class BookingSuccessView(TemplateView):
 
             pre_discount_base = booking.base_subtotal + discount_total
             pre_discount_total = booking.grand_total + discount_total
+
+            adult_unit_price = booking.trip_option_price_per_person
+            if adult_unit_price is None:
+                adult_unit_price = getattr(trip, "base_price_per_person", Decimal("0"))
+            if not isinstance(adult_unit_price, Decimal):
+                adult_unit_price = Decimal(str(adult_unit_price or 0))
+
+            child_unit_price = adult_unit_price
+            option_child_price = None
+            if booking.trip_option and booking.trip_option.child_price_per_person is not None:
+                option_child_price = booking.trip_option.child_price_per_person
+            if option_child_price is not None:
+                child_unit_price = option_child_price
+            else:
+                trip_child_price_getter = getattr(trip, "get_child_price_per_person", None)
+                if callable(trip_child_price_getter):
+                    trip_child_price = trip_child_price_getter()
+                else:
+                    trip_child_price = getattr(trip, "child_price_per_person", None)
+                if trip_child_price is None:
+                    trip_child_price = adult_unit_price
+                if not isinstance(trip_child_price, Decimal):
+                    trip_child_price = Decimal(str(trip_child_price or 0))
+                child_unit_price = trip_child_price
+
+            adult_line_total = (adult_unit_price * Decimal(booking.adults)).quantize(
+                Decimal("0.01")
+            )
+            child_line_total = (child_unit_price * Decimal(booking.children)).quantize(
+                Decimal("0.01")
+            )
+            infant_line_total = Decimal("0.00")
+
+            traveler_breakdown = []
+            if booking.adults > 0:
+                traveler_breakdown.append(
+                    {
+                        "label": "Adults",
+                        "count": booking.adults,
+                        "unit_display": format_currency(adult_unit_price, DEFAULT_CURRENCY),
+                        "line_display": format_currency(adult_line_total, DEFAULT_CURRENCY),
+                    }
+                )
+            if booking.children > 0:
+                traveler_breakdown.append(
+                    {
+                        "label": "Children",
+                        "count": booking.children,
+                        "unit_display": format_currency(child_unit_price, DEFAULT_CURRENCY),
+                        "line_display": format_currency(child_line_total, DEFAULT_CURRENCY),
+                    }
+                )
+            if booking.infants > 0:
+                traveler_breakdown.append(
+                    {
+                        "label": "Infants",
+                        "count": booking.infants,
+                        "unit_display": "Free",
+                        "line_display": format_currency(infant_line_total, DEFAULT_CURRENCY),
+                    }
+                )
 
             pricing = {
                 "base": booking.base_subtotal,
@@ -3048,6 +3351,8 @@ class BookingSuccessView(TemplateView):
                     pre_discount_total, DEFAULT_CURRENCY
                 ),
                 "has_discount": discount_total > 0,
+                "traveler_breakdown": traveler_breakdown,
+                "show_extras_line": booking.extras_subtotal > 0,
             }
 
             bookings_detail.append(
@@ -3056,7 +3361,9 @@ class BookingSuccessView(TemplateView):
                     "trip_title": trip.title,
                     "trip_slug": trip.slug,
                     "trip_url": reverse("web:trip-detail", args=[trip.slug]),
-                    "destination_name": trip.destination.name if trip.destination else "",
+                    "trip_image_url": trip_image_url,
+                    "destination_name": primary_destination_name,
+                    "destination_line": destination_line,
                     "additional_destinations": additional_destinations,
                     "travel_date_display": booking.travel_date.strftime("%b %d, %Y"),
                     "traveler_summary": traveler_summary_display,
@@ -3112,6 +3419,8 @@ class BookingSuccessView(TemplateView):
             or primary_booking.email,
             "phone": (contact_info.get("phone") if isinstance(contact_info, dict) else None)
             or primary_booking.phone,
+            "nationality": (contact_info.get("nationality") if isinstance(contact_info, dict) else None)
+            or primary_booking.nationality,
             "notes": (contact_info.get("notes") if isinstance(contact_info, dict) else None)
             or (primary_booking.special_requests or ""),
         }
@@ -3208,6 +3517,12 @@ class BookingStatusView(View):
                 "grand_total": str(booking.grand_total),
                 "currency": DEFAULT_CURRENCY,
                 "per_person_total": str(booking.grand_total / traveler_count) if traveler_count else None,
+            },
+            "contact": {
+                "name": booking.full_name,
+                "email": booking.email,
+                "phone": booking.phone,
+                "nationality": booking.nationality,
             },
             "trip": {
                 "title": booking.trip.title,

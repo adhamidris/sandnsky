@@ -3,8 +3,13 @@
 {% with extra_classes=gallery_section.section_classes|default:"" %}
 <section id="gallery" class="explore{% if extra_classes %} {{ extra_classes }}{% endif %}" aria-labelledby="explore-title">
   <div class="wrap">
-    <span class="eyebrow">Gallery</span>
-    <h2 id="explore-title">{{ gallery_section.title }}</h2>
+    <div class="home-section-head">
+      <span class="eyebrow home-section-eyebrow">{{ gallery_section.eyebrow|default:"Gallery" }}</span>
+      <h2 id="explore-title" class="home-section-title">{{ gallery_section.title }}</h2>
+      {% if gallery_section.subtitle %}
+      <p class="home-section-subtitle">{{ gallery_section.subtitle }}</p>
+      {% endif %}
+    </div>
 
     <div class="ways-grid">
 
