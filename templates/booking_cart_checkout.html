@@ -619,7 +619,7 @@
             </div>
             <div class="checkout-trip-summary flex flex-col items-end gap-2">
               <div class="checkout-trip-total-group flex flex-col items-end gap-1">
-                <span class="trip-price-chip rounded-full bg-primary/10 px-4 py-1 text-sm font-semibold text-primary" data-entry-total>{{ entry.currency }} {{ entry.grand_total_display }}</span>
+                <span class="trip-price-chip rounded-full px-4 py-1 text-sm font-semibold" data-entry-total>{{ entry.currency }} {{ entry.grand_total_display }}</span>
                 <span class="trip-price-original text-xs text-muted-foreground line-through {% if not entry.discount_total_cents %}hidden{% endif %}" data-entry-original>{{ entry.currency }} {{ entry.original_grand_total_display }}</span>
               </div>
               <span class="{% if not entry.applied_reward %}hidden {% endif %}inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary" data-entry-discount-pill>
@@ -627,7 +627,7 @@
               </span>
 
               {% if entry.trip_slug %}
-              <a href="{% url 'web:trip-detail' entry.trip_slug %}" class="trip-details-link trip-action-view inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide">View trip details</a>
+              <a href="{% url 'web:trip-detail' entry.trip_slug %}" class="trip-details-link trip-action-view text-sm font-semibold">View trip details</a>
               {% endif %}
             </div>
           </article>

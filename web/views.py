@@ -81,6 +81,15 @@ BOOKING_REFERENCE_SALT = "booking-success"
 BOOKING_REFERENCE_MAX_AGE = 60 * 60 * 24 * 14  # 14 days
 BOOKING_CART_REFERENCE_SALT = "booking-cart-success"
 BOOKING_CART_REFERENCE_MAX_AGE = BOOKING_REFERENCE_MAX_AGE
+LANGUAGE_FLAG_BY_CODE = {
+    "en": "🇬🇧",
+    "es": "🇪🇸",
+    "it": "🇮🇹",
+    "ru": "🇷🇺",
+    "fr": "🇫🇷",
+    "de": "🇩🇪",
+    "ar": "🇪🇬",
+}
 
 
 def format_review_summary(count: int):
@@ -107,6 +116,25 @@ def format_currency(amount, currency=DEFAULT_CURRENCY):
 def duration_label(days):
     days = int(days)
     return f"{days} day{'s' if days != 1 else ''}"
+
+
+def serialize_trip_languages(trip):
+    badges = []
+    for language in trip.languages.all():
+        code_raw = (getattr(language, "code", "") or "").strip()
+        if not code_raw:
+            continue
+        code = code_raw.upper()
+        code_key = code.lower()
+        name_raw = (getattr(language, "name", "") or "").strip()
+        badges.append(
+            {
+                "code": code,
+                "name": name_raw or code,
+                "flag": LANGUAGE_FLAG_BY_CODE.get(code_key, "🌐"),
+            }
+        )
+    return badges
 
 
 def traveler_summary(adults, children, infants):
@@ -282,7 +310,7 @@ def build_trip_card(trip):
     image_url = trip.card_image.url if trip.card_image else ""
     destination_names = _all_destination_names(trip)
     route_display = " → ".join(destination_names) if len(destination_names) > 1 else ""
-    languages = [language.code.upper() for language in trip.languages.all() if language.code]
+    languages = serialize_trip_languages(trip)
     if not destination_names:
         destinations_label = ""
     elif len(destination_names) == 1:

@@ -52,13 +52,20 @@
               <article class="trip-picks__card{% if trip.is_package_trip %} trip-picks__card--package{% endif %}">
                 <a href="{% url 'web:trip-detail' trip.slug %}" class="trip-picks__link">
                   <div class="trip-picks__media">
-                    <!-- {% if trip.languages %}
+                    {% if trip.languages %}
                     <ul class="trip-picks__languages" aria-label="Available languages">
+                      <li class="trip-picks__language-indicator" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M3 5.25h13.5M9.75 5.25c0 3-1.65 5.61-4.08 7.01m0 0A12.02 12.02 0 0 1 3 13.5m2.67-1.24A12.02 12.02 0 0 0 11.5 13.5c1.51 0 2.95-.28 4.28-.79M10.5 21l5.25-11.25L21 21m-9-3h6.75" />
+                        </svg>
+                      </li>
                       {% for language in trip.languages %}
-                      <li class="trip-picks__language-chip">{{ language }}</li>
+                      <li class="trip-picks__language-chip" title="{{ language.name }}" aria-label="{{ language.name }}">
+                        <span class="trip-picks__language-flag" aria-hidden="true">{{ language.flag }}</span>
+                      </li>
                       {% endfor %}
                     </ul>
-                    {% endif %} -->
+                    {% endif %}
                     <div class="trip-picks__media-inner">
                       {% if trip.image_url %}
                       <img src="{{ trip.image_url }}" alt="{{ trip.title }}" loading="lazy" class="trip-picks__image" />
@@ -82,16 +89,44 @@
                     {% endif %} -->
                     <div class="trip-picks__meta" aria-label="Trip summary">
                       <div class="trip-picks__meta-item trip-picks__meta-item--duration">
+                        <svg class="trip-picks__meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        </svg>
                         <span class="trip-picks__meta-value">{{ trip.duration }}</span>
                       </div>
+                      <div class="trip-picks__meta-item trip-picks__meta-item--group">
+                        <svg class="trip-picks__meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M16 17v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1" />
+                          <circle cx="8" cy="7" r="3" />
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M22 17v-1a4 4 0 0 0-3-3.87" />
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a3 3 0 0 1-2 2.82" />
+                        </svg>
+                        <span class="trip-picks__meta-value">{{ trip.group_size }}</span>
+                      </div>
                       <div class="trip-picks__meta-item trip-picks__meta-item--location">
+                        <svg class="trip-picks__meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 10a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10c0 7-7.5 11.5-7.5 11.5S4.5 17 4.5 10a7.5 7.5 0 1 1 15 0Z" />
+                        </svg>
                         <span class="trip-picks__meta-value">{{ trip.location }}</span>
                       </div>
                       <div class="trip-picks__meta-item trip-picks__meta-item--price">
-                        <span class="trip-picks__meta-value">Adult {{ trip.price }}</span>
-                        {% if trip.has_child_price and trip.child_price %}
-                        <span class="trip-picks__meta-subvalue">Child {{ trip.child_price }}</span>
-                        {% endif %}
+                        <svg class="trip-picks__meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .843-3 1.882C9 10.92 10.343 11.764 12 11.764s3 .843 3 1.882S13.657 15.528 12 15.528s-3-.843-3-1.882" />
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14" />
+                        </svg>
+                        <span class="trip-picks__meta-price-wrap">
+                          <span class="trip-picks__meta-price-line">
+                            <span class="trip-picks__meta-price-label">Adult</span>
+                            <span class="trip-picks__meta-price-amount">{{ trip.price }}</span>
+                          </span>
+                          {% if trip.has_child_price and trip.child_price %}
+                          <span class="trip-picks__meta-price-line">
+                            <span class="trip-picks__meta-price-label">Child</span>
+                            <span class="trip-picks__meta-price-amount">{{ trip.child_price }}</span>
+                          </span>
+                          {% endif %}
+                        </span>
                       </div>
                     </div>
                   </div>

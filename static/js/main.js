@@ -326,8 +326,12 @@
       'select',
       'textarea',
       '[data-cart-toggle-button]',
+      '[data-quick-add-container]',
+      '[data-quick-add-popover]',
       '[data-quick-add-trigger]',
       '[data-quick-add-step]',
+      '[data-quick-add-input]',
+      '[data-quick-add-date]',
       '[data-quick-add-confirm]',
       '[data-quick-add-cancel]',
     ].join(', ');
@@ -343,6 +347,7 @@
 
       card.addEventListener('click', (event) => {
         if (event.defaultPrevented) return;
+        if (card.classList.contains('quick-add-active')) return;
         if (shouldIgnore(event.target)) return;
         if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button === 1) {
           window.open(href, '_blank');
@@ -353,6 +358,7 @@
 
       card.addEventListener('keydown', (event) => {
         if (event.defaultPrevented) return;
+        if (card.classList.contains('quick-add-active')) return;
         if (event.key !== 'Enter' && event.key !== ' ') return;
         if (document.activeElement !== card) return;
         event.preventDefault();
