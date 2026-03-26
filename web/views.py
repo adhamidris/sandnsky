@@ -392,7 +392,7 @@ def build_trip_card(trip):
         "route": route_display,
         "route_steps": destination_names,
         "duration": duration_label(trip.duration_days),
-        "group_size": f"Up to {trip.group_size_max} guests",
+        "group_size": f"Up to {trip.group_size_max}",
         "location": destinations_label,
         "location_mobile": destinations_label_mobile,
         "price": format_currency(trip.base_price_per_person),

@@ -1572,14 +1572,41 @@
     display:none;
   }
   @media (max-width:767px){
+    .trip-picks__body{
+      padding:14px 14px 15px;
+      gap:10px;
+    }
+    .trip-picks__languages{
+      gap:5px;
+      padding:0 0 2px;
+    }
+    .trip-picks__language-indicator{
+      margin-right:2px;
+    }
+    .trip-picks__language-indicator svg{
+      width:13px;
+      height:13px;
+    }
+    .trip-picks__language-flag{
+      font-size:14px;
+    }
     .trip-picks__title{
-      -webkit-line-clamp:3;
-      min-height:calc(1.25em * 3);
+      display:block;
+      line-height:1.25;
+      min-height:calc(1.25em * 2);
+      max-height:calc(1.25em * 2);
+      overflow:hidden;
+      text-overflow:clip;
+      -webkit-line-clamp:unset;
+      -webkit-box-orient:initial;
     }
     .trip-picks__meta{
       grid-template-columns:repeat(2, minmax(0, 1fr));
-      gap:8px 10px;
+      gap:6px 8px;
       align-items:flex-start;
+    }
+    .trip-picks__meta-item{
+      gap:6px;
     }
     .trip-picks__meta-item--price{
       grid-column:auto;
@@ -1587,10 +1614,21 @@
       padding-top:0;
     }
     .trip-picks__meta-value{
-      font-size:13px;
+      font-size:12px;
+      font-weight:400;
+      letter-spacing:.005em;
     }
     .trip-picks__meta-subvalue{
+      font-size:11px;
+      font-weight:400;
+    }
+    .trip-picks__meta-price-line{
       font-size:12px;
+      font-weight:400;
+    }
+    .trip-picks__meta-price-label{
+      font-weight:400;
+      letter-spacing:.02em;
     }
     .trip-picks__meta-item--location .trip-picks__meta-value--location-full,
     .trip-picks__meta-item--location .trip-picks__meta-value--location-mobile{
@@ -1603,6 +1641,20 @@
       display:block;
       overflow:visible;
       text-overflow:clip;
+    }
+    .trip-picks__actions{
+      gap:6px;
+      padding:10px 12px 11px !important;
+    }
+    .trip-picks__action-btn{
+      min-height:39px;
+      padding:7px 12px;
+      font-size:13px;
+    }
+    .trip-picks__action-btn--secondary,
+    .trip-picks__action-btn--remove{
+      min-height:37px;
+      font-size:12.5px;
     }
   }
   .trip-picks__footer{
@@ -4706,25 +4758,25 @@
 
   #trip-picks .trip-picks__toggle-group {
     display: grid !important;
-    grid-template-columns: max-content max-content max-content max-content;
+    grid-template-columns: 1.55fr 0.88fr 1.32fr 1.1fr;
     align-items: stretch;
-    justify-content: space-between !important;
-    gap: 6px;
+    justify-content: initial !important;
+    gap: 4px;
     width: 100%;
-    padding: 6px 8px !important;
+    padding: 5px 6px !important;
     flex-wrap: nowrap !important;
     overflow: visible !important;
   }
 
   #trip-picks .trip-picks__toggle {
-    width: auto;
+    width: 100%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     min-width: 0;
-    padding: 10px 8px;
-    font-size: 11.5px;
-    letter-spacing: 0.03em;
+    padding: 9px 4px;
+    font-size: clamp(10px, 2.6vw, 10.8px);
+    letter-spacing: 0.01em;
     white-space: nowrap;
     overflow: visible;
     text-overflow: clip;
@@ -4736,6 +4788,20 @@
 
   #trip-picks .trip-picks__toggle[data-trip-toggle="luxury"] {
     display: none !important;
+  }
+}
+
+@media (max-width: 359px) {
+  #trip-picks .trip-picks__toggle-group {
+    grid-template-columns: 1.55fr 0.88fr 1.32fr 1.1fr;
+    gap: 3px;
+    padding: 4px 5px !important;
+  }
+
+  #trip-picks .trip-picks__toggle {
+    padding: 8px 3px;
+    font-size: 9.6px;
+    letter-spacing: 0;
   }
 }
 
