@@ -3,6 +3,7 @@ from django.views.generic import TemplateView
 
 from .views import (
     HomePageView,
+    HomeTripPicksPanelView,
     DestinationListView,
     DestinationPageView,
     TripDetailView,
@@ -26,6 +27,11 @@ app_name = "web"
 
 urlpatterns = [
     path("", HomePageView.as_view(), name="home"),
+    path(
+        "home/trip-picks/<slug:slug>/",
+        HomeTripPicksPanelView.as_view(),
+        name="home-trip-picks-panel",
+    ),
     path("destinations/", DestinationListView.as_view(), name="destinations"),
     path("destinations/<slug:slug>/page/", DestinationPageView.as_view(), name="destination-page"),
     path(

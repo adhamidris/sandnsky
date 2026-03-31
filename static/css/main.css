@@ -665,6 +665,12 @@
     height:100%;
     object-fit:cover;
     pointer-events:none;
+    opacity:0;
+    transition:opacity .45s ease;
+  }
+
+  .hero.is-video-ready .hero-slide [data-hero-video]{
+    opacity:1;
   }
 
   .hero-content{position:relative; z-index:10;}
@@ -1285,6 +1291,17 @@
   }
   .trip-picks__panel.is-hidden{
     display:none;
+  }
+  .trip-picks__panel-loading{
+    display:grid;
+    place-items:center;
+    min-height: 360px;
+    border: 1px solid rgba(43, 67, 86, 0.08);
+    border-radius: 28px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.94), rgba(245, 239, 231, 0.92));
+    color: rgba(43, 67, 86, 0.72);
+    font-weight: 600;
+    letter-spacing: 0.04em;
   }
   .trip-picks__carousel{
     display:grid;

@@ -22,6 +22,7 @@ Dependencies: boto3 (pip install boto3)
 """
 
 import argparse
+import mimetypes
 import os
 import sys
 from pathlib import Path
@@ -136,8 +137,21 @@ def upload_all(s3_client, bucket: str, src_root: Path, prefix: str = ""):
         rel_key = filepath.relative_to(src_root).as_posix()
         key = f"{prefix}{rel_key}" if prefix else rel_key
         try:
+            content_type, _ = mimetypes.guess_type(str(filepath))
+            cache_control = os.environ.get(
+                "CLOUDFLARE_R2_CACHE_CONTROL",
+                "public, max-age=31536000, immutable",
+            )
+            put_kwargs = {
+                "Bucket": bucket,
+                "Key": key,
+            }
+            if content_type:
+                put_kwargs["ContentType"] = content_type
+            if cache_control:
+                put_kwargs["CacheControl"] = cache_control
             with open(filepath, "rb") as fh:
-                s3_client.put_object(Bucket=bucket, Key=key, Body=fh)
+                s3_client.put_object(Body=fh, **put_kwargs)
             uploaded += 1
             print(f"[ok] {filepath} -> s3://{bucket}/{key}")
         except (BotoCoreError, ClientError) as exc:

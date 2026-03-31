@@ -38,6 +38,71 @@
     tick(); setInterval(tick, 1000);
   })();
 
+  // ===== Hero video: poster-first, single-source loading =====
+  (function () {
+    const hero = document.getElementById('hero');
+    const video = hero?.querySelector('[data-hero-video]');
+    if (!hero || !video) return;
+
+    const desktopSrc = video.dataset.videoDesktopSrc || '';
+    const desktopType = video.dataset.videoDesktopType || 'video/mp4';
+    const mobileSrc = video.dataset.videoMobileSrc || '';
+    const mobileType = video.dataset.videoMobileType || 'video/mp4';
+    const mobileQuery = window.matchMedia('(max-width: 767px)');
+
+    const pickSource = () => {
+      if (mobileQuery.matches) {
+        return {
+          src: mobileSrc || desktopSrc,
+          type: mobileSrc ? mobileType : desktopType,
+        };
+      }
+      return {
+        src: desktopSrc || mobileSrc,
+        type: desktopSrc ? desktopType : mobileType,
+      };
+    };
+
+    const revealVideo = () => {
+      hero.classList.add('is-video-ready');
+    };
+
+    const loadVideo = () => {
+      if (video.dataset.videoLoaded === 'true') return;
+      const chosen = pickSource();
+      if (!chosen.src) return;
+
+      const source = document.createElement('source');
+      source.src = chosen.src;
+      source.type = chosen.type || 'video/mp4';
+      video.appendChild(source);
+      video.dataset.videoLoaded = 'true';
+      video.load();
+
+      const playPromise = video.play();
+      if (playPromise && typeof playPromise.then === 'function') {
+        playPromise.catch(() => {});
+      }
+    };
+
+    video.addEventListener('loadeddata', revealVideo, { once: true });
+    video.addEventListener('canplay', revealVideo, { once: true });
+
+    const startWhenReady = () => {
+      if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(loadVideo, { timeout: 1500 });
+      } else {
+        window.setTimeout(loadVideo, 250);
+      }
+    };
+
+    if (document.readyState === 'complete') {
+      startWhenReady();
+    } else {
+      window.addEventListener('load', startWhenReady, { once: true });
+    }
+  })();
+
   // ===== Hero mini-frame auto rotation =====
   (function () {
     const container = document.querySelector('[data-hero-overlays]');

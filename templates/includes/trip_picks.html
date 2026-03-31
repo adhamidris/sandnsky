@@ -41,228 +41,15 @@
         aria-labelledby="trip-toggle-{{ toggle.slug }}"
         {% if not forloop.first %}hidden{% endif %}
         data-trip-panel="{{ toggle.slug }}"
+        data-trip-panel-url="{{ toggle.fetch_url }}"
+        data-trip-panel-loaded="{% if toggle.loaded %}true{% else %}false{% endif %}"
       >
-        {% if toggle.cards %}
-        <div class="trip-picks__carousel" data-trip-carousel>
-          <button class="trip-picks__arrow" type="button" aria-label="Previous trips" data-trip-arrow="prev">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="m14.5 18-5-6 5-6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
-          <div class="trip-picks__viewport" data-trip-viewport>
-            <div class="trip-picks__track" data-trip-track>
-              {% for trip in toggle.cards %}
-              <article class="trip-picks__card{% if trip.is_package_trip %} trip-picks__card--package{% endif %}">
-                <a href="{% url 'web:trip-detail' trip.slug %}" class="trip-picks__link">
-                  <div class="trip-picks__media">
-                    <div class="trip-picks__media-inner">
-                      {% if trip.image_url %}
-                      <img src="{{ trip.image_url }}" alt="{{ trip.title }}" loading="lazy" class="trip-picks__image" />
-                      <div class="trip-picks__image-fallback" aria-hidden="true">
-                        <span>Image coming soon</span>
-                      </div>
-                      {% else %}
-                      <div class="trip-picks__image trip-picks__image--fallback">
-                        <span>Image coming soon</span>
-                      </div>
-                      {% endif %}
-                    </div>
-                  </div>
-                  <div class="trip-picks__body">
-                    <!-- {% if trip.category %}
-                    <span class="trip-picks__badge">{{ trip.category }}</span>
-                    {% endif %} -->
-                    {% if trip.languages %}
-                    <ul class="trip-picks__languages" aria-label="Available languages">
-                      <li class="trip-picks__language-indicator" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M3 5.25h13.5M9.75 5.25c0 3-1.65 5.61-4.08 7.01m0 0A12.02 12.02 0 0 1 3 13.5m2.67-1.24A12.02 12.02 0 0 0 11.5 13.5c1.51 0 2.95-.28 4.28-.79M10.5 21l5.25-11.25L21 21m-9-3h6.75" />
-                        </svg>
-                      </li>
-                      {% for language in trip.languages %}
-                      <li class="trip-picks__language-chip" title="{{ language.name }}" aria-label="{{ language.name }}">
-                        <span class="trip-picks__language-flag" aria-hidden="true">{{ language.flag }}</span>
-                      </li>
-                      {% endfor %}
-                    </ul>
-                    {% endif %}
-                    <h3 class="trip-picks__title">{{ trip.title }}</h3>
-                    <!-- {% if trip.is_package_trip and trip.description %}
-                    <p class="trip-picks__description trip-picks__description--package">{{ trip.description }}</p>
-                    {% endif %} -->
-                    <div class="trip-picks__meta" aria-label="Trip summary">
-                      <div class="trip-picks__meta-item trip-picks__meta-item--duration">
-                        <svg class="trip-picks__meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                        </svg>
-                        <span class="trip-picks__meta-value">{{ trip.duration }}</span>
-                      </div>
-                      <div class="trip-picks__meta-item trip-picks__meta-item--group">
-                        <svg class="trip-picks__meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M16 17v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1" />
-                          <circle cx="8" cy="7" r="3" />
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M22 17v-1a4 4 0 0 0-3-3.87" />
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a3 3 0 0 1-2 2.82" />
-                        </svg>
-                        <span class="trip-picks__meta-value">{{ trip.group_size }}</span>
-                      </div>
-                      <div class="trip-picks__meta-item trip-picks__meta-item--location">
-                        <svg class="trip-picks__meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 10a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10c0 7-7.5 11.5-7.5 11.5S4.5 17 4.5 10a7.5 7.5 0 1 1 15 0Z" />
-                        </svg>
-                        <span class="trip-picks__meta-value trip-picks__meta-value--location-full">{{ trip.location }}</span>
-                        <span class="trip-picks__meta-value trip-picks__meta-value--location-mobile">{{ trip.location_mobile|default:trip.location }}</span>
-                      </div>
-                      <div class="trip-picks__meta-item trip-picks__meta-item--price">
-                        <svg class="trip-picks__meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .843-3 1.882C9 10.92 10.343 11.764 12 11.764s3 .843 3 1.882S13.657 15.528 12 15.528s-3-.843-3-1.882" />
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14" />
-                        </svg>
-                        <span class="trip-picks__meta-price-wrap">
-                          <span class="trip-picks__meta-price-line">
-                            <span class="trip-picks__meta-price-label">Adult</span>
-                            <span class="trip-picks__meta-price-amount">{{ trip.price }}</span>
-                          </span>
-                          {% if trip.has_child_price and trip.child_price %}
-                          <span class="trip-picks__meta-price-line">
-                            <span class="trip-picks__meta-price-label">Child</span>
-                            <span class="trip-picks__meta-price-amount">{{ trip.child_price }}</span>
-                          </span>
-                          {% endif %}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </a>
-                <div class="trip-picks__actions">
-                  <a
-                    href="{% url 'web:trip-detail' trip.slug %}"
-                    class="trip-picks__action-btn trip-picks__action-btn--primary"
-                  >
-                    View details
-                  </a>
-                  <form
-                    method="post"
-                    action="{% url 'web:booking-cart-quick-add' trip.slug %}"
-                    class="trip-picks__action-form"
-                    data-cart-toggle
-                  >
-                    {% csrf_token %}
-                    <input type="hidden" name="next" value="{{ request.get_full_path }}" />
-                    {% with date_id="picks-quick-add-date-"|add:trip.slug adults_id="picks-quick-add-adults-"|add:trip.slug children_id="picks-quick-add-children-"|add:trip.slug infants_id="picks-quick-add-infants-"|add:trip.slug %}
-                    <div class="trip-picks__quick-add" data-quick-add-container>
-                      <button
-                        type="submit"
-                        class="trip-picks__action-btn {% if trip.in_cart %}trip-picks__action-btn--remove{% else %}trip-picks__action-btn--secondary{% endif %}"
-                        data-cart-toggle-button
-                        data-trip-id="{{ trip.id }}"
-                        data-cart-label-added="Remove from booking list"
-                        data-cart-label-removed="Add to booking list"
-                        data-cart-state="{% if trip.in_cart %}added{% else %}removed{% endif %}"
-                        data-cart-class-added="trip-picks__action-btn--remove"
-                        data-cart-class-removed="trip-picks__action-btn--secondary"
-                        aria-haspopup="dialog"
-                        aria-expanded="false"
-                      >
-                        {% if trip.in_cart %}
-                        Remove from booking list
-                        {% else %}
-                        Add to booking list
-                        {% endif %}
-                      </button>
-                      <div
-                        class="quick-add-popover trip-picks__popover hidden"
-                        data-quick-add-popover
-                        role="dialog"
-                        aria-label="Add {{ trip.title }} to booking list"
-                        aria-modal="false"
-                        data-state="closed"
-                      >
-                        <div class="trip-picks__popover-body">
-                          <div class="trip-picks__popover-field">
-                            <label for="{{ date_id }}">Travel date</label>
-                            <input
-                              id="{{ date_id }}"
-                              type="date"
-                              name="date"
-                              data-quick-add-date
-                            />
-                          </div>
-                          <div class="trip-picks__popover-field">
-                            <label for="{{ adults_id }}">Adults</label>
-                            <div class="trip-picks__popover-counter">
-                              <button type="button" data-quick-add-step="down" data-quick-add-target="adults" aria-label="Decrease adults">-</button>
-                              <input
-                                id="{{ adults_id }}"
-                                type="number"
-                                name="adults"
-                                min="1"
-                                max="16"
-                                value="1"
-                                data-quick-add-input="adults"
-                              />
-                              <button type="button" data-quick-add-step="up" data-quick-add-target="adults" aria-label="Increase adults">+</button>
-                            </div>
-                          </div>
-                          <div class="trip-picks__popover-field">
-                            <label for="{{ children_id }}">Children</label>
-                            <div class="trip-picks__popover-counter">
-                              <button type="button" data-quick-add-step="down" data-quick-add-target="children" aria-label="Decrease children">-</button>
-                              <input
-                                id="{{ children_id }}"
-                                type="number"
-                                name="children"
-                                min="0"
-                                max="12"
-                                value="0"
-                                data-quick-add-input="children"
-                              />
-                              <button type="button" data-quick-add-step="up" data-quick-add-target="children" aria-label="Increase children">+</button>
-                            </div>
-                          </div>
-                          <div class="trip-picks__popover-field">
-                            <label for="{{ infants_id }}">Infants</label>
-                            <div class="trip-picks__popover-counter">
-                              <button type="button" data-quick-add-step="down" data-quick-add-target="infants" aria-label="Decrease infants">-</button>
-                              <input
-                                id="{{ infants_id }}"
-                                type="number"
-                                name="infants"
-                                min="0"
-                                max="6"
-                                value="0"
-                                data-quick-add-input="infants"
-                              />
-                              <button type="button" data-quick-add-step="up" data-quick-add-target="infants" aria-label="Increase infants">+</button>
-                            </div>
-                          </div>
-                          <div class="trip-picks__popover-actions">
-                            <button type="button" data-quick-add-cancel>Cancel</button>
-                            <button type="submit" data-quick-add-confirm>Add trip</button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    {% endwith %}
-                  </form>
-                </div>
-              </article>
-              {% endfor %}
-            </div>
-          </div>
-          <button class="trip-picks__arrow" type="button" aria-label="Next trips" data-trip-arrow="next">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="m9.5 6 5 6-5 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
-        </div>
-        <a href="{{ trip_picks_section.view_all_href }}" class="trip-picks__cta">View all tours</a>
+        {% if toggle.loaded %}
+          {% include "includes/trip_picks_panel_content.html" with toggle=toggle trip_picks_section=trip_picks_section %}
         {% else %}
-        <div class="trip-picks__empty">
-          <p>No trips available in this collection yet. Check back soon.</p>
-          <a href="{{ trip_picks_section.view_all_href }}" class="trip-picks__cta">View all tours</a>
-        </div>
+          <div class="trip-picks__panel-loading" aria-hidden="true">
+            <span>Loading trips...</span>
+          </div>
         {% endif %}
       </div>
       {% endwith %}
@@ -691,44 +478,16 @@
     });
   };
 
-  const initQuickAdd = () => {
-    const forms = Array.from(section.querySelectorAll('[data-cart-toggle]'));
-  if (!forms.length) {
-    return;
-  }
-  forms.forEach(bindQuickAddForm);
-};
-
-window.addEventListener('booking:cart-update', (event) => {
-  syncCartButtons(event && event.detail);
-});
-
-  const activate = (slug) => {
-    if (!slug) return;
-    toggles.forEach((button) => {
-      const isActive = button.dataset.tripToggle === slug;
-      button.classList.toggle('is-active', isActive);
-      button.setAttribute('aria-selected', isActive ? 'true' : 'false');
-    });
-    panels.forEach((panel) => {
-      const isActive = panel.dataset.tripPanel === slug;
-      panel.classList.toggle('is-hidden', !isActive);
-      panel.hidden = !isActive;
-    });
+  const initQuickAdd = (root = section) => {
+    const forms = Array.from(root.querySelectorAll('[data-cart-toggle]'));
+    if (!forms.length) {
+      return;
+    }
+    forms.forEach(bindQuickAddForm);
   };
 
-  if (toggles.length) {
-    activate(toggles[0].dataset.tripToggle);
-  }
-
-  toggles.forEach((button) => {
-    button.addEventListener('click', () => activate(button.dataset.tripToggle));
-    button.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        activate(button.dataset.tripToggle);
-      }
-    });
+  window.addEventListener('booking:cart-update', (event) => {
+    syncCartButtons(event && event.detail);
   });
 
   const initCarousel = (carousel) => {
@@ -742,7 +501,6 @@ window.addEventListener('booking:cart-update', (event) => {
     const next = carousel.querySelector('[data-trip-arrow="next"]');
 
     const track = carousel.querySelector('[data-trip-track]');
-    const cards = Array.from(track ? track.children : []);
 
     const update = () => {
       const trackRect = track ? track.scrollWidth : viewport.scrollWidth;
@@ -801,7 +559,88 @@ window.addEventListener('booking:cart-update', (event) => {
     window.addEventListener('load', update, { once: true });
   };
 
-  section.querySelectorAll('[data-trip-carousel]').forEach(initCarousel);
+  const initCarousels = (root = section) => {
+    root.querySelectorAll('[data-trip-carousel]').forEach(initCarousel);
+  };
+
+  const loadPanel = (panel) => {
+    if (!panel) {
+      return Promise.resolve();
+    }
+    if (panel.dataset.tripPanelLoaded === 'true') {
+      return Promise.resolve();
+    }
+    if (panel._loadPromise) {
+      return panel._loadPromise;
+    }
+
+    const url = panel.dataset.tripPanelUrl;
+    if (!url || typeof window.fetch !== 'function') {
+      return Promise.resolve();
+    }
+
+    panel.dataset.tripPanelLoading = 'true';
+    panel.setAttribute('aria-busy', 'true');
+
+    panel._loadPromise = fetch(url, {
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to load trip panel');
+        }
+        return response.json();
+      })
+      .then((payload) => {
+        panel.innerHTML = payload && typeof payload.html === 'string' ? payload.html : '';
+        panel.dataset.tripPanelLoaded = 'true';
+        initQuickAdd(panel);
+        initCarousels(panel);
+      })
+      .catch(() => {
+        panel.innerHTML = '<div class="trip-picks__empty"><p>Unable to load this collection right now.</p><a href="/trips" class="trip-picks__cta">View all tours</a></div>';
+      })
+      .finally(() => {
+        panel.dataset.tripPanelLoading = 'false';
+        panel.removeAttribute('aria-busy');
+        panel._loadPromise = null;
+      });
+
+    return panel._loadPromise;
+  };
+
+  const activate = (slug) => {
+    if (!slug) return;
+    toggles.forEach((button) => {
+      const isActive = button.dataset.tripToggle === slug;
+      button.classList.toggle('is-active', isActive);
+      button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+    panels.forEach((panel) => {
+      const isActive = panel.dataset.tripPanel === slug;
+      panel.classList.toggle('is-hidden', !isActive);
+      panel.hidden = !isActive;
+      if (isActive) {
+        loadPanel(panel);
+      }
+    });
+  };
+
+  if (toggles.length) {
+    activate(toggles[0].dataset.tripToggle);
+  }
+
+  toggles.forEach((button) => {
+    button.addEventListener('click', () => activate(button.dataset.tripToggle));
+    button.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        activate(button.dataset.tripToggle);
+      }
+    });
+  });
+
+  initCarousels();
   initQuickAdd();
 })();
 </script>

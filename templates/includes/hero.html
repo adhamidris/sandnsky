@@ -24,39 +24,23 @@
           </picture>
         {% endif %}
 
-        {% if bg.mobile_video %}
-          <div class="absolute inset-0 md:hidden">
+        {% if bg.video or bg.mobile_video %}
+          <div class="absolute inset-0">
             <video
               class="h-full w-full object-cover"
               autoplay loop muted playsinline
-              preload="auto"
+              preload="none"
               data-hero-video
+              data-video-desktop-src="{% if bg.video %}{% if bg.video_is_media %}{{ bg.video }}{% else %}{% static bg.video %}{% endif %}{% endif %}"
+              data-video-desktop-type="{{ bg.video_type|default:'video/mp4' }}"
+              data-video-mobile-src="{% if bg.mobile_video %}{% if bg.mobile_video_is_media %}{{ bg.mobile_video }}{% else %}{% static bg.mobile_video %}{% endif %}{% endif %}"
+              data-video-mobile-type="{{ bg.mobile_video_type|default:'video/mp4' }}"
               aria-hidden="true"
               {% with poster_image=bg.mobile_image|default:bg.image %}
                 {% if poster_image %}
                   poster="{% if bg.mobile_image and bg.mobile_image_is_media %}{{ bg.mobile_image }}{% elif bg.mobile_image %}{% static bg.mobile_image %}{% elif bg.image and bg.image_is_media %}{{ bg.image }}{% elif bg.image %}{% static bg.image %}{% endif %}"
                 {% endif %}
               {% endwith %}>
-              <source src="{% if bg.mobile_video_is_media %}{{ bg.mobile_video }}{% else %}{% static bg.mobile_video %}{% endif %}" type="{{ bg.mobile_video_type|default:'video/mp4' }}" />
-              Your browser does not support the background video.
-            </video>
-          </div>
-        {% endif %}
-
-        {% if bg.video %}
-          <div class="absolute inset-0 hidden md:block">
-            <video
-              class="h-full w-full object-cover"
-              autoplay loop muted playsinline
-              preload="auto"
-              data-hero-video
-              aria-hidden="true"
-              {% with poster_image=bg.image|default:bg.mobile_image %}
-                {% if poster_image %}
-                  poster="{% if bg.image and bg.image_is_media %}{{ bg.image }}{% elif bg.image %}{% static bg.image %}{% elif bg.mobile_image_is_media %}{{ bg.mobile_image }}{% else %}{% static bg.mobile_image %}{% endif %}"
-                {% endif %}
-              {% endwith %}>
-              <source src="{% if bg.video_is_media %}{{ bg.video }}{% else %}{% static bg.video %}{% endif %}" type="{{ bg.video_type|default:'video/mp4' }}" />
               Your browser does not support the background video.
             </video>
           </div>

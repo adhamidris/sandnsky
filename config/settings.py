@@ -231,14 +231,19 @@ if _use_r2_media:
     AWS_S3_ADDRESSING_STYLE = os.environ.get("CLOUDFLARE_R2_ADDRESSING_STYLE", "path")
     AWS_DEFAULT_ACL = None
     AWS_QUERYSTRING_AUTH = os.environ.get("CLOUDFLARE_R2_SIGNED_URLS", "False").lower() in ("1", "true", "yes", "on")
-    _cache_control = os.environ.get("CLOUDFLARE_R2_CACHE_CONTROL", "max-age=86400")
+    _cache_control = os.environ.get(
+        "CLOUDFLARE_R2_CACHE_CONTROL",
+        "public, max-age=31536000, immutable",
+    )
     if _cache_control:
         AWS_S3_OBJECT_PARAMETERS = {"CacheControl": _cache_control}
     AWS_S3_FILE_OVERWRITE = False
 
     STORAGES = {
         "default": {"BACKEND": "storages.backends.s3boto3.S3Boto3Storage"},
-        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        },
     }
 
     _r2_public_domain = os.environ.get("CLOUDFLARE_R2_PUBLIC_DOMAIN")

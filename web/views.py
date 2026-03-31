@@ -92,6 +92,27 @@ LANGUAGE_FLAG_BY_CODE = {
     "ar": "🇪🇬",
 }
 
+HERO_VIDEO_URL_OVERRIDES = {
+    "site/hero/pairs/videos/herovidtest.mp4": "site/hero/pairs/videos/herovidtest-v2.mp4",
+    "site/hero/pairs/videos/mobile/herovidfinal.mp4": "site/hero/pairs/videos/mobile/herovidfinal-v2.mp4",
+}
+
+DESTINATION_CARD_URL_OVERRIDES = {
+    "destinations/giza.jpg": "destinations/cards/giza.webp",
+    "destinations/cairo.jpg": "destinations/cards/cairo.webp",
+    "destinations/alexandria2.jpg": "destinations/cards/alexandria2.webp",
+    "destinations/ainsokhna.jpg": "destinations/cards/ainsokhna.webp",
+    "destinations/fayoum.jpg": "destinations/cards/fayoum.webp",
+    "destinations/wahat-card.jpg": "destinations/cards/wahat-card.webp",
+    "destinations/luxor.jpg": "destinations/cards/luxor.webp",
+    "destinations/aswan.jpg": "destinations/cards/aswan.webp",
+    "destinations/sinai.jpg": "destinations/cards/sinai.webp",
+    "destinations/siwa.jpg": "destinations/cards/siwa.webp",
+    "destinations/white-desert-national-park3.jpg": "destinations/cards/white-desert-national-park3.webp",
+}
+
+TRIP_PICKS_LIMIT_PER_TOGGLE = 9
+
 
 def format_review_summary(count: int):
     if count <= 0:
@@ -240,7 +261,7 @@ def build_destination_card(destination):
         "slug": destination.slug,
         "title": destination.tagline or destination.name,
         "description": destination.description,
-        "image_url": destination.card_image.url if destination.card_image else "",
+        "image_url": optimized_destination_card_url(destination.card_image.url) if destination.card_image else "",
         "cta": {"label": destination.cta_label, "href": cta_href},
     }
 
@@ -546,6 +567,138 @@ def published_blog_queryset():
     )
 
 
+def versioned_hero_video_url(url: str) -> str:
+    if not url:
+        return url
+
+    for original, replacement in HERO_VIDEO_URL_OVERRIDES.items():
+        marker = f"/{original}"
+        if url.endswith(marker):
+            return f"{url[:-len(marker)]}/{replacement}"
+        if url.endswith(original):
+            return f"{url[:-len(original)]}{replacement}"
+    return url
+
+
+def optimized_destination_card_url(url: str) -> str:
+    if not url:
+        return url
+
+    for original, replacement in DESTINATION_CARD_URL_OVERRIDES.items():
+        marker = f"/{original}"
+        if url.endswith(marker):
+            return f"{url[:-len(marker)]}/{replacement}"
+        if url.endswith(original):
+            return f"{url[:-len(original)]}{replacement}"
+    return url
+
+
+def trip_picks_toggle_specs():
+    base_queryset = (
+        Trip.objects.filter(is_service=False)
+        .select_related("destination")
+        .prefetch_related("category_tags", "additional_destinations", "languages")
+    )
+
+    return [
+        (
+            "recommended",
+            "Recommended",
+            base_queryset.order_by("-created_at"),
+            None,
+        ),
+        (
+            "one-day",
+            "1Day",
+            base_queryset.filter(duration_days=1).order_by("title"),
+            None,
+        ),
+        (
+            "multi-day",
+            "Multi-Days",
+            base_queryset.filter(duration_days__gte=2).order_by(
+                "duration_days", "title"
+            ),
+            None,
+        ),
+        (
+            "packages",
+            "Packages",
+            base_queryset.order_by("-duration_days", "title"),
+            lambda trip: trip.total_destination_count() > 2,
+        ),
+        (
+            "luxury",
+            "Luxury",
+            base_queryset.filter(category_tags__slug="luxury")
+            .distinct()
+            .order_by("-base_price_per_person"),
+            None,
+        ),
+    ]
+
+
+def build_trip_picks_toggle(request, slug: str) -> dict[str, Any] | None:
+    cart_summary = summarize_cart(request.session)
+    cart_trip_slugs = {
+        entry.get("trip_slug")
+        for entry in cart_summary.get("entries", [])
+        if entry.get("trip_slug")
+    }
+
+    for toggle_slug, label, queryset, predicate in trip_picks_toggle_specs():
+        if toggle_slug != slug:
+            continue
+
+        cards = []
+        for trip in queryset:
+            if predicate and not predicate(trip):
+                continue
+            cards.append(
+                {
+                    **build_trip_card(trip),
+                    "in_cart": trip.slug in cart_trip_slugs,
+                }
+            )
+            if len(cards) >= TRIP_PICKS_LIMIT_PER_TOGGLE:
+                break
+
+        return {
+            "slug": toggle_slug,
+            "label": label,
+            "cards": cards,
+            "loaded": True,
+            "fetch_url": reverse("web:home-trip-picks-panel", kwargs={"slug": toggle_slug}),
+        }
+
+    return None
+
+
+def build_trip_picks_section(request) -> dict[str, Any]:
+    toggles = []
+    for index, (slug, label, _queryset, _predicate) in enumerate(trip_picks_toggle_specs()):
+        toggles.append(
+            {
+                "slug": slug,
+                "label": label,
+                "cards": [],
+                "loaded": False,
+                "fetch_url": reverse("web:home-trip-picks-panel", kwargs={"slug": slug}),
+            }
+        )
+        if index == 0:
+            first_toggle = build_trip_picks_toggle(request, slug)
+            if first_toggle:
+                toggles[-1] = first_toggle
+
+    return {
+        "eyebrow": "Trips",
+        "title": "Traveler Picks",
+        "toggles": toggles,
+        "view_all_href": reverse("web:trips"),
+    }
+
+
 class HomePageView(TemplateView):
     template_name = "home.html"
 
@@ -564,14 +717,20 @@ class HomePageView(TemplateView):
             fallback_mobile_image = site_config.hero_mobile_image.url
             fallback_mobile_image_is_media = True
 
-        fallback_video = site_config.hero_video.url if site_config.hero_video else ""
+        fallback_video = (
+            versioned_hero_video_url(site_config.hero_video.url)
+            if site_config.hero_video
+            else ""
+        )
         fallback_video_is_media = bool(site_config.hero_video)
         fallback_video_type = ""
         if site_config.hero_video:
             fallback_video_type, _ = mimetypes.guess_type(site_config.hero_video.name)
 
         fallback_mobile_video = (
-            site_config.hero_mobile_video.url if site_config.hero_mobile_video else ""
+            versioned_hero_video_url(site_config.hero_mobile_video.url)
+            if site_config.hero_mobile_video
+            else ""
         )
         fallback_mobile_video_is_media = bool(site_config.hero_mobile_video)
         fallback_mobile_video_type = ""
@@ -607,14 +766,14 @@ class HomePageView(TemplateView):
                 background_mobile_image_is_media = True
 
             if pair.hero_video and not background_video:
-                background_video = pair.hero_video.url
+                background_video = versioned_hero_video_url(pair.hero_video.url)
                 background_video_is_media = True
                 guessed_type, _ = mimetypes.guess_type(pair.hero_video.name)
                 if guessed_type:
                     background_video_type = guessed_type
 
             if pair.hero_mobile_video and not background_mobile_video:
-                background_mobile_video = pair.hero_mobile_video.url
+                background_mobile_video = versioned_hero_video_url(pair.hero_mobile_video.url)
                 background_mobile_video_is_media = True
                 guessed_mobile_type, _ = mimetypes.guess_type(pair.hero_mobile_video.name)
                 if guessed_mobile_type:
@@ -693,7 +852,7 @@ class HomePageView(TemplateView):
             "title": "Featured Destinations",
             "items": self._featured_destinations(),
         }
-        context["trip_picks_section"] = self._trip_picks_section()
+        context["trip_picks_section"] = build_trip_picks_section(self.request)
 
         gallery_items = self._gallery_items()
         primary_row = gallery_items[::2]
@@ -795,90 +954,6 @@ class HomePageView(TemplateView):
         )
 
         return [build_destination_card(destination) for destination in featured]
-
-    def _trip_picks_section(self):
-        base_queryset = (
-            Trip.objects.filter(is_service=False)
-            .select_related("destination")
-            .prefetch_related("category_tags", "additional_destinations", "languages")
-        )
-
-        limit_per_toggle = 9
-        cart_summary = summarize_cart(self.request.session)
-        cart_trip_slugs = {
-            entry.get("trip_slug")
-            for entry in cart_summary.get("entries", [])
-            if entry.get("trip_slug")
-        }
-        toggles_config = [
-            (
-                "recommended",
-                "Recommended",
-                base_queryset.order_by("-created_at"),
-                None,
-            ),
-            (
-                "one-day",
-                "1Day",
-                base_queryset.filter(duration_days=1).order_by("title"),
-                None,
-            ),
-            (
-                "multi-day",
-                "Multi-Days",
-                base_queryset.filter(duration_days__gte=2).order_by(
-                    "duration_days", "title"
-                ),
-                None,
-            ),
-            (
-                "packages",
-                "Packages",
-                base_queryset.order_by("-duration_days", "title"),
-                lambda trip: trip.total_destination_count() > 2,
-            ),
-            (
-                "luxury",
-                "Luxury",
-                base_queryset.filter(category_tags__slug="luxury")
-                .distinct()
-                .order_by("-base_price_per_person"),
-                None,
-            ),
-        ]
-
-        toggles = []
-        seen_slugs = set()
-        for slug, label, queryset, predicate in toggles_config:
-            if slug in seen_slugs:
-                continue
-            seen_slugs.add(slug)
-            cards = []
-            for trip in queryset:
-                if predicate and not predicate(trip):
-                    continue
-                cards.append(
-                    {
-                        **build_trip_card(trip),
-                        "in_cart": trip.slug in cart_trip_slugs,
-                    }
-                )
-                if len(cards) >= limit_per_toggle:
-                    break
-            toggles.append(
-                {
-                    "slug": slug,
-                    "label": label,
-                    "cards": cards,
-                }
-            )
-
-        return {
-            "eyebrow": "Trips",
-            "title": "Traveler Picks",
-            "toggles": toggles,
-            "view_all_href": reverse("web:trips"),
-        }
 
     def _recent_blog_posts(self):
         posts = published_blog_queryset().order_by("-published_at", "-created_at")[:3]
@@ -1092,6 +1167,26 @@ class DestinationListView(TemplateView):
         context["destinations"] = cards
         context["destination_count"] = len(cards)
         return context
+
+
+class HomeTripPicksPanelView(View):
+    def get(self, request, slug: str, *args, **kwargs):
+        toggle = build_trip_picks_toggle(request, slug)
+        if not toggle:
+            raise Http404("Trip collection not found.")
+
+        html = render_to_string(
+            "includes/trip_picks_panel_content.html",
+            {
+                "toggle": toggle,
+                "current_path": reverse("web:home"),
+                "trip_picks_section": {
+                    "view_all_href": reverse("web:trips"),
+                },
+            },
+            request=request,
+        )
+        return JsonResponse({"html": html, "slug": slug})
 
 
 class DestinationPageView(TemplateView):
