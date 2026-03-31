@@ -1049,9 +1049,9 @@
             </div>
           </a>
           
-          <a class="metric-card metric-confirmed" href="{% url 'admin:web_booking_changelist' %}?status__exact=confirmed">
+          <a class="metric-card metric-confirmed" href="{% url 'admin:web_booking_changelist' %}?status__exact=confirmed&travel_date__gte={{ today }}">
             <div class="metric-label">{% trans "Confirmed" %}</div>
-            <div class="metric-value">{{ booking_counts.confirmed|default:0 }}</div>
+            <div class="metric-value">{{ booking_counts.upcoming_confirmed|default:0 }}</div>
             <div class="metric-hint">
               <span class="metric-chip">{% trans "Upcoming trips" %}</span>
             </div>

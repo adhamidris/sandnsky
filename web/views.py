@@ -82,6 +82,7 @@ BOOKING_REFERENCE_SALT = "booking-success"
 BOOKING_REFERENCE_MAX_AGE = 60 * 60 * 24 * 14  # 14 days
 BOOKING_CART_REFERENCE_SALT = "booking-cart-success"
 BOOKING_CART_REFERENCE_MAX_AGE = BOOKING_REFERENCE_MAX_AGE
+BOOKING_SUCCESS_SESSION_KEY = "booking_success_ref"
 LANGUAGE_FLAG_BY_CODE = {
     "en": "🇬🇧",
     "es": "🇪🇸",
@@ -346,7 +347,27 @@ def load_cart_bookings_from_token(token, *, max_age=BOOKING_CART_REFERENCE_MAX_A
         )
         if not bookings:
             raise Http404("Booking reference invalid.")
-        return bookings, contact_info
+    return bookings, contact_info
+
+
+def store_booking_success_token(session, token: str | None) -> None:
+    if not hasattr(session, "modified"):
+        return
+    normalized = (token or "").strip()
+    if normalized:
+        session[BOOKING_SUCCESS_SESSION_KEY] = normalized
+    else:
+        session.pop(BOOKING_SUCCESS_SESSION_KEY, None)
+    session.modified = True
+
+
+def get_booking_success_token(session) -> str:
+    if not hasattr(session, "get"):
+        return ""
+    token = session.get(BOOKING_SUCCESS_SESSION_KEY, "")
+    if isinstance(token, str):
+        return token.strip()
+    return ""
 
     if not isinstance(booking_ids, (list, tuple)) or not booking_ids:
         raise Http404("Booking reference invalid.")
@@ -2730,7 +2751,8 @@ class CartCheckoutView(TemplateView):
             )
 
             clear_cart(request.session)
-            success_url = f"{reverse('web:booking-success')}?ref={token}"
+            store_booking_success_token(request.session, token)
+            success_url = reverse("web:booking-success")
             return redirect(success_url)
 
         return self.render_to_response(
@@ -2788,6 +2810,9 @@ class CartCheckoutView(TemplateView):
                 else:
                     raise Http404("One of the trip dates is invalid. Please review your list.")
 
+                if travel_date < timezone.localdate():
+                    raise Http404("One of the trip dates is in the past. Please review your list.")
+
                 adults = max(int(entry.get("adults") or 0), 0)
                 children = max(int(entry.get("children") or 0), 0)
                 infants = max(int(entry.get("infants") or 0), 0)
@@ -2796,8 +2821,6 @@ class CartCheckoutView(TemplateView):
 
                 pricing = entry.get("pricing") or {}
                 base_total = cents_to_decimal(pricing.get("base_total_cents"))
-                extras_total = cents_to_decimal(pricing.get("extras_total_cents"))
-                grand_total = cents_to_decimal(pricing.get("grand_total_cents"))
 
                 entry_id = str(entry.get("id", ""))
                 calculation = rewards_state.calculations.get(entry_id)
@@ -2805,10 +2828,42 @@ class CartCheckoutView(TemplateView):
 
                 if calculation is not None and snapshot is not None:
                     base_total = cents_to_decimal(calculation.updated_base_total_cents)
-                    extras_total = cents_to_decimal(snapshot.extras_total_cents)
-                    grand_total = cents_to_decimal(calculation.updated_grand_total_cents)
 
-                if grand_total == Decimal("0"):
+                extras_data = entry.get("extras") or []
+                extra_ids = {
+                    extra.get("id")
+                    for extra in extras_data
+                    if extra.get("id") is not None
+                }
+                extras_queryset = TripExtra.objects.filter(trip=trip, pk__in=extra_ids)
+                extras_map = {extra.pk: extra for extra in extras_queryset}
+
+                if len(extra_ids) != len(extras_map):
+                    raise Http404(
+                        "One of the selected extras is no longer available. Please review your list."
+                    )
+
+                resolved_booking_extras = []
+                extras_total = Decimal("0.00")
+                for extra_data in extras_data:
+                    extra_id = extra_data.get("id")
+                    extra = extras_map.get(extra_id)
+                    if extra is None:
+                        continue
+                    price_cents = extra_data.get("price_cents")
+                    if price_cents is None:
+                        price_value = extra.price
+                    else:
+                        price_value = cents_to_decimal(price_cents)
+                    extras_total += price_value
+                    resolved_booking_extras.append(
+                        {
+                            "extra": extra,
+                            "price_at_booking": price_value,
+                        }
+                    )
+
+                if base_total == Decimal("0"):
                     adult_price = getattr(trip, "base_price_per_person", Decimal("0"))
                     child_price = trip.get_child_price_per_person()
                     if not isinstance(adult_price, Decimal):
@@ -2818,9 +2873,7 @@ class CartCheckoutView(TemplateView):
                     if adults + children <= 0:
                         adults = 1
                     base_total = (adult_price * Decimal(adults) + child_price * Decimal(children)).quantize(Decimal("0.01"))
-                    extras_total = Decimal("0")
-                    for extra_data in entry.get("extras", []):
-                        extras_total += cents_to_decimal(extra_data.get("price_cents"))
+                extras_total = extras_total.quantize(Decimal("0.01"))
                 grand_total = (base_total + extras_total).quantize(Decimal("0.01"))
 
                 entry_message = (entry.get("message") or "").strip()
@@ -2895,33 +2948,14 @@ class CartCheckoutView(TemplateView):
                     Booking.objects.filter(pk=booking.pk).update(group_reference=group_reference)
                     booking.group_reference = group_reference
 
-                extras_data = entry.get("extras") or []
-                extra_ids = {
-                    extra.get("id")
-                    for extra in extras_data
-                    if extra.get("id") is not None
-                }
-                extras_queryset = TripExtra.objects.filter(trip=trip, pk__in=extra_ids)
-                extras_map = {extra.pk: extra for extra in extras_queryset}
-
-                booking_extras = []
-                for extra_data in extras_data:
-                    extra_id = extra_data.get("id")
-                    extra = extras_map.get(extra_id)
-                    if not extra:
-                        continue
-                    price_cents = extra_data.get("price_cents")
-                    if price_cents is None:
-                        price_value = extra.price
-                    else:
-                        price_value = cents_to_decimal(price_cents)
-                    booking_extras.append(
-                        BookingExtra(
-                            booking=booking,
-                            extra=extra,
-                            price_at_booking=price_value,
-                        )
+                booking_extras = [
+                    BookingExtra(
+                        booking=booking,
+                        extra=record["extra"],
+                        price_at_booking=record["price_at_booking"],
                     )
+                    for record in resolved_booking_extras
+                ]
 
                 if booking_extras:
                     BookingExtra.objects.bulk_create(booking_extras)
@@ -3245,8 +3279,7 @@ class BookingSuccessView(TemplateView):
     SINGLE_MAX_AGE = BOOKING_REFERENCE_MAX_AGE
     MULTI_MAX_AGE = BOOKING_CART_REFERENCE_MAX_AGE
 
-    def _load_success_payload(self):
-        token = self.request.GET.get("ref")
+    def _load_success_payload(self, token):
         if not token:
             raise Http404("Booking reference not provided.")
 
@@ -3270,9 +3303,18 @@ class BookingSuccessView(TemplateView):
         )
         return bookings, contact_info
 
+    def dispatch(self, request, *args, **kwargs):
+        token = (request.GET.get("ref") or "").strip()
+        if token:
+            self._load_success_payload(token)
+            store_booking_success_token(request.session, token)
+            return redirect(reverse("web:booking-success"))
+        return super().dispatch(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        bookings, contact_info = self._load_success_payload()
+        token = get_booking_success_token(self.request.session)
+        bookings, contact_info = self._load_success_payload(token)
 
         if not bookings:
             raise Http404("Booking reference invalid.")
@@ -3578,15 +3620,24 @@ class BookingStatusView(View):
     http_method_names = ["get"]
 
     def get(self, request, *args, **kwargs):
-        token = request.GET.get("ref")
+        token = (request.GET.get("ref") or "").strip() or get_booking_success_token(
+            request.session
+        )
         if not token:
             return JsonResponse({"error": "Missing booking reference."}, status=400)
 
+        contact_info = {}
         try:
             booking = load_booking_from_token(token)
-        except Http404 as exc:
-            message = str(exc) or "Booking not found."
-            return JsonResponse({"error": message}, status=404)
+        except Http404:
+            try:
+                bookings, contact_info = load_cart_bookings_from_token(token)
+            except Http404 as exc:
+                message = str(exc) or "Booking not found."
+                return JsonResponse({"error": message}, status=404)
+            if not bookings:
+                return JsonResponse({"error": "Booking not found."}, status=404)
+            booking = bookings[0]
 
         traveler_count = max(booking.adults + booking.children, 1)
 
@@ -3614,10 +3665,10 @@ class BookingStatusView(View):
                 "per_person_total": str(booking.grand_total / traveler_count) if traveler_count else None,
             },
             "contact": {
-                "name": booking.full_name,
-                "email": booking.email,
-                "phone": booking.phone,
-                "nationality": booking.nationality,
+                "name": contact_info.get("name") or booking.full_name,
+                "email": contact_info.get("email") or booking.email,
+                "phone": contact_info.get("phone") or booking.phone,
+                "nationality": contact_info.get("nationality") or booking.nationality,
             },
             "trip": {
                 "title": booking.trip.title,

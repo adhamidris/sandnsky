@@ -12,12 +12,15 @@ register = template.Library()
 def booking_counts():
     """
     Return quick booking metrics for the admin dashboard.
-    Keys: new, confirmed, past_confirmed.
+    Keys: new, upcoming_confirmed, past_confirmed.
     """
     today = timezone.localdate()
     return {
         "new": Booking.objects.filter(status=Booking.Status.RECEIVED).count(),
-        "confirmed": Booking.objects.filter(status=Booking.Status.CONFIRMED).count(),
+        "upcoming_confirmed": Booking.objects.filter(
+            status=Booking.Status.CONFIRMED,
+            travel_date__gte=today,
+        ).count(),
         "past_confirmed": Booking.objects.filter(
             status=Booking.Status.CONFIRMED,
             travel_date__lt=today,

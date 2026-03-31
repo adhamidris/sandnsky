@@ -651,6 +651,7 @@ class BookingAdmin(admin.ModelAdmin):
     inlines = [BookingExtraInline, BookingRewardInline]
 
     list_display = (
+        "reference_code_display",
         "trip",
         "trip_option_label",
         "travel_date",
@@ -667,7 +668,14 @@ class BookingAdmin(admin.ModelAdmin):
         "created_at",
     )
     list_filter = ("trip", "travel_date", "status", "created_at")
-    search_fields = ("full_name", "email", "phone", "nationality", "trip__title")
+    search_fields = (
+        "group_reference",
+        "full_name",
+        "email",
+        "phone",
+        "nationality",
+        "trip__title",
+    )
     date_hierarchy = "created_at"
     ordering = ("-created_at",)
 
@@ -687,6 +695,10 @@ class BookingAdmin(admin.ModelAdmin):
         "mark_as_confirmed",
         "mark_as_cancelled",
     )
+
+    @admin.display(description="Reference")
+    def reference_code_display(self, obj):
+        return obj.reference_code
 
     def _mass_update_status(self, queryset, status):
         updated = 0

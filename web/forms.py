@@ -154,6 +154,11 @@ class BookingRequestForm(forms.Form):
 
     def clean(self):
         cleaned_data = super().clean()
+        selected_date = cleaned_data.get("date")
+        today = timezone.localdate()
+
+        if selected_date and selected_date < today:
+            self.add_error("date", "Choose a travel date from today onward.")
 
         adults = cleaned_data.get("adults") or 0
         if adults < 1:

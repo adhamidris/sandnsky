@@ -491,7 +491,7 @@
           <p class="checkout-section-description text-sm text-muted-foreground">Fine-tune your selection, update traveler details, and submit everything in one go. You can still book individual trips directly from each trip page.</p>
         </header>
 
-        <div class="guest-details rounded-3xl bg-card p-6 shadow-[var(--shadow-medium)]">
+        <div class="guest-details rounded-3xl bg-card p-6 shadow-[var(--shadow-medium)] {% if not cart_has_entries %}hidden{% endif %}">
           <h2 class="guest-detail-h2 text-lg font-semibold text-foreground">Guest details</h2>
           <form id="cart-checkout-form" method="post" action="{% url 'web:booking-cart-checkout' %}" class="mt-4 grid gap-4 sm:grid-cols-2">
             {% csrf_token %}
@@ -738,7 +738,7 @@
         </div>
         {% endwith %}
 
-        <div class="checkout-summary-card rounded-3xl bg-card p-6 shadow-[var(--shadow-subtle)]">
+        <div class="checkout-summary-card rounded-3xl bg-card p-6 shadow-[var(--shadow-subtle)] {% if not cart_has_entries %}hidden{% endif %}">
           <h2 class="checkout-summary-title text-lg font-semibold text-foreground">Summary</h2>
           <dl class="checkout-summary-list mt-4 space-y-3 text-sm text-muted-foreground">
             <div class="checkout-summary-row flex justify-between">

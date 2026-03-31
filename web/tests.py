@@ -2,10 +2,13 @@ import json
 from datetime import date, timedelta
 from decimal import Decimal
 
+from django.conf import settings
 from django.core import mail, signing
+from django.http import Http404
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
+from .forms import BookingRequestForm
 from .models import (
     Booking,
     BookingExtra,
@@ -19,7 +22,11 @@ from .models import (
     TripExtra,
     Review,
 )
-from .views import CartCheckoutView, BOOKING_CART_REFERENCE_SALT
+from .views import (
+    CartCheckoutView,
+    BOOKING_CART_REFERENCE_SALT,
+    BOOKING_SUCCESS_SESSION_KEY,
+)
 from .booking_cart import (
     add_entry,
     apply_reward_selection,
@@ -36,6 +43,12 @@ from .rewards import (
     invalidate_reward_phase_cache,
     normalize_reward_selections,
 )
+
+
+TEST_STORAGES = {
+    **settings.STORAGES,
+    "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+}
 
 
 class RewardTestSetupMixin:
@@ -85,6 +98,7 @@ class RewardTestSetupMixin:
         super().tearDown()
 
 
+@override_settings(STORAGES=TEST_STORAGES)
 class BookingSubmissionTests(TestCase):
     def setUp(self):
         self.destination = Destination.objects.create(
@@ -118,10 +132,10 @@ class BookingSubmissionTests(TestCase):
 
     def test_booking_form_submission_creates_booking_with_correct_totals(self):
         travel_date = date.today() + timedelta(days=30)
-        url = reverse("web:trip-detail", args=[self.trip.slug])
+        trip_url = reverse("web:trip-detail", args=[self.trip.slug])
 
-        response = self.client.post(
-            url,
+        first_response = self.client.post(
+            trip_url,
             {
                 "date": travel_date.isoformat(),
                 "adults": "2",
@@ -134,14 +148,23 @@ class BookingSubmissionTests(TestCase):
                 "nationality": "Egyptian",
                 "message": "Please arrange sunset viewing.",
             },
+            follow=False,
+        )
+
+        self.assertEqual(first_response.status_code, 302)
+        self.assertEqual(first_response["Location"], reverse("web:booking-cart-checkout"))
+
+        response = self.client.post(
+            reverse("web:booking-cart-checkout"),
+            {
+                "name": "Jordan Traveler",
+                "email": "jordan@example.com",
+                "phone": "+20123456789",
+                "nationality": "Egyptian",
+                "notes": "Please arrange sunset viewing.",
+            },
             follow=True,
         )
-        if response.context and response.context.get("form"):
-            form = response.context["form"]
-            print("FORM VALID", form.is_valid())
-            print("FORM ERRORS", form.errors)
-            print("FORM DATA", form.errors.as_data())
-            print("NON FIELD", form.non_field_errors())
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "booking_success.html")
@@ -157,7 +180,7 @@ class BookingSubmissionTests(TestCase):
         self.assertEqual(booking.email, "jordan@example.com")
         self.assertEqual(booking.phone, "+20123456789")
         self.assertEqual(booking.nationality, "Egyptian")
-        self.assertEqual(booking.special_requests, "Please arrange sunset viewing.")
+        self.assertIn("Please arrange sunset viewing.", booking.special_requests)
 
         expected_base = (Decimal("150.00") * 2) + Decimal("90.00")
         expected_extras = self.extra_camel.price + self.extra_hot_air.price
@@ -200,8 +223,31 @@ class BookingSubmissionTests(TestCase):
 
         token = signing.dumps(booking.pk, salt="booking-success")
         response = self.client.get(f"{url}?ref={token}")
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, booking.reference_code)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], url)
+
+        session = self.client.session
+        self.assertEqual(session.get(BOOKING_SUCCESS_SESSION_KEY), token)
+
+        clean_response = self.client.get(url)
+        self.assertEqual(clean_response.status_code, 200)
+        self.assertContains(clean_response, booking.reference_code)
+
+    def test_booking_form_rejects_past_dates(self):
+        form = BookingRequestForm(
+            data={
+                "date": (date.today() - timedelta(days=1)).isoformat(),
+                "adults": "1",
+                "children": "0",
+                "infants": "0",
+                "name": "Jordan Traveler",
+                "email": "jordan@example.com",
+                "phone": "+20123456789",
+            }
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("date", form.errors)
 
     def test_checkout_entry_update_endpoint_updates_travel_details(self):
         session = self.client.session
@@ -321,9 +367,121 @@ class BookingSubmissionTests(TestCase):
         )
 
         response = self.client.get(f"{reverse('web:booking-success')}?ref={token}")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], reverse("web:booking-success"))
+
+        clean_response = self.client.get(reverse("web:booking-success"))
+        self.assertEqual(clean_response.status_code, 200)
+        self.assertContains(clean_response, shared_reference)
+        self.assertNotContains(clean_response, "+1 more")
+
+    def test_cart_checkout_rejects_past_dates(self):
+        contact = {
+            "name": "Alex Traveler",
+            "email": "alex@example.com",
+            "phone": "+20123456789",
+        }
+        view = CartCheckoutView()
+        cart = {
+            "entries": [
+                {
+                    "trip_id": self.trip.pk,
+                    "travel_date": (date.today() - timedelta(days=1)).isoformat(),
+                    "adults": 2,
+                    "children": 0,
+                    "infants": 0,
+                    "pricing": {
+                        "base_total_cents": "30000",
+                    },
+                    "extras": [],
+                    "message": "",
+                }
+            ],
+            "contact": {},
+            "rewards": {},
+        }
+
+        with self.assertRaises(Http404):
+            view._create_bookings(cart, contact)
+
+    def test_cart_checkout_rejects_removed_extras(self):
+        missing_extra_id = self.extra_camel.pk
+        self.extra_camel.delete()
+        contact = {
+            "name": "Alex Traveler",
+            "email": "alex@example.com",
+            "phone": "+20123456789",
+        }
+        view = CartCheckoutView()
+        cart = {
+            "entries": [
+                {
+                    "trip_id": self.trip.pk,
+                    "travel_date": (date.today() + timedelta(days=10)).isoformat(),
+                    "adults": 1,
+                    "children": 0,
+                    "infants": 0,
+                    "pricing": {
+                        "base_total_cents": "15000",
+                        "extras_total_cents": "7500",
+                        "grand_total_cents": "22500",
+                    },
+                    "extras": [
+                        {
+                            "id": missing_extra_id,
+                            "price_cents": "7500",
+                        }
+                    ],
+                    "message": "",
+                }
+            ],
+            "contact": {},
+            "rewards": {},
+        }
+
+        with self.assertRaises(Http404):
+            view._create_bookings(cart, contact)
+
+    def test_booking_status_accepts_cart_success_token(self):
+        travel_date = date.today() + timedelta(days=20)
+        contact = {
+            "name": "Alex Traveler",
+            "email": "alex@example.com",
+            "phone": "+20123456789",
+            "nationality": "Egyptian",
+            "notes": "Status endpoint sanity check.",
+        }
+        view = CartCheckoutView()
+        cart = {
+            "entries": [
+                {
+                    "trip_id": self.trip.pk,
+                    "travel_date": travel_date.isoformat(),
+                    "adults": 2,
+                    "children": 0,
+                    "infants": 0,
+                    "pricing": {
+                        "base_total_cents": "30000",
+                    },
+                    "extras": [],
+                    "message": "",
+                }
+            ],
+            "contact": {},
+            "rewards": {},
+        }
+        bookings = view._create_bookings(cart, contact)
+        token = signing.dumps(bookings[0].reference_code, salt=BOOKING_CART_REFERENCE_SALT)
+        session = self.client.session
+        session[BOOKING_SUCCESS_SESSION_KEY] = token
+        session.save()
+
+        response = self.client.get(reverse("web:booking-status"))
+
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, shared_reference)
-        self.assertNotContains(response, "+1 more")
+        payload = response.json()
+        self.assertEqual(payload["reference"], bookings[0].reference_code)
+        self.assertEqual(payload["contact"]["email"], contact["email"])
 
 
     def test_build_cart_entry_uses_child_pricing(self):
