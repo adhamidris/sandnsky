@@ -155,7 +155,7 @@
         }
 
         if (form.id === 'cart-checkout-form') {
-          const cartCount = document.querySelectorAll('[data-entry-id]').length;
+          const cartCount = document.querySelectorAll('[data-entry][data-entry-id]').length;
           trackEvent('booking_checkout_submit', {
             cart_count: cartCount,
           });
