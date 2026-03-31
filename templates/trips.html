@@ -368,10 +368,14 @@
               </dl>
 
               <a href="{% url 'web:trip-detail' trip.slug %}"
-                 class="trip-card__cta-primary inline-flex w-full items-center justify-center rounded-md px-3 py-2 text-xs sm:text-sm font-semibold shadow-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+                 class="trip-card__cta-primary inline-flex w-full items-center justify-center rounded-md px-3 py-2 text-xs sm:text-sm font-semibold shadow-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                 data-analytics-event="trip_detail_click"
+                 data-analytics-param-source="trips_listing"
+                 data-analytics-param-trip-slug="{{ trip.slug }}"
+                 data-analytics-param-trip-title="{{ trip.title }}">
                 View details
               </a>
-              <form method="post" action="{% url 'web:booking-cart-quick-add' trip.slug %}" class="mt-2" data-cart-toggle>
+              <form method="post" action="{% url 'web:booking-cart-quick-add' trip.slug %}" class="mt-2" data-cart-toggle data-cart-source="trips_listing" data-analytics-param-trip-slug="{{ trip.slug }}" data-analytics-param-trip-title="{{ trip.title }}" data-analytics-param-trip-id="{{ trip.id }}">
                 {% csrf_token %}
                 <input type="hidden" name="next" value="{{ request.get_full_path }}" />
                 {% with date_id="quick-add-date-"|add:trip.slug adults_id="quick-add-adults-"|add:trip.slug children_id="quick-add-children-"|add:trip.slug infants_id="quick-add-infants-"|add:trip.slug %}

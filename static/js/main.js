@@ -1,3 +1,174 @@
+  // ===== Analytics tracking =====
+  (function () {
+    const trackEvent = (eventName, params = {}) => {
+      if (window.kayaAnalytics && typeof window.kayaAnalytics.track === 'function') {
+        window.kayaAnalytics.track(eventName, {
+          page_path: window.location.pathname,
+          ...params,
+        });
+      }
+    };
+
+    const normalizeText = (value) => {
+      return String(value || '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 100);
+    };
+
+    const attrNameToParamKey = (attrName) => {
+      return attrName
+        .replace(/^data-analytics-param-/, '')
+        .replace(/-/g, '_');
+    };
+
+    const extractAnalyticsParams = (element) => {
+      if (!(element instanceof Element)) return {};
+      const params = {};
+      element.getAttributeNames().forEach((name) => {
+        if (!name.startsWith('data-analytics-param-')) return;
+        const value = element.getAttribute(name);
+        if (value === null || value === '') return;
+        params[attrNameToParamKey(name)] = value;
+      });
+      return params;
+    };
+
+    const findTripContext = (element) => {
+      const scoped = element instanceof Element ? element.closest('[data-trip-context]') : null;
+      const fallback = document.querySelector('[data-trip-context]');
+      const source = scoped || fallback;
+      if (!(source instanceof HTMLElement)) return {};
+      const params = {};
+      if (source.dataset.tripSlug) {
+        params.trip_slug = source.dataset.tripSlug;
+      }
+      if (source.dataset.tripTitle) {
+        params.trip_title = source.dataset.tripTitle;
+      }
+      if (source.dataset.tripId) {
+        params.trip_id = source.dataset.tripId;
+      }
+      return params;
+    };
+
+    const buildParams = (element, extra = {}) => {
+      return {
+        ...findTripContext(element),
+        ...extractAnalyticsParams(element),
+        ...extra,
+      };
+    };
+
+    const successNode = document.querySelector('[data-booking-success-analytics]');
+    if (successNode instanceof HTMLElement) {
+      const successParams = buildParams(successNode, {
+        bookings_count: successNode.dataset.bookingsCount || '0',
+        booking_status: successNode.dataset.bookingStatus || '',
+        currency: successNode.dataset.currency || '',
+        total_value: successNode.dataset.totalValue || '',
+      });
+      trackEvent('booking_success_view', successParams);
+      trackEvent('generate_lead', {
+        ...successParams,
+        lead_type: 'booking_success',
+      });
+    }
+
+    document.addEventListener(
+      'click',
+      (event) => {
+        const target = event.target instanceof Element ? event.target : null;
+        if (!target) return;
+
+        const analyticsTarget = target.closest('[data-analytics-event]');
+        if (analyticsTarget instanceof HTMLElement) {
+          const eventName = analyticsTarget.dataset.analyticsEvent || '';
+          if (eventName) {
+            trackEvent(
+              eventName,
+              buildParams(analyticsTarget, {
+                link_text: normalizeText(
+                  analyticsTarget.getAttribute('aria-label') || analyticsTarget.textContent
+                ),
+              })
+            );
+          }
+        }
+
+        const link = target.closest('a[href]');
+        if (!(link instanceof HTMLAnchorElement)) return;
+
+        const href = link.getAttribute('href') || '';
+        const linkText = normalizeText(
+          link.dataset.analyticsLabel ||
+            link.getAttribute('aria-label') ||
+            link.textContent
+        );
+        const linkArea = normalizeText(
+          link.dataset.analyticsArea ||
+            link.closest('footer')?.getAttribute('aria-labelledby') ||
+            link.closest('footer')?.getAttribute('aria-label') ||
+            link.closest('main')?.id ||
+            link.className
+        );
+        const baseParams = buildParams(link, {
+          link_text: linkText,
+          link_area: linkArea,
+        });
+
+        if (href.includes('wa.me/')) {
+          trackEvent('whatsapp_click', baseParams);
+        } else if (href.startsWith('tel:')) {
+          trackEvent('phone_click', {
+            ...baseParams,
+            phone_number: href.replace(/^tel:/, ''),
+          });
+        } else if (href.startsWith('mailto:')) {
+          trackEvent('email_click', {
+            ...baseParams,
+            email_address: href.replace(/^mailto:/, ''),
+          });
+        }
+      },
+      true
+    );
+
+    document.addEventListener(
+      'submit',
+      (event) => {
+        const form = event.target;
+        if (!(form instanceof HTMLFormElement)) return;
+
+        if (form.matches('[data-cart-toggle]')) {
+          const toggleButton =
+            form.querySelector('[data-cart-toggle-button]') ||
+            event.submitter;
+          const isRemoval =
+            form.dataset.cartAction === 'remove' ||
+            (toggleButton instanceof HTMLElement &&
+              toggleButton.getAttribute('data-cart-state') === 'added');
+          trackEvent(isRemoval ? 'booking_list_remove' : 'booking_list_add', {
+            ...buildParams(form),
+            source: form.dataset.cartSource || 'cart_toggle',
+          });
+        }
+
+        if (form.id === 'cart-checkout-form') {
+          const cartCount = document.querySelectorAll('[data-entry-id]').length;
+          trackEvent('booking_checkout_submit', {
+            cart_count: cartCount,
+          });
+          trackEvent('generate_lead', {
+            lead_type: 'booking_checkout',
+            cart_count: cartCount,
+          });
+        }
+      },
+      true
+    );
+  })();
+
   // ===== Sync nav offset with actual header height =====
   (function () {
     const root = document.documentElement;

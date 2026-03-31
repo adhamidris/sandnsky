@@ -34,7 +34,7 @@
             {% endif %}
           </div>
 
-          <form method="post" action="{% url 'web:booking-cart-quick-add' entry.trip_slug %}" data-cart-toggle class="navcart-remove-form">
+          <form method="post" action="{% url 'web:booking-cart-quick-add' entry.trip_slug %}" data-cart-toggle data-cart-action="remove" data-cart-source="navcart" data-analytics-param-trip-slug="{{ entry.trip_slug }}" data-analytics-param-trip-title="{{ entry.trip_title }}" data-analytics-param-trip-id="{{ entry.trip_id }}" class="navcart-remove-form">
             {% csrf_token %}
             <input type="hidden" name="next" value="{{ request.get_full_path }}" />
             <button type="submit" class="navcart-remove"
@@ -55,7 +55,7 @@
   </div>
 
   <div class="navcart-actions">
-    <a href="{% url 'web:booking-cart-checkout' %}" class="navcart-primary">Review &amp; submit</a>
+    <a href="{% url 'web:booking-cart-checkout' %}" class="navcart-primary" data-analytics-event="checkout_view_click" data-analytics-param-source="navcart">Review &amp; submit</a>
   </div>
 {% else %}
   <div class="navcart-empty">

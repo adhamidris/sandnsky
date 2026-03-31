@@ -23,6 +23,7 @@
           aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
           aria-controls="{{ panel_id }}"
           data-trip-toggle="{{ toggle.slug }}"
+          data-trip-toggle-label="{{ toggle.label }}"
         >
           {{ toggle.label }}
         </button>
@@ -611,6 +612,17 @@
 
   const activate = (slug) => {
     if (!slug) return;
+    const activeToggle = toggles.find((button) => button.dataset.tripToggle === slug);
+    if (activeToggle && activeToggle.dataset.analyticsTracked !== 'true') {
+      if (window.kayaAnalytics && typeof window.kayaAnalytics.track === 'function') {
+        window.kayaAnalytics.track('trip_collection_open', {
+          page_path: window.location.pathname,
+          tab_slug: slug,
+          tab_label: activeToggle.dataset.tripToggleLabel || activeToggle.textContent.trim(),
+        });
+      }
+      activeToggle.dataset.analyticsTracked = 'true';
+    }
     toggles.forEach((button) => {
       const isActive = button.dataset.tripToggle === slug;
       button.classList.toggle('is-active', isActive);

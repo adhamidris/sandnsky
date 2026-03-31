@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from django.conf import settings
+
 from .booking_cart import build_booking_help_link, summarize_cart
 
 
@@ -28,4 +30,12 @@ def booking_cart(request):
         "booking_cart_total_display": summary["total_display"],
         "booking_cart_currency": summary["currency"],
         "booking_cart_help_link": whatsapp_link,
+    }
+
+
+def analytics(request):
+    return {
+        "google_analytics_measurement_id": getattr(
+            settings, "GOOGLE_ANALYTICS_MEASUREMENT_ID", ""
+        ),
     }

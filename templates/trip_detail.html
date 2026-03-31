@@ -113,6 +113,7 @@
 {% endblock %}
 
 {% block content %}
+<div data-trip-context data-trip-slug="{{ trip.slug }}" data-trip-title="{{ trip.title }}" data-trip-id="{{ trip.id }}" hidden></div>
 <header class="trip-detail-hero relative isolate overflow-hidden bg-black text-white">
 {% if trip.hero_image_url or trip.hero_image_mobile_url %}
   {% with mobile_src=trip.hero_image_mobile_url|default:trip.hero_image_url %}
@@ -259,7 +260,7 @@
                 {% if trip_in_cart %}
                 <p class="already-in-cart text-center text-xs font-medium text-primary">This trip is already in your booking list.</p>
                 {% endif %}
-                <button type="button" class="small-booking-btn inline-flex w-full items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-mobile-sheet-open aria-controls="booking-drawer" aria-expanded="false">
+                <button type="button" class="small-booking-btn inline-flex w-full items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-mobile-sheet-open data-analytics-area="trip_detail_inline_booking" aria-controls="booking-drawer" aria-expanded="false">
                   {% if trip_in_cart %}Review &amp; confirm{% else %}Start booking{% endif %}
                 </button>
                 <p class="no-payment text-center text-xs text-muted-foreground">No payment required at this stage.</p>
@@ -334,7 +335,7 @@
       </span>
       <span class="text-xs text-muted-foreground">{{ trip.tour_length }}</span>
     </div>
-    <button type="button" class="floater-booking-btn inline-flex items-center gap-3 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-mobile-sheet-open aria-controls="booking-drawer" aria-expanded="false">
+    <button type="button" class="floater-booking-btn inline-flex items-center gap-3 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-mobile-sheet-open data-analytics-area="trip_detail_floater_booking" aria-controls="booking-drawer" aria-expanded="false">
       <span>{% if trip_in_cart %}Review &amp; confirm{% else %}Book this trip{% endif %}</span>
       <span aria-hidden="true" class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary/15 text-primary-foreground">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4">
@@ -357,7 +358,7 @@
       </p>
       <p class="text-xs text-muted-foreground">{{ trip.tour_length }}</p>
     </div>
-    <button type="button" class="floating-mob-btn rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-mobile-sheet-open aria-expanded="false" aria-controls="booking-drawer">
+    <button type="button" class="floating-mob-btn rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" data-mobile-sheet-open data-analytics-area="trip_detail_mobile_booking" aria-expanded="false" aria-controls="booking-drawer">
       Book
     </button>
   </div>

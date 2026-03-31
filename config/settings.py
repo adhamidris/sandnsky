@@ -55,6 +55,9 @@ else:
 
 # DEBUG: default to False (production) unless explicitly enabled
 DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() in ("1","true","yes","on")
+GOOGLE_ANALYTICS_MEASUREMENT_ID = (
+    os.environ.get("GOOGLE_ANALYTICS_MEASUREMENT_ID", "G-2E792Q22CD").strip()
+)
 
 # ALLOWED_HOSTS: use env if non-empty, else safe defaults
 _raw_hosts = (os.environ.get("DJANGO_ALLOWED_HOSTS") or "").strip()
@@ -119,6 +122,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'web.context_processors.booking_cart',
+                'web.context_processors.analytics',
             ],
             'libraries': {
                 'admin_metrics': 'web.templatetags.admin_metrics',

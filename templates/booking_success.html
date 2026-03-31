@@ -4,7 +4,7 @@
 {% block title %}Booking Confirmation — {{ trip.title }}{% endblock %}
 
 {% block content %}
-<section class="booking-page booking-success-page px-4 py-16 sm:px-6 lg:px-8">
+<section class="booking-page booking-success-page px-4 py-16 sm:px-6 lg:px-8" data-booking-success-analytics data-trip-context data-trip-slug="{{ primary_trip.slug }}" data-trip-title="{{ primary_trip.title }}" data-bookings-count="{{ bookings_count }}" data-booking-status="{{ booking_status.code }}" data-currency="{{ summary_pricing.currency }}" data-total-value="{{ summary_pricing.total }}">
   <div class="mx-auto max-w-6xl space-y-10">
     <div class="booking-success booking-success-card rounded-3xl border border-border bg-card px-6 py-8 shadow-subtle sm:px-10 sm:py-12">
       <div class="flex flex-col gap-10">
@@ -120,7 +120,7 @@
                         <div class="booking-trip-meta-row">
                           <p class="booking-trip-subtitle text-sm text-muted-foreground">Trip date {{ item.travel_date_display }} · {{ item.traveler_summary }}</p>
                           {% if item.trip_url %}
-                          <a href="{{ item.trip_url }}" class="booking-trip-link inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-primary transition-colors hover:text-primary/80">
+                          <a href="{{ item.trip_url }}" class="booking-trip-link inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-primary transition-colors hover:text-primary/80" data-analytics-event="trip_detail_click" data-analytics-param-source="booking_success" data-analytics-param-trip-slug="{{ item.trip_slug }}" data-analytics-param-trip-title="{{ item.trip_title }}">
                             View trip
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-3.5 w-3.5">
                               <path stroke-linecap="round" stroke-linejoin="round" d="m9 5 7 7-7 7" />

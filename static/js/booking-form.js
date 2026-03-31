@@ -26,6 +26,14 @@
   const optionLabelTexts = root.querySelectorAll('[data-booking-option-label-text]');
   const optionContainers = Array.from(root.querySelectorAll('[data-booking-option]'));
   const optionInputs = Array.from(form.querySelectorAll('input[name="option"]'));
+  const trackEvent = (eventName, params = {}) => {
+    if (window.kayaAnalytics && typeof window.kayaAnalytics.track === 'function') {
+      window.kayaAnalytics.track(eventName, {
+        page_path: window.location.pathname,
+        ...params,
+      });
+    }
+  };
 
   function formatCurrency(amount) {
     return `${currencySymbol}${amount.toLocaleString(undefined, {
@@ -251,6 +259,33 @@
     input.addEventListener('change', recalculate);
   });
 
+  form.addEventListener('submit', (event) => {
+    const submitter = event.submitter instanceof HTMLElement ? event.submitter : null;
+    const action = submitter?.getAttribute('value') || '';
+    const tripSlug = form.dataset.tripSlug || '';
+    const tripTitle = form.dataset.tripTitle || '';
+
+    if (action === 'book_only') {
+      trackEvent('booking_request_submit', {
+        trip_slug: tripSlug,
+        trip_title: tripTitle,
+      });
+      trackEvent('generate_lead', {
+        lead_type: 'booking_request',
+        trip_slug: tripSlug,
+      });
+      return;
+    }
+
+    if (action === 'add_to_list') {
+      trackEvent('booking_list_add', {
+        trip_slug: tripSlug,
+        trip_title: tripTitle,
+        source: 'trip_detail_form',
+      });
+    }
+  });
+
   recalculate();
 })();
   
@@ -408,6 +443,11 @@
         if (isOpen) {
           closeSheet();
         } else {
+          trackEvent('booking_drawer_open', {
+            trip_slug: form.dataset.tripSlug || '',
+            trip_title: form.dataset.tripTitle || '',
+            open_source: button.dataset.analyticsArea || 'booking_drawer_trigger',
+          });
           openSheet();
         }
       });

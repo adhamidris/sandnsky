@@ -9,7 +9,7 @@
     <div class="trip-picks__track" data-trip-track>
       {% for trip in toggle.cards %}
       <article class="trip-picks__card{% if trip.is_package_trip %} trip-picks__card--package{% endif %}">
-        <a href="{% url 'web:trip-detail' trip.slug %}" class="trip-picks__link">
+        <a href="{% url 'web:trip-detail' trip.slug %}" class="trip-picks__link" data-analytics-event="trip_detail_click" data-analytics-param-source="trip_picks_card" data-analytics-param-trip-slug="{{ trip.slug }}" data-analytics-param-trip-title="{{ trip.title }}">
           <div class="trip-picks__media">
             <div class="trip-picks__media-inner">
               {% if trip.image_url %}
@@ -89,6 +89,10 @@
           <a
             href="{% url 'web:trip-detail' trip.slug %}"
             class="trip-picks__action-btn trip-picks__action-btn--primary"
+            data-analytics-event="trip_detail_click"
+            data-analytics-param-source="trip_picks_button"
+            data-analytics-param-trip-slug="{{ trip.slug }}"
+            data-analytics-param-trip-title="{{ trip.title }}"
           >
             View details
           </a>
@@ -97,6 +101,10 @@
             action="{% url 'web:booking-cart-quick-add' trip.slug %}"
             class="trip-picks__action-form"
             data-cart-toggle
+            data-cart-source="trip_picks"
+            data-analytics-param-trip-slug="{{ trip.slug }}"
+            data-analytics-param-trip-title="{{ trip.title }}"
+            data-analytics-param-trip-id="{{ trip.id }}"
           >
             {% csrf_token %}
             <input type="hidden" name="next" value="{{ current_path|default:request.get_full_path }}" />

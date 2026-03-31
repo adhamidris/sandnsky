@@ -9,6 +9,8 @@
   data-child-price="{{ pricing.child_price|floatformat:'-2' }}"
   data-selected-option="{{ pricing.selected_option_id|default_if_none:'' }}"
   data-currency-symbol="{{ pricing.currency_symbol }}"
+  data-trip-slug="{{ trip.slug }}"
+  data-trip-title="{{ trip.title }}"
 >
   {% csrf_token %}
   {% if form.non_field_errors %}
