@@ -289,10 +289,19 @@
   recalculate();
 })();
   
-  (function () {
+(function () {
     const container = document.querySelector('[data-mobile-sheet-container]') || null;
     const sheet = container ? container.querySelector('[data-mobile-sheet]') : document.querySelector('[data-mobile-sheet]');
     if (!sheet) return;
+    const form = sheet.querySelector('[data-module="booking-form"]');
+    const trackEvent = (eventName, params = {}) => {
+      if (window.kayaAnalytics && typeof window.kayaAnalytics.track === 'function') {
+        window.kayaAnalytics.track(eventName, {
+          page_path: window.location.pathname,
+          ...params,
+        });
+      }
+    };
   
     const overlay = container ? container.querySelector('[data-mobile-sheet-overlay]') : document.querySelector('[data-mobile-sheet-overlay]');
     const openButtons = document.querySelectorAll('[data-mobile-sheet-open]');
@@ -444,8 +453,8 @@
           closeSheet();
         } else {
           trackEvent('booking_drawer_open', {
-            trip_slug: form.dataset.tripSlug || '',
-            trip_title: form.dataset.tripTitle || '',
+            trip_slug: form?.dataset.tripSlug || '',
+            trip_title: form?.dataset.tripTitle || '',
             open_source: button.dataset.analyticsArea || 'booking_drawer_trigger',
           });
           openSheet();
