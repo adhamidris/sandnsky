@@ -281,7 +281,7 @@
       trackEvent('booking_list_add', {
         trip_slug: tripSlug,
         trip_title: tripTitle,
-        source: 'trip_detail_form',
+        ui_source: 'trip_detail_form',
       });
     }
   });

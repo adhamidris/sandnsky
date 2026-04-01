@@ -150,7 +150,7 @@
               toggleButton.getAttribute('data-cart-state') === 'added');
           trackEvent(isRemoval ? 'booking_list_remove' : 'booking_list_add', {
             ...buildParams(form),
-            source: form.dataset.cartSource || 'cart_toggle',
+            ui_source: form.dataset.cartSource || 'cart_toggle',
           });
         }
 

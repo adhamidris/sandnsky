@@ -120,7 +120,7 @@
                         <div class="booking-trip-meta-row">
                           <p class="booking-trip-subtitle text-sm text-muted-foreground">Trip date {{ item.travel_date_display }} · {{ item.traveler_summary }}</p>
                           {% if item.trip_url %}
-                          <a href="{{ item.trip_url }}" class="booking-trip-link inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-primary transition-colors hover:text-primary/80" data-analytics-event="trip_detail_click" data-analytics-param-source="booking_success" data-analytics-param-trip-slug="{{ item.trip_slug }}" data-analytics-param-trip-title="{{ item.trip_title }}">
+                          <a href="{{ item.trip_url }}" class="booking-trip-link inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-primary transition-colors hover:text-primary/80" data-analytics-event="trip_detail_click" data-analytics-param-ui-source="booking_success" data-analytics-param-trip-slug="{{ item.trip_slug }}" data-analytics-param-trip-title="{{ item.trip_title }}">
                             View trip
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-3.5 w-3.5">
                               <path stroke-linecap="round" stroke-linejoin="round" d="m9 5 7 7-7 7" />
