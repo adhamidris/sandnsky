@@ -191,6 +191,17 @@
     --border: rgba(255,255,255,.18);
     --accent: #eadcc2;
   }
+
+@supports (padding-top: env(safe-area-inset-top)) {
+  body {
+    padding-top: env(safe-area-inset-top);
+    background: var(--brand-navy);
+  }
+
+  .nav {
+    padding-top: env(safe-area-inset-top);
+  }
+}
 .nav.is-scrolled{
   background: var(--nav-bg);
   -webkit-backdrop-filter: saturate(120%) blur(var(--nav-blur));
