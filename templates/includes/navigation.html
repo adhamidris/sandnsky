@@ -1,6 +1,7 @@
 {# templates/includes/navigation.html (example path) #}
 {% load static %}
 <header class="nav" role="banner">
+  {% if travel_advisory_enabled %}
   <div class="travel-update-strip" role="note" aria-label="Travel update">
     <div class="container travel-update-strip__inner">
       <div class="travel-update-strip__copy">
@@ -20,6 +21,7 @@
       </div>
     </div>
   </div>
+  {% endif %}
   <div class="container row" role="navigation" aria-label="Primary">
     <!-- Mobile: menu toggle -->
     <button class="burger" type="button" aria-label="Open menu" aria-controls="mobile-nav" aria-expanded="false" data-nav-toggle>

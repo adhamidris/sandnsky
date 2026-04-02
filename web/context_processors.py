@@ -39,3 +39,13 @@ def analytics(request):
             settings, "GOOGLE_ANALYTICS_MEASUREMENT_ID", ""
         ),
     }
+
+
+def site_chrome(request):
+    advisory_enabled = getattr(settings, "TRAVEL_ADVISORY_ENABLED", False)
+    default_theme = getattr(settings, "DEFAULT_THEME_COLOR", "#1A2B4A")
+    advisory_theme = getattr(settings, "TRAVEL_ADVISORY_THEME_COLOR", "#F3E4C2")
+    return {
+        "travel_advisory_enabled": advisory_enabled,
+        "theme_color": advisory_theme if advisory_enabled else default_theme,
+    }

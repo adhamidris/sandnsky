@@ -45,6 +45,12 @@
     background:var(--bg);
     color:var(--text);
   }
+  body.has-travel-advisory-banner{
+    --page-chrome-bg:#f3e4c2;
+  }
+  body:not(.has-travel-advisory-banner){
+    --page-chrome-bg:var(--brand-navy);
+  }
   a{color:inherit}
   .container{max-width:1200px;margin:0 auto;padding:0 24px}
   
@@ -195,7 +201,7 @@
 @supports (padding-top: env(safe-area-inset-top)) {
   body {
     padding-top: env(safe-area-inset-top);
-    background: var(--brand-navy);
+    background: var(--page-chrome-bg, var(--brand-navy));
   }
 
   .nav {

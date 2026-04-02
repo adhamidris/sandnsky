@@ -4,7 +4,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#1A2B4A" />
+    <meta name="theme-color" content="{{ theme_color|default:'#1A2B4A' }}" />
     <link rel="icon" type="image/png" sizes="32x32" href="https://pub-739f112f96a4465eb68ff8cf7d27f657.r2.dev/logokaya.png">
     <title>{% block title %}Kaya Tours{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -34,7 +34,7 @@
     {% endif %}
     {% block head_extra %}{% endblock %}
   </head>
-  <body class="min-h-screen bg-background text-foreground {% block body_classes %}{% endblock %}">
+  <body class="min-h-screen bg-background text-foreground {% if travel_advisory_enabled %}has-travel-advisory-banner{% endif %} {% block body_classes %}{% endblock %}">
     {% include 'includes/navigation.html' %}
     <main class="min-h-screen">
       {% block content %}{% endblock %}

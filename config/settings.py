@@ -58,6 +58,13 @@ DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() in ("1","true","yes","on
 GOOGLE_ANALYTICS_MEASUREMENT_ID = (
     os.environ.get("GOOGLE_ANALYTICS_MEASUREMENT_ID", "G-2E792Q22CD").strip()
 )
+TRAVEL_ADVISORY_ENABLED = os.environ.get(
+    "TRAVEL_ADVISORY_ENABLED", "True"
+).lower() in ("1", "true", "yes", "on")
+DEFAULT_THEME_COLOR = os.environ.get("DEFAULT_THEME_COLOR", "#1A2B4A").strip() or "#1A2B4A"
+TRAVEL_ADVISORY_THEME_COLOR = (
+    os.environ.get("TRAVEL_ADVISORY_THEME_COLOR", "#F3E4C2").strip() or "#F3E4C2"
+)
 
 # ALLOWED_HOSTS: use env if non-empty, else safe defaults
 _raw_hosts = (os.environ.get("DJANGO_ALLOWED_HOSTS") or "").strip()
@@ -123,6 +130,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'web.context_processors.booking_cart',
                 'web.context_processors.analytics',
+                'web.context_processors.site_chrome',
             ],
             'libraries': {
                 'admin_metrics': 'web.templatetags.admin_metrics',
