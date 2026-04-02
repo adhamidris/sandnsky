@@ -1,6 +1,25 @@
 {# templates/includes/navigation.html (example path) #}
 {% load static %}
 <header class="nav" role="banner">
+  <div class="travel-update-strip" role="note" aria-label="Travel update">
+    <div class="container travel-update-strip__inner">
+      <div class="travel-update-strip__copy">
+        <span class="travel-update-strip__eyebrow">Middle East Travel Advisory</span>
+        <span class="travel-update-strip__eyebrow travel-update-strip__eyebrow--mobile">Travel Advisory</span>
+        <p>
+          <span class="travel-update-strip__desktop-copy">
+            Egypt’s main tourist destinations remain open, and official advisories distinguish Egypt from active conflict zones.
+          </span>
+          <span class="travel-update-strip__mobile-copy">
+            Egypt’s main tourist destinations remain open.
+          </span>
+          <a href="{% url 'web:travel-update' %}" class="travel-update-strip__inline-link">
+            See official guidance.
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
   <div class="container row" role="navigation" aria-label="Primary">
     <!-- Mobile: menu toggle -->
     <button class="burger" type="button" aria-label="Open menu" aria-controls="mobile-nav" aria-expanded="false" data-nav-toggle>

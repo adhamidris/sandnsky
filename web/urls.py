@@ -55,6 +55,11 @@ urlpatterns = [
         name="health-safety",
     ),
     path(
+        "travel-update/",
+        TemplateView.as_view(template_name="travel_update.html"),
+        name="travel-update",
+    ),
+    path(
         "contact/",
         TemplateView.as_view(template_name="contact.html"),
         name="contact",

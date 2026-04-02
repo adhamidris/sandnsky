@@ -1,0 +1,323 @@
+{% extends "base.html" %}
+
+{% block title %}Travel Update — Egypt & Regional Advisories | Kaya Tours{% endblock %}
+
+{% block head_extra %}
+  {{ block.super }}
+  <style>
+    .travel-update-page {
+      background:
+        radial-gradient(circle at top right, rgba(201, 169, 97, 0.16), transparent 30%),
+        linear-gradient(180deg, #f6f1e7 0%, #f9f5ee 100%);
+      color: #1f1b12;
+      min-height: 100%;
+    }
+    .travel-update-page__container {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: clamp(64px, 10vw, 120px) 24px 96px;
+      display: grid;
+      gap: 42px;
+    }
+    .travel-update-page__hero {
+      display: grid;
+      gap: 18px;
+      max-width: 760px;
+    }
+    .travel-update-page__eyebrow {
+      display: inline-flex;
+      align-items: center;
+      font: 700 11px/1 "Inter", system-ui, sans-serif;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: rgba(31, 27, 18, 0.55);
+    }
+    .travel-update-page__title {
+      margin: 0;
+      font-family: var(--font-heading, "Cormorant Garamond"), serif;
+      font-size: clamp(40px, 7vw, 72px);
+      line-height: 0.98;
+      letter-spacing: 0.01em;
+      text-transform: uppercase;
+    }
+    .travel-update-page__lede {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.75;
+      color: rgba(31, 27, 18, 0.74);
+      max-width: 64ch;
+    }
+    .travel-update-page__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 4px;
+    }
+    .travel-update-page__pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(31, 27, 18, 0.1);
+      background: rgba(255, 255, 255, 0.7);
+      font: 600 11px/1.2 "Inter", system-ui, sans-serif;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(31, 27, 18, 0.58);
+    }
+    .travel-update-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.95fr);
+      gap: 28px;
+      align-items: start;
+    }
+    .travel-update-card {
+      border-radius: 28px;
+      border: 1px solid rgba(31, 27, 18, 0.09);
+      background: rgba(255, 255, 255, 0.82);
+      box-shadow: 0 28px 60px rgba(26, 43, 74, 0.08);
+      overflow: hidden;
+    }
+    .travel-update-card__body {
+      padding: 28px;
+      display: grid;
+      gap: 24px;
+    }
+    .travel-update-card h2,
+    .travel-update-card h3 {
+      margin: 0;
+      font-family: var(--font-heading, "Cormorant Garamond"), serif;
+      font-size: clamp(26px, 4vw, 38px);
+      line-height: 1.05;
+    }
+    .travel-update-card h3 {
+      font-size: 24px;
+    }
+    .travel-update-card p,
+    .travel-update-card li {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.75;
+      color: rgba(31, 27, 18, 0.78);
+    }
+    .travel-update-list {
+      display: grid;
+      gap: 18px;
+      padding-left: 0;
+      margin: 0;
+      list-style: none;
+    }
+    .travel-update-list li {
+      padding-left: 0;
+    }
+    .travel-update-list strong {
+      display: inline;
+      color: #1f1b12;
+    }
+    .travel-source-list {
+      display: grid;
+      gap: 16px;
+    }
+    .travel-source-item {
+      border-radius: 22px;
+      border: 1px solid rgba(31, 27, 18, 0.09);
+      background: rgba(250, 245, 236, 0.92);
+      padding: 20px;
+      display: grid;
+      gap: 10px;
+    }
+    .travel-source-item__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .travel-source-item__label,
+    .travel-source-item__date {
+      font: 700 10px/1 "Inter", system-ui, sans-serif;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+    .travel-source-item__label {
+      color: #8a3d28;
+    }
+    .travel-source-item__date {
+      color: rgba(31, 27, 18, 0.44);
+    }
+    .travel-source-item h3 {
+      margin: 0;
+      font-family: "Inter", system-ui, sans-serif;
+      font-size: 17px;
+      line-height: 1.5;
+      text-transform: none;
+    }
+    .travel-source-item a {
+      color: #1a2b4a;
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .travel-source-item a:hover,
+    .travel-source-item a:focus-visible {
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+    .travel-update-note {
+      border-top: 1px solid rgba(31, 27, 18, 0.1);
+      padding-top: 16px;
+      font-size: 14px;
+      color: rgba(31, 27, 18, 0.62);
+    }
+    .travel-update-copy-block {
+      display: grid;
+      gap: 10px;
+    }
+    @media (max-width: 900px) {
+      .travel-update-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    @media (max-width: 640px) {
+      .travel-update-page__container {
+        padding: 56px 20px 80px;
+      }
+      .travel-update-card__body {
+        padding: 22px;
+      }
+      .travel-update-page__lede,
+      .travel-update-card p,
+      .travel-update-card li {
+        font-size: 15px;
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <section class="travel-update-page">
+    <div class="travel-update-page__container">
+      <header class="travel-update-page__hero">
+        <span class="travel-update-page__eyebrow">Current Travel Position</span>
+        <h1 class="travel-update-page__title">Egypt Travel Update</h1>
+        <p class="travel-update-page__lede">
+          As of 2 April 2026, official travel advisories continue to distinguish Egypt from the active regional war zone. Egypt’s major tourist routes remain open, while specific border and high-risk areas remain restricted under government advisories.
+        </p>
+        <div class="travel-update-page__meta">
+          <span class="travel-update-page__pill">Last reviewed: 2 April 2026</span>
+          <span class="travel-update-page__pill">Based on official government advisories</span>
+        </div>
+      </header>
+
+      <div class="travel-update-grid">
+        <article class="travel-update-card">
+          <div class="travel-update-card__body">
+            <div>
+              <h2>What this means for travellers</h2>
+            </div>
+
+            <ul class="travel-update-list">
+              <li>
+                <strong>Egypt is not being treated as an active war zone in current travel advisories.</strong> Advisories continue to issue country-specific guidance for Egypt rather than a blanket no-travel order for the country as a whole.
+              </li>
+              <li>
+                <strong>Main tourist destinations remain open.</strong> Current official advice continues to distinguish major travel areas from restricted zones such as North Sinai, remote border regions, and certain desert or military-sensitive areas.
+              </li>
+              <li>
+                <strong>Regional tension can still affect flights and border crossings.</strong> Travellers should continue to monitor airline schedules and official updates before departure.
+              </li>
+              <li>
+                <strong>Kaya travellers should still follow normal travel precautions.</strong> That includes checking the latest government advisory for your nationality before you travel.
+              </li>
+            </ul>
+
+            <div class="travel-update-copy-block">
+              <h3>Why we’re sharing this</h3>
+              <p>
+                We know some travellers may assume the whole region is affected in the same way. The official guidance does not say that. It separates Egypt’s main travel corridors from the specific areas where stronger restrictions apply.
+              </p>
+            </div>
+
+            <p class="travel-update-note">
+              This page is reviewed manually and should be checked again if official advisories change. It is meant as a travel-information summary, not a substitute for the latest government guidance for your passport country.
+            </p>
+          </div>
+        </article>
+
+        <aside class="travel-update-card">
+          <div class="travel-update-card__body">
+            <div>
+              <h2>Official travel sources</h2>
+              <p>These are the main references we recommend travellers check directly.</p>
+            </div>
+
+            <div class="travel-source-list">
+              <article class="travel-source-item">
+                <div class="travel-source-item__meta">
+                  <span class="travel-source-item__label">United States</span>
+                  <span class="travel-source-item__date">Current advisory: Level 2</span>
+                </div>
+                <h3>
+                  The U.S. State Department keeps Egypt at <strong>Level 2: Exercise Increased Caution</strong>, with stronger warnings limited to specific high-risk areas.
+                </h3>
+                <a href="https://travel.state.gov/content/travel/en/traveladvisories/traveladvisories/egypt-travel-advisory.html" target="_blank" rel="noopener">
+                  View U.S. advisory
+                </a>
+              </article>
+
+              <article class="travel-source-item">
+                <div class="travel-source-item__meta">
+                  <span class="travel-source-item__label">United Kingdom</span>
+                  <span class="travel-source-item__date">Still current: 2 April 2026</span>
+                </div>
+                <h3>
+                  The UK FCDO warns against travel to specific parts of Egypt, while explicitly listing permitted areas such as Luxor, Aswan, Abu Simbel, the Valley of the Kings, and Faiyum.
+                </h3>
+                <a href="https://www.gov.uk/foreign-travel-advice/egypt" target="_blank" rel="noopener">
+                  View UK guidance
+                </a>
+              </article>
+
+              <article class="travel-source-item">
+                <div class="travel-source-item__meta">
+                  <span class="travel-source-item__label">Canada</span>
+                  <span class="travel-source-item__date">Last updated: 30 March 2026</span>
+                </div>
+                <h3>
+                  Canada advises travellers to <strong>exercise a high degree of caution</strong> in Egypt overall, while applying stronger restrictions only to defined high-risk regions.
+                </h3>
+                <a href="https://travel.gc.ca/destinations/egypt%26lang%3Den" target="_blank" rel="noopener">
+                  View Canada guidance
+                </a>
+              </article>
+
+              <article class="travel-source-item">
+                <div class="travel-source-item__meta">
+                  <span class="travel-source-item__label">Australia</span>
+                  <span class="travel-source-item__date">Still current: 2 April 2026</span>
+                </div>
+                <h3>
+                  Australia states that Egypt’s airspace remains open, while noting that the wider conflict can still cause regional airspace closures, cancellations, and disruptions.
+                </h3>
+                <a href="https://www.smartraveller.gov.au/destinations/africa/egypt" target="_blank" rel="noopener">
+                  View Australia guidance
+                </a>
+              </article>
+
+              <article class="travel-source-item">
+                <div class="travel-source-item__meta">
+                  <span class="travel-source-item__label">Independent reporting</span>
+                  <span class="travel-source-item__date">AP report: 29 March 2026</span>
+                </div>
+                <h3>
+                  Associated Press reported that Egypt is not a party to the widening conflict, while still being affected by regional economic and travel disruption.
+                </h3>
+                <a href="https://apnews.com/article/us-war-israel-iran-middle-east-egypt-economy-oil-aa25e671bcb27bf03b401ae138f36dc9" target="_blank" rel="noopener">
+                  Read AP context
+                </a>
+              </article>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+{% endblock %}
